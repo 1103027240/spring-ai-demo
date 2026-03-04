@@ -37,7 +37,16 @@ public class TextSplitterController {
     @Operation(summary = "智能分割文本", description = "智能分割文本")
     @PostMapping("/intelligent")
     public void intelligentSplit(@RequestBody Map<String, Object> request) {
-        String text = (String) request.get("text");
+        String text = "# Markdown标题\n\n" +
+                "这是一段普通文本，包含一个HTML标签：<b>粗体文本</b>\n\n" +
+                "```java\n" +
+                "public class Example {\n" +
+                "    public static void main(String[] args) {\n" +
+                "        System.out.println(\"Hello World!\");\n" +
+                "    }\n" +
+                "}\n" +
+                "```\n\n" +
+                "还有一段JSON：{\"name\": \"test\", \"value\": 123}";
         Map<String, Object> metadata = (Map<String, Object>) request.get("metadata");
         List<Document> list = splitterService.intelligentSplit(text, metadata);
         log.info("返回结果: {}", JSONObject.toJSONString(list));

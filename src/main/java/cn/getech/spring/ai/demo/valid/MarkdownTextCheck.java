@@ -7,7 +7,7 @@ import java.util.Set;
  * Markdown检测器：用于检测文本是否为Markdown格式
  * @author 11030
  */
-public class MarkdownCheck {
+public class MarkdownTextCheck {
     private static final Set<String> MARKDOWN_MARKERS = Set.of(
             "# ", "## ", "### ", "#### ", "##### ", "###### ",
             "```", "* ", "- ", "1. ", "> ",

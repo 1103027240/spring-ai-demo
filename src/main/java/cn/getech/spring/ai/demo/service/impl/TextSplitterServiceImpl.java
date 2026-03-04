@@ -1,12 +1,14 @@
 package cn.getech.spring.ai.demo.service.impl;
 
 import cn.getech.spring.ai.demo.dto.TextAnalysisDto;
+import cn.getech.spring.ai.demo.dto.TextSegmentDto;
 import cn.getech.spring.ai.demo.enums.SplitterTypeEnum;
 import cn.getech.spring.ai.demo.factory.TextSplitterFactory;
 import cn.getech.spring.ai.demo.service.TextSplitterService;
-import cn.getech.spring.ai.demo.valid.CodeCheck;
-import cn.getech.spring.ai.demo.valid.HtmlCheck;
-import cn.getech.spring.ai.demo.valid.MarkdownCheck;
+import cn.getech.spring.ai.demo.valid.CodeTextCheck;
+import cn.getech.spring.ai.demo.valid.DetectTextSegmentCheck;
+import cn.getech.spring.ai.demo.valid.HtmlTextCheck;
+import cn.getech.spring.ai.demo.valid.MarkdownTextCheck;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -58,7 +60,7 @@ public class TextSplitterServiceImpl implements TextSplitterService {
     }
 
     /**
-     * 智能分割文本：自动选择最合适的分割器
+     * 智能分割文本：对不同类型的分段使用对应的分割器
      */
     @Override
     public List<Document> intelligentSplit(String text, Map<String, Object> metadata) {
@@ -67,13 +69,42 @@ public class TextSplitterServiceImpl implements TextSplitterService {
         }
 
         try {
-            TextAnalysisDto analysis = analyzeText(text);
-            String algorithm = selectSplitterByAnalysis(analysis);
-            TextSplitter splitter = textSplitterFactory.getTextSplitterOrDefault(algorithm);
+            // 检测文本分段
+            List<TextSegmentDto> segments = DetectTextSegmentCheck.detectTextSegments(text);
+            List<Document> allDocuments = new ArrayList<>();
+            long timestamp = System.currentTimeMillis();
 
-            Document inputDoc = createDocument(text, metadata);
-            List<Document> documents = splitDocument(splitter, inputDoc);
-            return enrichDocuments(documents, analysis, algorithm);
+            // 对每个分段使用对应的分割器
+            for (int i = 0; i < segments.size(); i++) {
+                TextSegmentDto segment = segments.get(i);
+                String segmentType = segment.getType();
+                String segmentText = segment.getText();
+
+                // 根据分段类型选择分割器
+                String algorithm = selectSplitterByType(segmentType);
+                TextSplitter splitter = textSplitterFactory.getTextSplitterOrDefault(algorithm);
+
+                // 分割当前分段
+                Document segmentDoc = createDocument(segmentText, metadata);
+                List<Document> segmentDocuments = splitDocument(splitter, segmentDoc);
+
+                // 丰富元数据
+                int finalI = i;
+                List<Document> enrichedDocuments = segmentDocuments.stream().map(doc -> {
+                    Map<String, Object> docMetadata = new HashMap<>(doc.getMetadata());
+                    docMetadata.put("splitAlgorithm", algorithm);
+                    docMetadata.put("segmentType", segmentType);
+                    docMetadata.put("segmentIndex", finalI);
+                    docMetadata.put("totalSegments", segments.size());
+                    docMetadata.put("chunkSize", doc.getText().length());
+                    docMetadata.put("timestamp", timestamp);
+                    return new Document(doc.getText(), docMetadata);
+                }).collect(Collectors.toList());
+
+                allDocuments.addAll(enrichedDocuments);
+            }
+
+            return allDocuments;
         } catch (Exception e) {
             log.error("Error during intelligent split: {}", e.getMessage(), e);
             return Collections.singletonList(createDocument(text, metadata));
@@ -225,19 +256,45 @@ public class TextSplitterServiceImpl implements TextSplitterService {
             return "plain";
         }
         String trimmed = text.trim();
-        if (MarkdownCheck.isMarkdown(trimmed)) {
+        if (MarkdownTextCheck.isMarkdown(trimmed)) {
             return "markdown";
         }
-        if (HtmlCheck.isHtml(trimmed)) {
+        if (HtmlTextCheck.isHtml(trimmed)) {
             return "html";
         }
         if (JSONUtil.isTypeJSON(trimmed)) {
             return "json";
         }
-        if (CodeCheck.isCode(trimmed)) {
+        if (CodeTextCheck.isCode(trimmed)) {
             return "code";
         }
         return "plain";
+    }
+
+    /**
+     * 根据文本类型选择分割器
+     */
+    private String selectSplitterByType(String type) {
+        switch (type) {
+            case "json":
+                return "json";
+            case "html":
+                return "html";
+            case "code":
+                return "code";
+            case "markdown":
+                return "markdown";
+            case "chinese":
+                return "chinese";
+            case "paragraph":
+                return "paragraph";
+            case "sentence":
+                return "sentence";
+            case "character":
+                return "character";
+            default:
+                return defaultStrategy;
+        }
     }
 
 }

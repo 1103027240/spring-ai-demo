@@ -119,6 +119,14 @@ public class TextSplitterUtils {
             return Collections.emptyList();
         }
 
+        // 参数验证
+        if (chunkSize <= 0) {
+            return Collections.singletonList(text);
+        }
+
+        // 确保 chunkOverlap 为非负数且小于 chunkSize
+        chunkOverlap = Math.max(0, Math.min(chunkOverlap, chunkSize - 1));
+
         List<String> chunks = new ArrayList<>();
         int start = 0;
         int end;
@@ -147,7 +155,13 @@ public class TextSplitterUtils {
             }
 
             chunks.add(text.substring(start, end));
-            start = end - chunkOverlap;
+            // 确保 start 向前移动，避免死循环
+            int nextStart = Math.max(0, end - chunkOverlap);
+            // 如果 start 没有前进，强制前进至少 1 个字符
+            if (nextStart <= start) {
+                nextStart = start + 1;
+            }
+            start = nextStart;
         }
 
         return chunks;
@@ -218,6 +232,8 @@ public class TextSplitterUtils {
             }
 
             return applyOverlap(chunks, chunkOverlap);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         } finally {
             releaseStringBuilder(currentChunk);
         }
@@ -317,6 +333,8 @@ public class TextSplitterUtils {
 
             // 应用重叠策略
             return applyOverlap(chunks, chunkOverlap);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         } finally {
             releaseStringBuilder(currentChunk);
         }

@@ -7,7 +7,7 @@ import java.util.Set;
  * 代码检测器：用于检测文本是否为代码格式
  * @author 11030
  */
-public class CodeCheck {
+public class CodeTextCheck {
     private static final Set<String> JAVA_MARKERS = Set.of(
             "public class", "package ", "import ", "public static",
             "int ", "String ", "System.out.println");

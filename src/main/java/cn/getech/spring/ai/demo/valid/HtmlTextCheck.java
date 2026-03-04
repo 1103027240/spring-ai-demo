@@ -7,7 +7,7 @@ import java.util.Set;
  * HTML检测器：用于检测文本是否为HTML格式
  * @author 11030
  */
-public class HtmlCheck {
+public class HtmlTextCheck {
     private static final Set<String> COMMON_HTML_TAGS = Set.of(
             "<html", "<head", "<body", "<div", "<p>", "<span", "<h1", "<h2", "<h3",
             "<h4", "<h5", "<h6", "<ul", "<ol", "<li", "<table", "<tr", "<td",
