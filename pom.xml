@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.10</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>cn.getech</groupId>
+    <artifactId>spring-ai-demo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>spring-ai-demo</name>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <spring-ai.version>1.1.2</spring-ai.version>
+        <spring-ai-alibaba.version>1.1.2.0</spring-ai-alibaba.version>
+        <milvus-sdk.version>2.6.12</milvus-sdk.version>
+        <knife4j.version>4.5.0</knife4j.version>
+        <jackson.version>2.15.2</jackson.version>
+        <lombok.version>1.18.30</lombok.version>
+        <hutool.version>5.8.40</hutool.version>
+    </properties>
+
+    <repositories>
+        <!-- Maven Central -->
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <!-- Spring Milestone -->
+        <repository>
+            <id>spring-milestone</id>
+            <name>Spring Milestone</name>
+            <url>https://repo.spring.io/milestone</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <!-- 阿里云Maven仓库 -->
+        <repository>
+            <id>aliyunmaven</id>
+            <name>阿里云公共仓库</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <!-- 阿里云Maven插件仓库 -->
+        <pluginRepository>
+            <id>aliyunmaven</id>
+            <name>阿里云公共仓库</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring AI BOM -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring AI Alibaba BOM -->
+            <dependency>
+                <groupId>com.alibaba.cloud.ai</groupId>
+                <artifactId>spring-ai-alibaba-bom</artifactId>
+                <version>${spring-ai-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- 核心Web Starter依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <!-- 排除Tomcat服务器 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- 使用Undertow服务器 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-undertow</artifactId>
+        </dependency>
+
+        <!--  Redis，版本8.2.4 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- Spring AI Alibaba -->
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
+            <version>${spring-ai-alibaba.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-agent-framework</artifactId>
+            <version>${spring-ai-alibaba.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-starter-memory-redis</artifactId>
+            <version>${spring-ai-alibaba.version}</version>
+        </dependency>
+
+        <!-- Spring AI 公共模块（替代spring-ai-core） -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-commons</artifactId>
+        </dependency>
+
+        <!-- 添加转换器依赖（包含文本分割器） -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-transformers</artifactId>
+            <version>${spring-ai.version}</version>
+        </dependency>
+
+        <!-- 配置属性提示和自动补全 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Milvus向量库依赖，版本2.6.11 -->
+        <dependency>
+            <groupId>io.milvus</groupId>
+            <artifactId>milvus-sdk-java</artifactId>
+            <version>${milvus-sdk.version}</version>
+        </dependency>
+
+        <!-- Spring AI Milvus VectorStore -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-vector-store-milvus</artifactId>
+        </dependency>
+
+        <!-- Knife4j Swagger增强 -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+            <version>${knife4j.version}</version>
+        </dependency>
+
+        <!-- Jackson YAML处理依赖 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- Lombok依赖 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- hutool -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>${hutool.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>app</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
