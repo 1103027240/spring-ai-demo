@@ -35,21 +35,4 @@ public interface TextSplitterService {
      */
     Map<String, List<Document>> batchSplit(Map<String, String> texts, String algorithm);
 
-    /**
-     * 分割文本并返回统计信息
-     * @param text 待分割文本
-     * @param algorithm 分割算法
-     * @param metadata 元数据
-     * @return 分割结果和统计信息
-     */
-    Map<String, Object> splitWithStats(String text, String algorithm, Map<String, Object> metadata);
-
-    /**
-     * 智能分割文本并返回统计信息
-     * @param text 待分割文本
-     * @param metadata 元数据
-     * @return 分割结果和统计信息
-     */
-    Map<String, Object> intelligentSplitWithStats(String text, Map<String, Object> metadata);
-
 }

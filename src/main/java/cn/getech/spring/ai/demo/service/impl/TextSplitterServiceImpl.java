@@ -102,34 +102,6 @@ public class TextSplitterServiceImpl implements TextSplitterService {
     }
 
     /**
-     * 分割文本并返回统计信息
-     */
-    @Override
-    public Map<String, Object> splitWithStats(String text, String algorithm, Map<String, Object> metadata) {
-        long startTime = System.currentTimeMillis();
-        List<Document> documents = split(text, algorithm, metadata);
-        Map<String, Object> stats = analyzeSplitResults(documents);
-        stats.put("documents", documents);
-        stats.put("executionTime", System.currentTimeMillis() - startTime);
-        stats.put("algorithm", algorithm);
-        return stats;
-    }
-
-    /**
-     * 智能分割文本并返回统计信息
-     */
-    @Override
-    public Map<String, Object> intelligentSplitWithStats(String text, Map<String, Object> metadata) {
-        long startTime = System.currentTimeMillis();
-        List<Document> documents = intelligentSplit(text, metadata);
-        Map<String, Object> stats = analyzeSplitResults(documents);
-        stats.put("documents", documents);
-        stats.put("executionTime", System.currentTimeMillis() - startTime);
-        stats.put("algorithm", "intelligent");
-        return stats;
-    }
-
-    /**
      * 分析文本特征
      */
     private TextAnalysisDto analyzeText(String text) {

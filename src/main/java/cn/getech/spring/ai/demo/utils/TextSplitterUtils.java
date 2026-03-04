@@ -36,81 +36,6 @@ public class TextSplitterUtils {
         }
     }
 
-    /**
-     * 自定义递归字符分割
-     * @param text 待分割文本
-     * @param chunkSize 块大小
-     * @param chunkOverlap 块重叠量
-     * @param separators 多级分隔符列表
-     * @return 分割后的文本块列表
-     */
-    public static List<String> splitRecursiveCharacter(String text, int chunkSize, int chunkOverlap, List<String> separators, boolean preserveWords) {
-        if (StrUtil.isBlank(text)) {
-            return Collections.emptyList();
-        }
-
-        // 如果文本长度小于块大小，直接返回
-        if (text.length() <= chunkSize) {
-            return List.of(text);
-        }
-
-        // 尝试使用各级分隔符
-        for (String separator : separators) {
-            if (StrUtil.isBlank(separator)) {
-                // 最后使用字符级分割
-                return splitByCharacterCount(text, chunkSize, chunkOverlap, preserveWords);
-            }
-
-            List<String> parts = Arrays.stream(text.split(separator))
-                    .map(String::trim)
-                    .filter(StringUtils::hasText)
-                    .collect(Collectors.toList());
-
-            if (parts.size() > 1) {
-                List<String> chunks = new ArrayList<>();
-                StringBuilder currentChunk = acquireStringBuilder();
-
-                try {
-                    for (String part : parts) {
-                        if (currentChunk.length() + part.length() + separator.length() > chunkSize) {
-                            if (currentChunk.length() > 0) {
-                                chunks.add(currentChunk.toString());
-                                currentChunk.setLength(0);
-                            }
-                        }
-                        if (currentChunk.length() > 0) {
-                            currentChunk.append(separator);
-                        }
-                        currentChunk.append(part);
-                    }
-
-                    if (currentChunk.length() > 0) {
-                        chunks.add(currentChunk.toString());
-                    }
-
-                    // 检查是否所有块都符合大小要求
-                    boolean allValid = chunks.stream().allMatch(chunk -> chunk.length() <= chunkSize);
-                    if (allValid) {
-                        return applyOverlap(chunks, chunkOverlap);
-                    }
-                } finally {
-                    releaseStringBuilder(currentChunk);
-                }
-            }
-        }
-
-        // 默认使用字符级分割
-        return splitByCharacterCount(text, chunkSize, chunkOverlap, preserveWords);
-    }
-
-    /**
-     * 段落分割（按自然段落分割）
-     * @param text 待分割文本
-     * @param pattern 分割正则
-     * @param chunkSize 块大小
-     * @param chunkOverlap 块重叠量
-     * @return 段落块列表
-     */
     public static List<String> splitParagraph(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
         if (StrUtil.isBlank(text)) {
             return Collections.emptyList();
@@ -133,7 +58,9 @@ public class TextSplitterUtils {
                 // 检查当前块大小
                 if (currentChunk.length() + section.length() > chunkSize) {
                     if (currentChunk.length() > 0) {
-                        chunks.add(currentChunk.toString());
+                        // 移除末尾可能的多余换行符
+                        String chunkText = currentChunk.toString().replaceAll("\\n+$", "\n");
+                        chunks.add(chunkText);
                         currentChunk.setLength(0);
                     }
                 }
@@ -143,7 +70,9 @@ public class TextSplitterUtils {
 
             // 添加最后一个块
             if (currentChunk.length() > 0) {
-                chunks.add(currentChunk.toString());
+                // 移除末尾可能的多余换行符
+                String chunkText = currentChunk.toString().replaceAll("\\n+$", "\n");
+                chunks.add(chunkText);
             }
 
             return applyOverlap(chunks, chunkOverlap);
@@ -169,21 +98,26 @@ public class TextSplitterUtils {
         int start = 0;
         int end;
 
+        // 定义更多的单词边界字符
+        char[] wordBoundaries = {' ', '.', ',', ';', '!', '?', '。', '，', '；', '！', '？'};
+
         while (start < text.length()) {
             end = Math.min(start + chunkSize, text.length());
 
             // 如果需要保持单词完整，并且不是文本末尾
             if (preserveWords && end < text.length()) {
                 // 查找最近的单词边界
-                int lastSpace = text.lastIndexOf(' ', end);
-                int lastPunct = text.lastIndexOf('.', end);
-                int lastComma = text.lastIndexOf(',', end);
+                int latestBoundary = -1;
+                for (char boundary : wordBoundaries) {
+                    int pos = text.lastIndexOf(boundary, end);
+                    if (pos > latestBoundary) {
+                        latestBoundary = pos;
+                    }
+                }
 
                 // 选择最近的边界
-                int boundary = Math.max(Math.max(lastSpace, lastPunct), lastComma);
-
-                if (boundary > start + chunkSize * 0.8) { // 确保不会分割过小
-                    end = boundary + 1;
+                if (latestBoundary > start + chunkSize * 0.8) { // 确保不会分割过小
+                    end = latestBoundary + 1;
                 }
             }
 
@@ -195,101 +129,6 @@ public class TextSplitterUtils {
     }
 
     /**
-     * Markdown 分割（保持结构完整）
-     * @param text 待分割 Markdown 文本
-     * @param pattern 分割正则
-     * @param chunkSize 块大小
-     * @param chunkOverlap 块重叠量
-     * @return Markdown 块列表
-     */
-    public static List<String> splitMarkdown(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
-        if (StrUtil.isBlank(text)) {
-            return Collections.emptyList();
-        }
-
-        // 按标题分割
-        List<String> sections = Arrays.stream(pattern.split(text))
-                .map(String::trim)
-                .filter(StringUtils::hasText)
-                .collect(Collectors.toList());
-
-        List<String> chunks = new ArrayList<>();
-        StringBuilder currentChunk = acquireStringBuilder();
-
-        try {
-            for (String section : sections) {
-                // 检查当前块大小
-                if (currentChunk.length() + section.length() > chunkSize) {
-                    if (currentChunk.length() > 0) {
-                        chunks.add(currentChunk.toString());
-                        currentChunk.setLength(0);
-                    }
-                }
-                // 添加当前部分，保持Markdown格式
-                currentChunk.append(section).append("\n\n");
-            }
-
-            // 添加最后一个块
-            if (currentChunk.length() > 0) {
-                chunks.add(currentChunk.toString());
-            }
-
-            return applyOverlap(chunks, chunkOverlap);
-        } finally {
-            releaseStringBuilder(currentChunk);
-        }
-    }
-
-    /**
-     * HTML 分割（没有保持结构完整）
-     * @param text 待分割 HTML 文本
-     * @param pattern 分割正则
-     * @param chunkSize 块大小
-     * @param chunkOverlap 块重叠量
-     * @return HTML 块列表
-     */
-    public static List<String> splitHtml(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
-        if (StrUtil.isBlank(text)) {
-            return Collections.emptyList();
-        }
-
-        // 预处理：移除多余空白，保持HTML结构
-        text = text.replaceAll("\\s+", " ").trim();
-
-        // 按标签分割
-        List<String> sections = Arrays.stream(pattern.split(text))
-                .map(String::trim)
-                .filter(StringUtils::hasText)
-                .collect(Collectors.toList());
-
-        List<String> chunks = new ArrayList<>();
-        StringBuilder currentChunk = acquireStringBuilder();
-
-        try {
-            for (String section : sections) {
-                // 检查当前块大小
-                if (currentChunk.length() + section.length() > chunkSize) {
-                    if (currentChunk.length() > 0) {
-                        chunks.add(currentChunk.toString());
-                        currentChunk.setLength(0);
-                    }
-                }
-                // 添加当前部分，保持HTML格式
-                currentChunk.append(section).append(" ");
-            }
-
-            // 添加最后一个块
-            if (currentChunk.length() > 0) {
-                chunks.add(currentChunk.toString());
-            }
-
-            return applyOverlap(chunks, chunkOverlap);
-        } finally {
-            releaseStringBuilder(currentChunk);
-        }
-    }
-
-    /**
      * HTML 分割（保持结构完整）
      * @param text 待分割 HTML 文本
      * @param pattern 分割正则
@@ -297,7 +136,7 @@ public class TextSplitterUtils {
      * @param chunkOverlap 块重叠量
      * @return HTML 块列表
      */
-    public static List<String> splitHtmlWithStructure(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
+    public static List<String> splitHtml(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
         if (StrUtil.isBlank(text)) {
             return Collections.emptyList();
         }
@@ -348,7 +187,106 @@ public class TextSplitterUtils {
     }
 
     /**
-     * 增强版 JSON 分割（保持结构完整）
+     * Markdown 分割（没有保持结构完整）
+     * @param text 待分割 Markdown 文本
+     * @param pattern 分割正则
+     * @param chunkSize 块大小
+     * @param chunkOverlap 块重叠量
+     * @return Markdown 块列表
+     */
+    public static List<String> splitMarkdown(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
+        if (StrUtil.isBlank(text)) {
+            return Collections.emptyList();
+        }
+
+        // 按标题分割
+        List<String> sections = Arrays.stream(pattern.split(text))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.toList());
+
+        List<String> chunks = new ArrayList<>();
+        StringBuilder currentChunk = acquireStringBuilder();
+
+        try {
+            for (String section : sections) {
+                // 检查当前块大小
+                if (currentChunk.length() + section.length() > chunkSize) {
+                    if (currentChunk.length() > 0) {
+                        // 移除末尾可能的多余换行符
+                        String chunkText = currentChunk.toString().replaceAll("\\n+$", "\n");
+                        chunks.add(chunkText);
+                        currentChunk.setLength(0);
+                    }
+                }
+                // 添加当前部分，保持Markdown格式
+                currentChunk.append(section).append("\n\n");
+            }
+
+            // 添加最后一个块
+            if (currentChunk.length() > 0) {
+                // 移除末尾可能的多余换行符
+                String chunkText = currentChunk.toString().replaceAll("\\n+$", "\n");
+                chunks.add(chunkText);
+            }
+
+            return applyOverlap(chunks, chunkOverlap);
+        } finally {
+            releaseStringBuilder(currentChunk);
+        }
+    }
+
+    /**
+     * HTML 分割（没有保持结构完整）
+     * @param text 待分割 HTML 文本
+     * @param pattern 分割正则
+     * @param chunkSize 块大小
+     * @param chunkOverlap 块重叠量
+     * @return HTML 块列表
+     */
+    public static List<String> splitHtmlWithNoStructure(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
+        if (StrUtil.isBlank(text)) {
+            return Collections.emptyList();
+        }
+
+        // 预处理：移除多余空白，保持HTML结构
+        text = text.replaceAll("\\s+", " ").trim();
+
+        // 按标签分割
+        List<String> sections = Arrays.stream(pattern.split(text))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.toList());
+
+        List<String> chunks = new ArrayList<>();
+        StringBuilder currentChunk = acquireStringBuilder();
+
+        try {
+            for (String section : sections) {
+                // 检查当前块大小
+                if (currentChunk.length() + section.length() > chunkSize) {
+                    if (currentChunk.length() > 0) {
+                        chunks.add(currentChunk.toString());
+                        currentChunk.setLength(0);
+                    }
+                }
+                // 添加当前部分，保持HTML格式
+                currentChunk.append(section).append(" ");
+            }
+
+            // 添加最后一个块
+            if (currentChunk.length() > 0) {
+                chunks.add(currentChunk.toString());
+            }
+
+            return applyOverlap(chunks, chunkOverlap);
+        } finally {
+            releaseStringBuilder(currentChunk);
+        }
+    }
+
+    /**
+     * JSON 分割（保持结构完整）
      * @param text 待分割 JSON 文本
      * @param pattern 分割正则
      * @return JSON 块列表
@@ -363,18 +301,43 @@ public class TextSplitterUtils {
             return List.of(text);
         }
 
+        // 按对象和数组边界分割
+        List<String> sections = Arrays.stream(pattern.split(text))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.toList());
+
+        return sections;
+    }
+
+    /**
+     * JSON 分割（保持结构完整）
+     * @param text 待分割 JSON 文本
+     * @param pattern 分割正则
+     * @param chunkSize 块大小
+     * @param chunkOverlap 块重叠量
+     * @return JSON 块列表
+     */
+    public static List<String> splitJsonWithChunk(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
+        if (StrUtil.isBlank(text)) {
+            return Collections.emptyList();
+        }
+
+        // 验证JSON格式
+        if (!JSONUtil.isTypeJSON(text)) {
+            return List.of(text);
+        }
+
         List<String> chunks = new ArrayList<>();
         StringBuilder currentChunk = acquireStringBuilder();
         int currentLength = 0;
-        final int JSON_CHUNK_SIZE = 1500;
-        final int JSON_CHUNK_OVERLAP = 200;
 
         try {
             // 按对象和数组边界分割
             for (String part : pattern.split(text)) {
                 int partLength = part.length();
 
-                if (currentLength + partLength <= JSON_CHUNK_SIZE) {
+                if (currentLength + partLength <= chunkSize) {
                     currentChunk.append(part);
                     currentLength += partLength;
                 } else {
@@ -384,9 +347,9 @@ public class TextSplitterUtils {
                         currentLength = 0;
                     }
 
-                    if (partLength > JSON_CHUNK_SIZE) {
+                    if (partLength > chunkSize) {
                         // 对大块JSON进行进一步分割
-                        chunks.addAll(splitByCharacterCount(part, JSON_CHUNK_SIZE, JSON_CHUNK_OVERLAP, true));
+                        chunks.addAll(splitByCharacterCount(part, chunkSize, chunkOverlap, true));
                     } else {
                         currentChunk.append(part);
                         currentLength = partLength;
@@ -398,7 +361,8 @@ public class TextSplitterUtils {
                 chunks.add(currentChunk.toString());
             }
 
-            return chunks;
+            // 应用重叠策略
+            return applyOverlap(chunks, chunkOverlap);
         } finally {
             releaseStringBuilder(currentChunk);
         }
@@ -416,9 +380,6 @@ public class TextSplitterUtils {
         if (StrUtil.isBlank(text)) {
             return Collections.emptyList();
         }
-
-        // 预处理：移除多余空白，保持中文文本结构
-        text = text.replaceAll("\\s+", " ").trim();
 
         // 按中文标点分割
         List<String> sections = Arrays.stream(pattern.split(text))
@@ -439,7 +400,10 @@ public class TextSplitterUtils {
                     }
                 }
                 // 添加当前部分，保持中文文本格式
-                currentChunk.append(section).append(" ");
+                if (currentChunk.length() > 0 && !currentChunk.toString().endsWith(" ")) {
+                    currentChunk.append(" ");
+                }
+                currentChunk.append(section);
             }
 
             // 添加最后一个块
@@ -468,7 +432,6 @@ public class TextSplitterUtils {
 
         // 按代码结构边界分割
         List<String> sections = Arrays.stream(pattern.split(text))
-                .map(String::trim)
                 .filter(StringUtils::hasText)
                 .collect(Collectors.toList());
 
@@ -484,8 +447,8 @@ public class TextSplitterUtils {
                         currentChunk.setLength(0);
                     }
                 }
-                // 添加当前部分，保持代码格式
-                currentChunk.append(section).append("\n\n");
+                // 添加当前部分，保持原始代码格式
+                currentChunk.append(section);
             }
 
             // 添加最后一个块
@@ -503,11 +466,10 @@ public class TextSplitterUtils {
      * 应用重叠策略（修正：正确处理重叠部分）
      */
     private static List<String> applyOverlap(List<String> chunks, int overlap) {
-        if (overlap <= 0 || chunks.size() <= 1) {
-            return chunks;
-        }
-
         List<String> overlappedChunks = new ArrayList<>(chunks.size());
+        if (overlap <= 0 || chunks.size() <= 1) {
+            return overlappedChunks;
+        }
 
         // 第一块保持不变
         overlappedChunks.add(chunks.get(0));
@@ -526,7 +488,6 @@ public class TextSplitterUtils {
                 overlappedChunks.add(prev + curr);
             }
         }
-
         return overlappedChunks;
     }
 

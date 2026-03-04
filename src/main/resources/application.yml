@@ -161,17 +161,17 @@ rag:
       preserve-words: true       # 是否尽量保持单词完整
     # Markdown 分割配置
     markdown:
-      pattern: '(?=^#{1,6}\\s)|(?=^.+\\n=+)|(?=^.+\\n-+)'  # Markdown 匹配正则
+      pattern: '(?=^#{1,6}\s)|(?=^.+\n=+)|(?=^.+\n-+)|(?=^```)|(?=^>)|(?=^\d+\.)|(?=^\-)|(?=^\*)'  # Markdown 匹配正则
       chunk-size: 1000           # 块大小
       chunk-overlap: 200         # 块重叠量
     # HTML 分割配置
     html:
-      pattern: '(?=<(?!\\!)[^>]+>)|(?<=>)'  # HTML 匹配正则，排除注释标签
+      pattern: '(?=<(?!\!|\/)[^>]+>)|(?<=>)|(?=<!$$CDATA\[)|(?<=$$\]>)'  # HTML 匹配正则，排除注释标签
       chunk-size: 1200           # 块大小
       chunk-overlap: 250         # 块重叠量
     # JSON 分割配置
     json:
-      pattern: "(?=\\{|\\[)|(?<=\\}|\\])"  # JSON 匹配正则，同时匹配对象和数组边界
+      pattern: '(?=\{|$$)|(?<=\}|$$)'  # JSON 匹配正则，同时匹配对象和数组边界
     # 中文分割配置
     chinese:
       pattern: '(?<=[。！？；：])|(?<=[，])(?=\\s)'
