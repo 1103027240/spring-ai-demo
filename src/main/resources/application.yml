@@ -131,7 +131,20 @@ rag:
       keep-separator: true       # 是否保留分隔符
     # 递归字符分割配置
     recursive:
-      pattern: "\n\n", "\n", ". ", "。", "! ", "！", "? ", "？", "; ", ", ", "，", " ", ""  # 分隔符数组（按优先级）
+      pattern: 
+        - "\n\n"
+        - "\n"
+        - ". "
+        - "。"
+        - "! "
+        - "！"
+        - "? "
+        - "？"
+        - "; "
+        - ", "
+        - "，"
+        - " "
+        - ""
       chunk-size: 1000           # 块大小
     # 句子分割配置
     sentence:
@@ -148,25 +161,25 @@ rag:
       preserve-words: true       # 是否尽量保持单词完整
     # Markdown 分割配置
     markdown:
-      pattern: "(?=^#{1,6}\\s)|(?=^.+\\n=+)|(?=^.+\\n-+)"  # Markdown 匹配正则
+      pattern: '(?=^#{1,6}\\s)|(?=^.+\\n=+)|(?=^.+\\n-+)'  # Markdown 匹配正则
       chunk-size: 1000           # 块大小
       chunk-overlap: 200         # 块重叠量
     # HTML 分割配置
     html:
-      pattern: "(?=<(?!\\!)[^>]+>)|(?<=>)"  # HTML 匹配正则，排除注释标签
+      pattern: '(?=<(?!\\!)[^>]+>)|(?<=>)'  # HTML 匹配正则，排除注释标签
       chunk-size: 1200           # 块大小
       chunk-overlap: 250         # 块重叠量
     # JSON 分割配置
     json:
-      pattern: "(?=\\{|\$$)|(?<=\\}|\$$)"  # JSON 匹配正则，同时匹配对象和数组边界
+      pattern: "(?=\\{|\\[)|(?<=\\}|\\])"  # JSON 匹配正则，同时匹配对象和数组边界
     # 中文分割配置
     chinese:
-      pattern: "(?<=[。！？；：])|(?<=[，])(?=\\s)"
+      pattern: '(?<=[。！？；：])|(?<=[，])(?=\\s)'
       chunk-size: 1000           # 块大小
       chunk-overlap: 200         # 块重叠量
     # 代码分割配置
     code:
-      pattern: "(?=\\n\\s*def\\s)|(?=\\n\\s*class\\s)|(?=\\n\\s*function\\s)|(?=\\n\\s*const\\s\\w+\\s*=)|(?=\\n\\s*let\\s\\w+\\s*=)|(?=\\n\\s*var\\s\\w+\\s*=)|(?=\\n\\s*public\\s+\\w+\\s+\\w+\\s*\\()|(?=\\n\\s*private\\s+\\w+\\s+\\w+\\s*\\()|(?=\\n\\s*protected\\s+\\w+\\s+\\w+\\s*\\()"
+      pattern: '(?=\\n\\s*def\\s)|(?=\\n\\s*class\\s)|(?=\\n\\s*function\\s)|(?=\\n\\s*const\\s\\w+\\s*=)|(?=\\n\\s*let\\s\\w+\\s*=)|(?=\\n\\s*var\\s\\w+\\s*=)|(?=\\n\\s*public\\s+\\w+\\s+\\w+\\s*\\())|(?=\\n\\s*private\\s+\\w+\\s+\\w+\\s*\\())|(?=\\n\\s*protected\\s+\\w+\\s+\\w+\\s*\\())'
       chunk-size: 1500           # 块大小
       chunk-overlap: 300         # 块重叠量
 

@@ -5,10 +5,11 @@ import cn.getech.spring.ai.demo.utils.TextSplitterUtils;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.transformer.splitter.RecursiveCharacterTextSplitter;
 import com.alibaba.cloud.ai.transformer.splitter.SentenceSplitter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.ai.transformer.splitter.TextSplitter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,111 +24,37 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
 public class TextSplitterConfig {
 
-    /** Token 分割 - 块大小（token 数） */
-    @Value("${rag.text-splitting.token.chunk-size:1000}")
-    private final int tokenChunkSize;
+    @Autowired
+    private TokenTextConfig tokenTextConfig;
 
-    /** Token 分割 - 最小块大小 */
-    @Value("${rag.text-splitting.token.min-chunk-size:20}")
-    private final int tokenMinChunkSize;
+    @Autowired
+    private RecursiveCharacterTextConfig recursiveCharacterTextConfig;
 
-    /** Token 分割 - 最小块长度 */
-    @Value("${rag.text-splitting.token.min-chunk-length:50}")
-    private final int tokenMinChunkLength;
+    @Autowired
+    private SentenceTextConfig sentenceTextConfig;
 
-    /** Token 分割 - 最大块数 */
-    @Value("${rag.text-splitting.token.max-num-chunks:1}")
-    private final int tokenMaxNumChunks;
+    @Autowired
+    private ParagraphTextConfig paragraphTextConfig;
 
-    /** Token 分割 - 是否保留分隔符 */
-    @Value("${rag.text-splitting.token.keep-separator:true}")
-    private final boolean tokenKeepSeparator;
+    @Autowired
+    private CharacterTextConfig characterTextConfig;
 
-    /** 递归字符分割 - 块大小（字符数） */
-    @Value("${rag.text-splitting.recursive.chunk-size:1000}")
-    private final int recursiveChunkSize;
+    @Autowired
+    private MarkdownTextConfig markdownTextConfig;
 
-    /** 递归字符分割 - 分隔符数组 */
-    @Value("${rag.text-splitting.recursive.pattern}")
-    private String[] recursivePattern;
+    @Autowired
+    private HtmlTextConfig htmlTextConfig;
 
-    /** 句子分割 - 块大小（字符数） */
-    @Value("${rag.text-splitting.sentence.chunk-size:1000}")
-    private final int sentenceChunkSize;
+    @Autowired
+    private JsonTextConfig jsonTextConfig;
 
-    /** 段落分割 - 段落匹配正则 */
-    @Value("${rag.text-splitting.paragraph.pattern}")
-    private final String paragraphPattern;
+    @Autowired
+    private ChineseTextConfig chineseTextConfig;
 
-    @Value("${rag.text-splitting.paragraph.chunk-size:1200}")
-    private final int paragraphChunkSize;
-
-    @Value("${rag.text-splitting.paragraph.chunk-overlap:250}")
-    private final int paragraphChunkOverlap;
-
-    /** 字符分割 - 块大小（字符数） */
-    @Value("${rag.text-splitting.character.chunk-size:1000}")
-    private final int characterChunkSize;
-
-    /** 字符分割 - 块重叠量 */
-    @Value("${rag.text-splitting.character.chunk-overlap:200}")
-    private final int characterChunkOverlap;
-
-    @Value("${rag.text-splitting.character.preserve-words:true}")
-    private final boolean characterPreserveWords;
-
-    /** Markdown 分割 - 标题匹配正则 */
-    @Value("${rag.text-splitting.markdown.pattern}")
-    private final String markdownPattern;
-
-    /** Markdown 分割 - 块大小（字符数） */
-    @Value("${rag.text-splitting.markdown.chunk-size:1000}")
-    private final int markdownChunkSize;
-
-    /** Markdown 分割 - 块重叠量 */
-    @Value("${rag.text-splitting.markdown.chunk-overlap:200}")
-    private final int markdownChunkOverlap;
-
-    /** HTML 分割 - 标签匹配正则 */
-    @Value("${rag.text-splitting.html.pattern}")
-    private final String htmlPattern;
-
-    /** HTML 分割 - 块大小（字符数） */
-    @Value("${rag.text-splitting.html.chunk-size:1200}")
-    private final int htmlChunkSize;
-
-    /** HTML 分割 - 块重叠量 */
-    @Value("${rag.text-splitting.html.chunk-overlap:250}")
-    private final int htmlChunkOverlap;
-
-    /** JSON 分割 - JSON 对象匹配正则 */
-    @Value("${rag.text-splitting.json.pattern}")
-    private final String jsonPattern;
-
-    @Value("${rag.text-splitting.chinese.pattern}")
-    private final String chinesePattern;
-
-    /** 中文分割 - 块大小（中文字符数） */
-    @Value("${rag.text-splitting.chinese.chunk-size:1000}")
-    private final int chineseChunkSize;
-
-    /** 中文分割 - 块重叠量 */
-    @Value("${rag.text-splitting.chinese.chunk-overlap:200}")
-    private final int chineseChunkOverlap;
-
-    @Value("${rag.text-splitting.code.pattern}")
-    private final String codePattern;
-
-    /** 代码分割 - 块大小（代码字符数） */
-    @Value("${rag.text-splitting.code.chunk-size:1500}")
-    private final int codeChunkSize;
-
-    /** 代码分割 - 块重叠量 */
-    @Value("${rag.text-splitting.code.chunk-overlap:300}")
-    private final int codeChunkOverlap;
+    @Autowired
+    private CodeTextConfig codeTextConfig;
 
     /**
      * Token 分割器（按 token 计数，适合英文）
@@ -135,11 +62,11 @@ public class TextSplitterConfig {
     @Bean
     public TokenTextSplitter tokenTextSplitter() {
         return new TokenTextSplitter(
-                tokenChunkSize,
-                tokenMinChunkSize,
-                tokenMinChunkLength,
-                tokenMaxNumChunks,
-                tokenKeepSeparator);
+                tokenTextConfig.getChunkSize(),
+                tokenTextConfig.getMinChunkSize(),
+                tokenTextConfig.getMinChunkLength(),
+                tokenTextConfig.getMaxNumChunks(),
+                tokenTextConfig.isKeepSeparator());
     }
 
     /**
@@ -148,7 +75,7 @@ public class TextSplitterConfig {
     @Bean
     @Primary
     public RecursiveCharacterTextSplitter recursiveCharacterTextSplitter() {
-        return new RecursiveCharacterTextSplitter(recursiveChunkSize, recursivePattern);
+        return new RecursiveCharacterTextSplitter(recursiveCharacterTextConfig.getChunkSize(), recursiveCharacterTextConfig.getPattern());
     }
 
     /**
@@ -156,7 +83,7 @@ public class TextSplitterConfig {
      */
     @Bean
     public SentenceSplitter sentenceSplitter() {
-        return new SentenceSplitter(sentenceChunkSize);
+        return new SentenceSplitter(sentenceTextConfig.getChunkSize());
     }
 
     /**
@@ -164,9 +91,9 @@ public class TextSplitterConfig {
      */
     @Bean("paragraphTextSplitter")
     public TextSplitter paragraphTextSplitter() {
-        Pattern paragraphTextPattern = Pattern.compile(paragraphPattern, Pattern.MULTILINE);
+        Pattern paragraphTextPattern = Pattern.compile(paragraphTextConfig.getPattern());
         return createTextSplitter(text ->
-                TextSplitterUtils.splitParagraph(text, paragraphTextPattern, paragraphChunkSize, paragraphChunkOverlap));
+                TextSplitterUtils.splitParagraph(text, paragraphTextPattern, paragraphTextConfig.getChunkSize(), paragraphTextConfig.getChunkOverlap()));
     }
 
     /**
@@ -175,7 +102,7 @@ public class TextSplitterConfig {
     @Bean("characterTextSplitter")
     public TextSplitter characterTextSplitter() {
         return createTextSplitter(text ->
-                TextSplitterUtils.splitByCharacterCount(text, characterChunkSize, characterChunkOverlap, characterPreserveWords));
+                TextSplitterUtils.splitByCharacterCount(text, characterTextConfig.getChunkSize(), characterTextConfig.getChunkOverlap(), characterTextConfig.isCharacterPreserveWords()));
     }
 
     /**
@@ -183,9 +110,9 @@ public class TextSplitterConfig {
      */
     @Bean("markdownTextSplitter")
     public TextSplitter markdownTextSplitter() {
-        Pattern markdownTextPattern = Pattern.compile(markdownPattern, Pattern.MULTILINE);
+        Pattern markdownTextPattern = Pattern.compile(markdownTextConfig.getPattern(), Pattern.MULTILINE);
         return createTextSplitter(text ->
-                TextSplitterUtils.splitMarkdown(text, markdownTextPattern, markdownChunkSize, markdownChunkOverlap));
+                TextSplitterUtils.splitMarkdown(text, markdownTextPattern, markdownTextConfig.getChunkSize(), markdownTextConfig.getChunkOverlap()));
     }
 
     /**
@@ -193,9 +120,9 @@ public class TextSplitterConfig {
      */
     @Bean("htmlTextSplitter")
     public TextSplitter htmlTextSplitter() {
-        Pattern htmlTextPattern = Pattern.compile(htmlPattern);
+        Pattern htmlTextPattern = Pattern.compile(htmlTextConfig.getPattern());
         return createTextSplitter(text ->
-                TextSplitterUtils.splitHtml(text, htmlTextPattern, htmlChunkSize, htmlChunkOverlap));
+                TextSplitterUtils.splitHtml(text, htmlTextPattern, htmlTextConfig.getChunkSize(), htmlTextConfig.getChunkOverlap()));
     }
 
     /**
@@ -203,7 +130,7 @@ public class TextSplitterConfig {
      */
     @Bean("jsonTextSplitter")
     public TextSplitter jsonTextSplitter() {
-        Pattern jsonTextPattern = Pattern.compile(jsonPattern);
+        Pattern jsonTextPattern = Pattern.compile(jsonTextConfig.getPattern());
         return createTextSplitter(text ->
                 TextSplitterUtils.splitJson(text, jsonTextPattern));
     }
@@ -213,9 +140,9 @@ public class TextSplitterConfig {
      */
     @Bean("chineseTextSplitter")
     public TextSplitter chineseTextSplitter() {
-        Pattern chineseTextPattern = Pattern.compile(chinesePattern);
+        Pattern chineseTextPattern = Pattern.compile(chineseTextConfig.getPattern());
         return createTextSplitter(text ->
-                TextSplitterUtils.splitChinese(text, chineseTextPattern, chineseChunkSize, chineseChunkOverlap));
+                TextSplitterUtils.splitChinese(text, chineseTextPattern, chineseTextConfig.getChunkSize(), chineseTextConfig.getChunkOverlap()));
     }
 
     /**
@@ -223,9 +150,9 @@ public class TextSplitterConfig {
      */
     @Bean("codeTextSplitter")
     public TextSplitter codeTextSplitter() {
-        Pattern codeTextPattern = Pattern.compile(codePattern);
+        Pattern codeTextPattern = Pattern.compile(codeTextConfig.getPattern());
         return createTextSplitter(text ->
-                TextSplitterUtils.splitCode(text, codeTextPattern, codeChunkSize, codeChunkOverlap));
+                TextSplitterUtils.splitCode(text, codeTextPattern, codeTextConfig.getChunkSize(), codeTextConfig.getChunkOverlap()));
     }
 
     /**

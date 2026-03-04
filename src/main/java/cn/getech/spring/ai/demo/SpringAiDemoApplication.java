@@ -3,6 +3,7 @@ package cn.getech.spring.ai.demo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import java.net.InetAddress;
@@ -14,6 +15,7 @@ import java.net.UnknownHostException;
  */
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties
 public class SpringAiDemoApplication {
 
     public static void main(String[] args) throws UnknownHostException {
