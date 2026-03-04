@@ -1,7 +1,6 @@
 package cn.getech.spring.ai.demo.service.impl;
 
 import cn.getech.spring.ai.demo.dto.TextAnalysisDto;
-import cn.getech.spring.ai.demo.enums.LengthRangeEnum;
 import cn.getech.spring.ai.demo.enums.SplitterTypeEnum;
 import cn.getech.spring.ai.demo.factory.TextSplitterFactory;
 import cn.getech.spring.ai.demo.service.TextSplitterService;
@@ -171,49 +170,6 @@ public class TextSplitterServiceImpl implements TextSplitterService {
                     docMetadata.put("timestamp", timestamp);
                     return new Document(doc.getText(), docMetadata);
                 }).collect(Collectors.toList());
-    }
-
-    /**
-     * 分析分割结果统计信息
-     */
-    public Map<String, Object> analyzeSplitResults(List<Document> documents) {
-        if (CollUtil.isEmpty(documents)) {
-            return Map.of("count", 0, "status", "empty");
-        }
-
-        Map<String, Object> analysis = new HashMap<>();
-        analysis.put("count", documents.size());
-        analysis.put("status", "success");
-
-        List<Integer> lengths = documents.stream()
-                .map(doc -> doc.getText().length())
-                .sorted()
-                .collect(Collectors.toList());
-
-        if (CollUtil.isNotEmpty(lengths)) {
-            analysis.put("minLength", lengths.get(0));
-            analysis.put("maxLength", lengths.get(lengths.size() - 1));
-            analysis.put("avgLength", lengths.stream().mapToInt(Integer::intValue).average().orElse(0));
-
-            int medianIndex = lengths.size() / 2;
-            analysis.put("medianLength", lengths.size() % 2 == 0 ?
-                    (lengths.get(medianIndex - 1) + lengths.get(medianIndex)) / 2.0 :
-                    lengths.get(medianIndex));
-
-            analysis.put("lengthDistribution", calculateLengthDistribution(lengths));
-            analysis.put("totalCharacters", lengths.stream().mapToInt(Integer::intValue).sum());
-        }
-        return analysis;
-    }
-
-    /**
-     * 计算长度分布
-     */
-    private Map<String, Long> calculateLengthDistribution(List<Integer> lengths) {
-        return lengths.stream()
-                .collect(Collectors.groupingBy(
-                        length -> LengthRangeEnum.of(length).getLabel(),
-                        Collectors.counting()));
     }
 
     /**
