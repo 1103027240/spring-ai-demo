@@ -154,6 +154,18 @@ public class TextSplitterUtils {
     }
 
     /**
+     * Markdown 分割
+     * @param text 待分割 Markdown 文本
+     * @param pattern 分割正则
+     * @param chunkSize 块大小
+     * @param chunkOverlap 块重叠量
+     * @return Markdown 块列表
+     */
+    public static List<String> splitMarkdown(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
+        return splitWithPattern(text, pattern, chunkSize, chunkOverlap, new MarkdownFormatProcessor());
+    }
+
+    /**
      * HTML 分割（保持结构完整）
      * @param text 待分割 HTML 文本
      * @param pattern 分割正则
@@ -225,18 +237,6 @@ public class TextSplitterUtils {
             text = text.replaceAll("\\s+", " ").trim();
         }
         return splitWithPattern(text, pattern, chunkSize, chunkOverlap, new HtmlNoStructureFormatProcessor());
-    }
-
-    /**
-     * Markdown 分割
-     * @param text 待分割 Markdown 文本
-     * @param pattern 分割正则
-     * @param chunkSize 块大小
-     * @param chunkOverlap 块重叠量
-     * @return Markdown 块列表
-     */
-    public static List<String> splitMarkdown(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
-        return splitWithPattern(text, pattern, chunkSize, chunkOverlap, new MarkdownFormatProcessor());
     }
 
     /**
