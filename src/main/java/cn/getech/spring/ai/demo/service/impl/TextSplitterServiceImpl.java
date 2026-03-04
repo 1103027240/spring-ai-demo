@@ -4,6 +4,9 @@ import cn.getech.spring.ai.demo.dto.TextAnalysisDto;
 import cn.getech.spring.ai.demo.enums.SplitterTypeEnum;
 import cn.getech.spring.ai.demo.factory.TextSplitterFactory;
 import cn.getech.spring.ai.demo.service.TextSplitterService;
+import cn.getech.spring.ai.demo.valid.CodeCheck;
+import cn.getech.spring.ai.demo.valid.HtmlCheck;
+import cn.getech.spring.ai.demo.valid.MarkdownCheck;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -222,46 +225,19 @@ public class TextSplitterServiceImpl implements TextSplitterService {
             return "plain";
         }
         String trimmed = text.trim();
-        if (isMarkdown(trimmed)) {
+        if (MarkdownCheck.isMarkdown(trimmed)) {
             return "markdown";
         }
-        if (isHtml(trimmed)) {
+        if (HtmlCheck.isHtml(trimmed)) {
             return "html";
         }
         if (JSONUtil.isTypeJSON(trimmed)) {
             return "json";
         }
-        if (isCode(trimmed)) {
+        if (CodeCheck.isCode(trimmed)) {
             return "code";
         }
         return "plain";
-    }
-
-    /**
-     * 判断是否为 Markdown
-     */
-    private boolean isMarkdown(String text) {
-        return text.contains("# ") || text.contains("## ") || text.contains("### ") ||
-                text.contains("```") || text.contains("* ") || text.contains("1. ") || text.contains("> ");
-    }
-
-    /**
-     * 判断是否为 HTML
-     */
-    private boolean isHtml(String text) {
-        return text.contains("<html") || text.contains("<div") || text.contains("<p>") ||
-                text.contains("<body") || text.contains("<!DOCTYPE");
-    }
-
-    /**
-     * 判断是否为代码
-     */
-    private boolean isCode(String text) {
-        return text.contains("public class") || text.contains("function ") ||
-                text.contains("import ") || text.contains("def ") ||
-                text.contains("package ") || text.contains("public static") ||
-                text.contains("int ") || text.contains("String ") ||
-                text.contains("System.out.println") || text.contains("```");
     }
 
 }

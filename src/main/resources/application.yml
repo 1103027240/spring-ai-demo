@@ -122,6 +122,8 @@ management:
 # 文本分割配置（用于 RAG 文档处理）
 rag:
   text-splitting:
+    # 文本分割器默认算法
+    default-strategy: recursive
     # Token 分割配置
     token:
       chunk-size: 1000           # 块大小
