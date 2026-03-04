@@ -43,11 +43,13 @@ public class TextSplitterServiceImpl implements TextSplitterService {
         }
 
         try {
+            validateAlgorithm(algorithm);
             TextSplitter splitter = textSplitterFactory.getTextSplitter(algorithm);
             Document inputDoc = createDocument(text, metadata);
             List<Document> documents = splitDocument(splitter, inputDoc);
             return enrichDocuments(documents, algorithm);
         } catch (Exception e) {
+            log.error("Error during split with algorithm {}: {}", algorithm, e.getMessage(), e);
             return Collections.singletonList(createDocument(text, metadata));
         }
     }
@@ -85,19 +87,43 @@ public class TextSplitterServiceImpl implements TextSplitterService {
             return results;
         }
 
-        TextSplitter splitter = textSplitterFactory.getTextSplitter(algorithm);
-        texts.forEach((docId, text) -> {
-            try {
-                Document inputDoc = createDocument(text, Map.of("docId", docId));
-                List<Document> documents = splitDocument(splitter, inputDoc);
-                List<Document> processedDocs = enrichDocuments(documents, algorithm);
-                results.put(docId, processedDocs);
-            } catch (Exception e) {
-                log.error("Failed to batch split document: {}", docId, e);
-                results.put(docId, Collections.emptyList());
-            }
-        });
+        try {
+            validateAlgorithm(algorithm);
+            TextSplitter splitter = textSplitterFactory.getTextSplitter(algorithm);
+            texts.forEach((docId, text) -> processBatchSplit(results, docId, text, splitter, algorithm));
+        } catch (Exception e) {
+            log.error("Error during batch split with algorithm {}: {}", algorithm, e.getMessage(), e);
+            texts.keySet().forEach(docId -> results.put(docId, Collections.emptyList()));
+        }
         return results;
+    }
+
+    /**
+     * 处理批量分割中的单个文档
+     */
+    private void processBatchSplit(Map<String, List<Document>> results, String docId, String text, TextSplitter splitter, String algorithm) {
+        try {
+            if (StrUtil.isBlank(text)) {
+                results.put(docId, Collections.emptyList());
+                return;
+            }
+            Document inputDoc = createDocument(text, Map.of("docId", docId));
+            List<Document> documents = splitDocument(splitter, inputDoc);
+            List<Document> processedDocs = enrichDocuments(documents, algorithm);
+            results.put(docId, processedDocs);
+        } catch (Exception e) {
+            log.error("Failed to batch split document: {}", docId, e);
+            results.put(docId, Collections.emptyList());
+        }
+    }
+
+    /**
+     * 验证算法参数
+     */
+    private void validateAlgorithm(String algorithm) {
+        if (StrUtil.isBlank(algorithm)) {
+            throw new IllegalArgumentException("Algorithm cannot be blank");
+        }
     }
 
     /**
@@ -116,9 +142,11 @@ public class TextSplitterServiceImpl implements TextSplitterService {
      * 根据分析结果选择分割器
      */
     private String selectSplitterByAnalysis(TextAnalysisDto analysis) {
+        // 优先考虑语言特性
         if ("chinese".equals(analysis.getLanguage())) {
             return SplitterTypeEnum.CHINESE.getId();
         }
+        // 然后考虑文本类型
         return Optional.ofNullable(SplitterTypeEnum.findByType(analysis.getType()))
                 .map(SplitterTypeEnum::getId)
                 .orElse(defaultStrategy);
@@ -148,7 +176,7 @@ public class TextSplitterServiceImpl implements TextSplitterService {
             docMetadata.put("splitAlgorithm", algorithm);
             docMetadata.put("chunkSize", doc.getText().length());
             docMetadata.put("timestamp", timestamp);
-            return doc;
+            return new Document(doc.getText(), docMetadata);
         }).collect(Collectors.toList());
     }
 
