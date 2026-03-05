@@ -170,6 +170,18 @@ public class VectorStoreServiceImpl implements VectorStoreService {
     }
 
     /**
+     * 根据hash搜索文档
+     */
+    @Override
+    public List<Document> searchByHash(String query, String hashValue) {
+        SearchRequest searchRequest = SearchRequest.builder()
+                .query(query)
+                .filterExpression("hashValue == '" + hashValue + "'")
+                .build();
+        return vectorStore.similaritySearch(searchRequest);
+    }
+
+    /**
      * 删除文档
      */
     @Override

@@ -1,14 +1,15 @@
 package cn.getech.spring.ai.demo.service.impl;
 
 import cn.getech.spring.ai.demo.service.TextDeduplicationService;
+import cn.getech.spring.ai.demo.service.VectorStoreService;
 import cn.getech.spring.ai.demo.utils.CalculateUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -23,6 +24,9 @@ public class TextDeduplicationServiceImpl implements TextDeduplicationService {
 
     @Value("${rag.deduplication.enabled:true}")
     private boolean enabled;
+
+    @Autowired
+    private VectorStoreService vectorStoreService;
 
     /**
      * 导入时去重
@@ -41,7 +45,13 @@ public class TextDeduplicationServiceImpl implements TextDeduplicationService {
             if (!uniqueDocs.containsKey(hashValue)) {
                 doc.getMetadata().put("hashValue", hashValue);
                 doc.getMetadata().put("createdAt", System.currentTimeMillis());
-                uniqueDocs.put(hashValue, doc);
+
+                // 根据hash校验数据是否存在
+                if(CollUtil.isEmpty(vectorStoreService.searchByHash(doc.getText(), hashValue))){
+                    uniqueDocs.put(hashValue, doc);
+                }else{
+                    // 存在，目前不做处理
+                }
             } else {
                 // 存在，目前不做处理
             }

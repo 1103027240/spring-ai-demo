@@ -20,6 +20,8 @@ public interface VectorStoreService {
 
     Page<Document> pageSearch(String query, int page, int size);
 
+    List<Document> searchByHash(String query, String hashValue);
+
     void deleteDocument(String docId);
 
     void clearCollection();
