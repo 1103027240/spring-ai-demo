@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.transformer.splitter.TextSplitter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Optional;
@@ -22,10 +21,6 @@ import static cn.getech.spring.ai.demo.enums.SplitterTypeEnum.*;
 @Slf4j
 @Component
 public class TextSplitterFactory {
-
-    /** 文本分割器默认算法 **/
-    @Value("${rag.text-splitting.default-strategy:recursive}")
-    private String defaultStrategy;
 
     /** Token 分割器（按 token 计数，适合英文） */
     @Autowired

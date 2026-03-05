@@ -29,6 +29,16 @@ public class TextSplitterUtils {
     /** StringBuilder 对象池 */
     private static final ConcurrentLinkedDeque<StringBuilder> POOL = new ConcurrentLinkedDeque<>();
 
+    // 预编译常用的正则表达式
+    private static final Pattern NEWLINE_PATTERN = Pattern.compile("\\r\\n");
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+    private static final Pattern SENTENCE_PATTERN = Pattern.compile("[。！？；：\\.!?;:]\\s*");
+    private static final Pattern PARAGRAPH_PATTERN = Pattern.compile("\\n\\s*\\n");
+    private static final Pattern MARKDOWN_HEADING_PATTERN = Pattern.compile("(?=^#)");
+    private static final Pattern HTML_TAG_PATTERN = Pattern.compile("(?=<(div|p|h[1-6]|section|article))");
+    private static final Pattern JSON_BRACKET_PATTERN = Pattern.compile("(?=\\{|\\[)");
+    private static final Pattern CODE_FUNCTION_PATTERN = Pattern.compile("(?=^\\s*(public|private|protected|def|function)\\s+)");
+
     static {
         initStringBuilderPool();
     }
@@ -85,6 +95,8 @@ public class TextSplitterUtils {
             }
 
             return applyOverlap(chunks, chunkOverlap);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         } finally {
             releaseStringBuilder(currentChunk);
         }
@@ -101,7 +113,7 @@ public class TextSplitterUtils {
     public static List<String> splitParagraph(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
         // 预处理：统一换行符
         if (StrUtil.isNotBlank(text)) {
-            text = text.replaceAll("\\r\\n", "\n");
+            text = NEWLINE_PATTERN.matcher(text).replaceAll("\n");
         }
         return splitWithPattern(text, pattern, chunkSize, chunkOverlap, new ParagraphFormatProcessor());
     }
@@ -216,7 +228,7 @@ public class TextSplitterUtils {
     public static List<String> splitHtmlWithNoStructure(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
         // 预处理：移除多余空白，保持HTML结构
         if (StrUtil.isNotBlank(text)) {
-            text = text.replaceAll("\\s+", " ").trim();
+            text = WHITESPACE_PATTERN.matcher(text).replaceAll(" ").trim();
         }
         return splitWithPattern(text, pattern, chunkSize, chunkOverlap, new HtmlNoStructureFormatProcessor());
     }
@@ -258,14 +270,15 @@ public class TextSplitterUtils {
 
                 // 处理标签，更新标签深度
                 if (i < parts.length - 1) {
-                    String tag = text.substring(
-                            text.indexOf(part) + part.length(),
-                            text.indexOf(parts[i + 1])
-                    );
-                    currentChunk.append(tag);
+                    int partStart = text.indexOf(part);
+                    int nextPartStart = text.indexOf(parts[i + 1]);
+                    if (partStart >= 0 && nextPartStart > partStart) {
+                        String tag = text.substring(partStart + part.length(), nextPartStart);
+                        currentChunk.append(tag);
 
-                    // 更新标签深度
-                    tagDepth += countOpenTags(tag) - countCloseTags(tag);
+                        // 更新标签深度
+                        tagDepth += countOpenTags(tag) - countCloseTags(tag);
+                    }
                 }
             }
 
@@ -292,18 +305,23 @@ public class TextSplitterUtils {
             return Collections.emptyList();
         }
 
-        // 验证JSON格式
-        if (!JSONUtil.isTypeJSON(text)) {
+        try {
+            // 验证JSON格式
+            if (!JSONUtil.isTypeJSON(text)) {
+                return List.of(text);
+            }
+
+            // 按对象和数组边界分割
+            List<String> sections = Arrays.stream(pattern.split(text))
+                    .map(String::trim)
+                    .filter(StringUtils::hasText)
+                    .collect(Collectors.toList());
+
+            return sections;
+        } catch (Exception e) {
+            log.error("Error during splitJson: {}", e.getMessage(), e);
             return List.of(text);
         }
-
-        // 按对象和数组边界分割
-        List<String> sections = Arrays.stream(pattern.split(text))
-                .map(String::trim)
-                .filter(StringUtils::hasText)
-                .collect(Collectors.toList());
-
-        return sections;
     }
 
     /**
@@ -412,7 +430,7 @@ public class TextSplitterUtils {
      * 自定义按语句分割
      */
     public static List<String> splitBySentence(String text) {
-        return Arrays.stream(text.split("[。！？；：\\.!?;:]\\s*"))
+        return Arrays.stream(SENTENCE_PATTERN.split(text))
                 .map(String::trim)
                 .filter(StrUtil::isNotBlank)
                 .collect(Collectors.toList());
@@ -422,7 +440,7 @@ public class TextSplitterUtils {
      * 自定义按段落分割
      */
     public static List<String> splitByParagraph(String text) {
-        return Arrays.stream(text.split("\\n\\s*\\n"))
+        return Arrays.stream(PARAGRAPH_PATTERN.split(text))
                 .map(String::trim)
                 .filter(StrUtil::isNotBlank)
                 .collect(Collectors.toList());
@@ -434,7 +452,7 @@ public class TextSplitterUtils {
     public static List<String> splitMarkdownContent(String text) {
         // 按标题分割
         List<String> chunks = new ArrayList<>();
-        String[] parts = text.split("(?=^#)");
+        String[] parts = MARKDOWN_HEADING_PATTERN.split(text);
         for (String part : parts) {
             if (StrUtil.isNotBlank(part)) {
                 // 对每个标题部分进行段落分割
@@ -452,7 +470,7 @@ public class TextSplitterUtils {
         // 按HTML标签分割
         List<String> chunks = new ArrayList<>();
         // 简单实现：按主要标签分割
-        String[] parts = text.split("(?=<(div|p|h[1-6]|section|article))");
+        String[] parts = HTML_TAG_PATTERN.split(text);
         for (String part : parts) {
             if (StrUtil.isNotBlank(part)) {
                 chunks.add(part);
@@ -468,7 +486,7 @@ public class TextSplitterUtils {
         // 尝试按对象和数组分割
         List<String> chunks = new ArrayList<>();
         // 简单实现：按大括号和中括号分割
-        String[] parts = text.split("(?=\\{|\\[)");
+        String[] parts = JSON_BRACKET_PATTERN.split(text);
         for (String part : parts) {
             if (StrUtil.isNotBlank(part)) {
                 chunks.add(part);
@@ -502,7 +520,7 @@ public class TextSplitterUtils {
         // 按函数和类分割
         List<String> chunks = new ArrayList<>();
         // 简单实现：按函数定义分割
-        String[] parts = text.split("(?=^\\s*(public|private|protected|def|function)\\s+)");
+        String[] parts = CODE_FUNCTION_PATTERN.split(text);
         for (String part : parts) {
             if (StrUtil.isNotBlank(part)) {
                 chunks.add(part);
