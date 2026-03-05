@@ -93,7 +93,7 @@ public class RagServiceImpl implements RagService {
                 问题：%s
                 """.formatted(context, msg);
 
-        // 6. 调用大模型查询
+        // 6. 调用AI大模型查询
         return qwenChatClient.prompt().user(prompt).call().content();
     }
 
