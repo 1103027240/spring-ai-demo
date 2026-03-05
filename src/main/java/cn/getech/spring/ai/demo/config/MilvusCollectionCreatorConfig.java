@@ -11,9 +11,10 @@ import io.milvus.param.collection.HasCollectionParam;
 import io.milvus.param.collection.LoadCollectionParam;
 import io.milvus.param.index.CreateIndexParam;
 import jakarta.annotation.PostConstruct;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import java.util.List;
 
@@ -23,7 +24,9 @@ import java.util.List;
  * @author 11030
  */
 @Slf4j
+@Data
 @Component
+@ConfigurationProperties(prefix = "spring.ai.vectorstore.milvus")
 @ConditionalOnProperty(name = "spring.ai.vectorstore.milvus.auto-create-collection", havingValue = "true", matchIfMissing = true)
 public class MilvusCollectionCreatorConfig {
 
@@ -31,36 +34,17 @@ public class MilvusCollectionCreatorConfig {
     private static final String FIELD_CONTENT = "content";
     private static final String FIELD_METADATA = "metadata";
     private static final String FIELD_EMBEDDING = "embedding";
+    private static final int docIdMaxLength = 64;
+    private static final int indexNlist = 128;
+    private static final int contentMaxLength = 4096;
 
-    @Value("${spring.ai.vectorstore.milvus.uri:http://localhost:19530}")
-    private String milvusUri;
-
-    @Value("${spring.ai.vectorstore.milvus.token:root:Milvus}")
-    private String milvusToken;
-
-    @Value("${spring.ai.vectorstore.milvus.database-name:default}")
+    private String uri;
+    private String token;
     private String databaseName;
-
-    @Value("${spring.ai.vectorstore.milvus.collections:#{T(java.util.Collections).singletonList('long_term_chat_memory')}}")
-    private List<String> collectionNames;
-
-    @Value("${spring.ai.vectorstore.milvus.embedding-dimension:1024}")
-    private int embeddingDimension;
-
-    @Value("${spring.ai.vectorstore.milvus.index-type:IVF_FLAT}")
-    private String indexType;
-
-    @Value("${spring.ai.vectorstore.milvus.metric-type:COSINE}")
-    private String metricType;
-
-    @Value("${spring.ai.vectorstore.milvus.index-nlist:128}")
-    private int indexNlist;
-
-    @Value("${spring.ai.vectorstore.milvus.content-max-length:4096}")
-    private int contentMaxLength;
-
-    @Value("${spring.ai.vectorstore.milvus.doc-id-max-length:64}")
-    private int docIdMaxLength;
+    private List<String> collections;
+    private int embeddingDimension = 1024;
+    private String indexType = "IVF_FLAT";
+    private String metricType = "COSINE";
 
     private MilvusServiceClient milvusClient;
 
@@ -69,20 +53,20 @@ public class MilvusCollectionCreatorConfig {
      */
     @PostConstruct
     public void initMilvusCollections() {
-        log.info("开始初始化 Milvus 集合，数据库：{}，集合列表：{}", databaseName, collectionNames);
+        log.info("开始初始化 Milvus 集合，数据库：{}，集合列表：{}", databaseName, collections);
 
         try {
             initializeClient();
 
-            if (CollUtil.isEmpty(collectionNames)) {
+            if (CollUtil.isEmpty(collections)) {
                 log.warn("未配置任何集合名称，跳过创建");
                 return;
             }
-            for (String collectionName : collectionNames) {
+            for (String collectionName : collections) {
                 createSingleCollection(collectionName);
             }
 
-            log.info("所有 Milvus 集合创建完成，共 {} 个", collectionNames.size());
+            log.info("所有 Milvus 集合创建完成，共 {} 个", collections.size());
         } catch (Exception e) {
             throw new RuntimeException("初始化 Milvus 集合失败：" + e.getMessage(), e);
         }
@@ -92,11 +76,11 @@ public class MilvusCollectionCreatorConfig {
      * 初始化 Milvus 客户端连接
      */
     private void initializeClient() {
-        log.debug("初始化 Milvus 客户端，URI：{}，数据库：{}", milvusUri, databaseName);
+        log.debug("初始化 Milvus 客户端，URI：{}，数据库：{}", uri, databaseName);
 
-        String[] credentials = parseCredentials(milvusToken);
+        String[] credentials = parseCredentials(token);
         ConnectParam connectParam = ConnectParam.newBuilder()
-                .withUri(milvusUri)
+                .withUri(uri)
                 .withDatabaseName(databaseName)
                 .withAuthorization(credentials[0], credentials[1])
                 .build();

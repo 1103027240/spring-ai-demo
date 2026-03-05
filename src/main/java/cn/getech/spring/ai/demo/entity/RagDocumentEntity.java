@@ -3,7 +3,6 @@ package cn.getech.spring.ai.demo.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -72,7 +71,7 @@ public class RagDocumentEntity extends MilvusDocumentEntity {
      * 4. 清理过期或过时的文档
      * 5. 统计知识库的增长趋势
      */
-    private LocalDateTime createdAt;
+    private Long createdAt;
 
     /**
      * 更新时间
@@ -87,7 +86,7 @@ public class RagDocumentEntity extends MilvusDocumentEntity {
      * 4. 同步检查，避免重复更新
      * 5. 优先展示最近更新的相关文档
      */
-    private LocalDateTime updatedAt;
+    private Long updatedAt;
 
     /**
      * 自定义属性映射

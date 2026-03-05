@@ -63,22 +63,6 @@ public class SaaLLMConfig {
     @Value("${spring.ai.memory.redis.key-prefix:spring_ai_long_chat_memory}")
     private String memoryKeyPrefix;
 
-    // Milvus数据库配置
-    @Value("${spring.ai.vectorstore.milvus.uri:http://localhost:19530}")
-    private String milvusUri;
-
-    @Value("${spring.ai.vectorstore.milvus.token:root:Milvus}")
-    private String milvusToken;
-
-    @Value("${spring.ai.vectorstore.milvus.database-name:default}")
-    private String databaseName;
-
-    @Value("${spring.ai.vectorstore.milvus.collection-name:long_term_chat_memory}")
-    private String collectionName;
-
-    @Value("${spring.ai.vectorstore.milvus.embedding-dimension:1024}")
-    private int embeddingDimension;
-
     @Bean
     public DashScopeApi dashScopeApi() {
         return DashScopeApi.builder()
@@ -182,7 +166,7 @@ public class SaaLLMConfig {
     @Bean
     public ChatMemory hierarchicalChatMemory(
             ChatMemory shortTermMemory,
-            VectorStore vectorStore) {
+            @Qualifier("longTermMemoryVectorStore") VectorStore vectorStore) {
         return new HierarchicalChatMemory(shortTermMemory, vectorStore);
     }
 

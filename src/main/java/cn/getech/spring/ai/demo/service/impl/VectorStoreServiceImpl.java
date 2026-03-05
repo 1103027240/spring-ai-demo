@@ -3,7 +3,7 @@ package cn.getech.spring.ai.demo.service.impl;
 import cn.getech.spring.ai.demo.service.VectorStoreService;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import io.milvus.client.MilvusClient;
+import io.milvus.client.MilvusServiceClient;
 import io.milvus.common.clientenum.ConsistencyLevelEnum;
 import io.milvus.grpc.DataType;
 import io.milvus.param.IndexType;
@@ -14,6 +14,7 @@ import io.milvus.param.collection.FieldType;
 import io.milvus.param.collection.HasCollectionParam;
 import io.milvus.param.collection.LoadCollectionParam;
 import io.milvus.param.index.CreateIndexParam;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -31,86 +32,87 @@ import java.util.*;
 public class VectorStoreServiceImpl implements VectorStoreService {
 
     @Autowired
-    private MilvusClient milvusClient;
+    private MilvusServiceClient milvusClient;
 
-    @Autowired
+    @Resource(name = "ragVectorStore")
     private VectorStore vectorStore;
 
-    @Value("${spring.ai.vectorstore.milvus.collection-name:rag_documents}")
-    private String collectionName;
-
-    @Value("${spring.ai.vectorstore.milvus.embedding-dimension:1024}")
-    private int embeddingDimension;
+    // 操作是milvus数据库中long_term_chat_memory集合
+//    @Value("${spring.ai.vectorstore.milvus.collection-name}")
+//    private String collectionName;
+//
+//    @Value("${spring.ai.vectorstore.milvus.embedding-dimension}")
+//    private int embeddingDimension;
 
     /**
      * 创建集合
      */
-    @Override
-    public void createCollection() {
-        try {
-            // 检查集合是否存在
-            R<Boolean> resp = milvusClient.hasCollection(
-                    HasCollectionParam.newBuilder()
-                            .withCollectionName(collectionName)
-                            .build()
-            );
-            if (resp.getData() != null && resp.getData()) {
-                log.info("Collection {} already exists", collectionName);
-                return;
-            }
-
-            // 创建字段
-            List<FieldType> fields = Arrays.asList(
-                    FieldType.newBuilder()
-                            .withName("doc_id")
-                            .withDataType(DataType.VarChar)
-                            .withMaxLength(255)
-                            .withPrimaryKey(true)
-                            .build(),
-                    FieldType.newBuilder()
-                            .withName("content")
-                            .withDataType(DataType.VarChar)
-                            .withMaxLength(65535)
-                            .build(),
-                    FieldType.newBuilder()
-                            .withName("embedding")
-                            .withDataType(DataType.FloatVector)
-                            .withDimension(embeddingDimension)
-                            .build(),
-                    FieldType.newBuilder()
-                            .withName("metadata")
-                            .withDataType(DataType.JSON)
-                            .build()
-            );
-
-            // 创建集合
-            CreateCollectionParam createCollectionParam = CreateCollectionParam.newBuilder()
-                    .withCollectionName(collectionName)
-                    .withFieldTypes(fields)
-                    .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
-                    .build();
-            milvusClient.createCollection(createCollectionParam);
-
-            // 创建索引
-            CreateIndexParam indexParam = CreateIndexParam.newBuilder()
-                    .withCollectionName(collectionName)
-                    .withFieldName("embedding")
-                    .withIndexType(IndexType.AUTOINDEX)
-                    .withMetricType(MetricType.COSINE)
-                    .build();
-            milvusClient.createIndex(indexParam);
-
-            // 加载集合
-            milvusClient.loadCollection(
-                    LoadCollectionParam.newBuilder()
-                            .withCollectionName(collectionName)
-                            .build());
-
-            log.info("Collection {} created successfully", collectionName);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create collection", e);
-        }
-    }
+//    @Override
+//    public void createCollection() {
+//        try {
+//            // 检查集合是否存在
+//            R<Boolean> resp = milvusClient.hasCollection(
+//                    HasCollectionParam.newBuilder()
+//                            .withCollectionName(collectionName)
+//                            .build()
+//            );
+//            if (resp.getData() != null && resp.getData()) {
+//                log.info("Collection {} already exists", collectionName);
+//                return;
+//            }
+//
+//            // 创建字段
+//            List<FieldType> fields = Arrays.asList(
+//                    FieldType.newBuilder()
+//                            .withName("doc_id")
+//                            .withDataType(DataType.VarChar)
+//                            .withMaxLength(255)
+//                            .withPrimaryKey(true)
+//                            .build(),
+//                    FieldType.newBuilder()
+//                            .withName("content")
+//                            .withDataType(DataType.VarChar)
+//                            .withMaxLength(65535)
+//                            .build(),
+//                    FieldType.newBuilder()
+//                            .withName("embedding")
+//                            .withDataType(DataType.FloatVector)
+//                            .withDimension(embeddingDimension)
+//                            .build(),
+//                    FieldType.newBuilder()
+//                            .withName("metadata")
+//                            .withDataType(DataType.JSON)
+//                            .build()
+//            );
+//
+//            // 创建集合
+//            CreateCollectionParam createCollectionParam = CreateCollectionParam.newBuilder()
+//                    .withCollectionName(collectionName)
+//                    .withFieldTypes(fields)
+//                    .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
+//                    .build();
+//            milvusClient.createCollection(createCollectionParam);
+//
+//            // 创建索引
+//            CreateIndexParam indexParam = CreateIndexParam.newBuilder()
+//                    .withCollectionName(collectionName)
+//                    .withFieldName("embedding")
+//                    .withIndexType(IndexType.AUTOINDEX)
+//                    .withMetricType(MetricType.COSINE)
+//                    .build();
+//            milvusClient.createIndex(indexParam);
+//
+//            // 加载集合
+//            milvusClient.loadCollection(
+//                    LoadCollectionParam.newBuilder()
+//                            .withCollectionName(collectionName)
+//                            .build());
+//
+//            log.info("Collection {} created successfully", collectionName);
+//        } catch (Exception e) {
+//            throw new RuntimeException("Failed to create collection", e);
+//        }
+//    }
 
     /**
      * 存储文档

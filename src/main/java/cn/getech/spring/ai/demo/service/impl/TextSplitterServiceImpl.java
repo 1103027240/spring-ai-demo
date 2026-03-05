@@ -135,7 +135,7 @@ public class TextSplitterServiceImpl implements TextSplitterService {
             Map<String, Object> docMetadata = new HashMap<>(doc.getMetadata());
             docMetadata.put("splitAlgorithm", algorithm);
             docMetadata.put("chunkSize", doc.getText().length());
-            docMetadata.put("timestamp", timestamp);
+            docMetadata.put("createdAt", timestamp);
             return new Document(doc.getText(), docMetadata);
         }).collect(Collectors.toList());
     }
@@ -156,7 +156,7 @@ public class TextSplitterServiceImpl implements TextSplitterService {
             docMetadata.put("totalSegments", totalSegments);
             docMetadata.put("totalChunks", chunks.size());
             docMetadata.put("chunkSize", chunk.length());
-            docMetadata.put("timestamp", timestamp);
+            docMetadata.put("createdAt", timestamp);
             documents.add(new Document(chunk, docMetadata));
         }
         return documents;

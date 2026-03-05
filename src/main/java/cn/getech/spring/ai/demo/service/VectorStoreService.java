@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public interface VectorStoreService {
 
-    void createCollection();
+    //void createCollection();
 
     void storeDocuments(List<Document> documents);
 

@@ -40,7 +40,7 @@ public class TextDeduplicationServiceImpl implements TextDeduplicationService {
 
             if (!uniqueDocs.containsKey(hashValue)) {
                 doc.getMetadata().put("hashValue", hashValue);
-                doc.getMetadata().put("createdAt", LocalDateTime.now());
+                doc.getMetadata().put("createdAt", System.currentTimeMillis());
                 uniqueDocs.put(hashValue, doc);
             } else {
                 // 存在，目前不做处理
