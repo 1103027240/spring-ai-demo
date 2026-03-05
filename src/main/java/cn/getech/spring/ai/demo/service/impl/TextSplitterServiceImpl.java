@@ -133,7 +133,7 @@ public class TextSplitterServiceImpl implements TextSplitterService {
         long timestamp = System.currentTimeMillis();
         return documents.stream().map(doc -> {
             Map<String, Object> docMetadata = new HashMap<>(doc.getMetadata());
-            docMetadata.put("algorithm", algorithm);
+            docMetadata.put("splitAlgorithm", algorithm);
             docMetadata.put("chunkSize", doc.getText().length());
             docMetadata.put("timestamp", timestamp);
             return new Document(doc.getText(), docMetadata);
@@ -150,8 +150,7 @@ public class TextSplitterServiceImpl implements TextSplitterService {
             String chunk = chunks.get(j);
             Document doc = textSplitterBuild.createDocument(chunk, metadata);
             Map<String, Object> docMetadata = new HashMap<>(doc.getMetadata());
-            docMetadata.put("splitAlgorithm", "intelligent");
-            docMetadata.put("algorithm", algorithm);
+            docMetadata.put("splitAlgorithm", algorithm);
             docMetadata.put("segmentIndex", segmentIndex);
             docMetadata.put("chunkIndex", j);
             docMetadata.put("totalSegments", totalSegments);
