@@ -11,8 +11,14 @@ import lombok.*;
 @AllArgsConstructor
 public class TextSegmentDto {
 
+    /**
+     * 文本片段
+     */
     private String text;
 
-    private String type;
+    /**
+     * 文本片段分割算法
+     */
+    private String algorithm;
 
 }

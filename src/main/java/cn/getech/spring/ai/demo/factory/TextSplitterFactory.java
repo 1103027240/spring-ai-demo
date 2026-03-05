@@ -1,6 +1,5 @@
 package cn.getech.spring.ai.demo.factory;
 
-import cn.getech.spring.ai.demo.enums.SplitterTypeEnum;
 import com.alibaba.cloud.ai.transformer.splitter.RecursiveCharacterTextSplitter;
 import com.alibaba.cloud.ai.transformer.splitter.SentenceSplitter;
 import jakarta.annotation.PostConstruct;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import static cn.getech.spring.ai.demo.enums.SplitterTypeEnum.*;
 
 /**
  * 文本分割器工厂类
@@ -73,41 +73,32 @@ public class TextSplitterFactory {
     @PostConstruct
     public void init() {
         registerSplitters(
-                Map.entry(SplitterTypeEnum.TOKEN, tokenTextSplitter),
-                Map.entry(SplitterTypeEnum.RECURSIVE, recursiveTextSplitter),
-                Map.entry(SplitterTypeEnum.SENTENCE, sentenceSplitter),
-                Map.entry(SplitterTypeEnum.PARAGRAPH, paragraphTextSplitter),
-                Map.entry(SplitterTypeEnum.CHARACTER, characterTextSplitter),
-                Map.entry(SplitterTypeEnum.MARKDOWN, markdownTextSplitter),
-                Map.entry(SplitterTypeEnum.HTML, htmlTextSplitter),
-                Map.entry(SplitterTypeEnum.JSON, jsonTextSplitter),
-                Map.entry(SplitterTypeEnum.CHINESE, chineseTextSplitter),
-                Map.entry(SplitterTypeEnum.CODE, codeTextSplitter)
+                Map.entry(TOKEN.getId(), tokenTextSplitter),
+                Map.entry(RECURSIVE.getId(), recursiveTextSplitter),
+                Map.entry(SENTENCE.getId(), sentenceSplitter),
+                Map.entry(PARAGRAPH.getId(), paragraphTextSplitter),
+                Map.entry(CHARACTER.getId(), characterTextSplitter),
+                Map.entry(MARKDOWN.getId(), markdownTextSplitter),
+                Map.entry(HTML.getId(), htmlTextSplitter),
+                Map.entry(JSON.getId(), jsonTextSplitter),
+                Map.entry(CHINESE.getId(), chineseTextSplitter),
+                Map.entry(CODE.getId(), codeTextSplitter)
         );
     }
 
-    private void registerSplitters(Map.Entry<SplitterTypeEnum, TextSplitter>... entries) {
-        for (Map.Entry<SplitterTypeEnum, TextSplitter> entry : entries) {
-            SplitterTypeEnum type = entry.getKey();
+    private void registerSplitters(Map.Entry<String, TextSplitter>... entries) {
+        for (Map.Entry<String, TextSplitter> entry : entries) {
             TextSplitter splitter = entry.getValue();
-            splitterMap.put(type.getId(), splitter);
+            splitterMap.put(entry.getKey(), splitter);
         }
     }
 
     /**
      * 获取分割器，不存在则报错
      */
-    public TextSplitter getTextSplitter(String name) {
-        return Optional.ofNullable(splitterMap.get(name))
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported split algorithm: " + name));
-    }
-
-    /**
-     * 获取分割器，不存在则返回默认
-     */
-    public TextSplitter getTextSplitterOrDefault(String name) {
-        return Optional.ofNullable(splitterMap.get(name))
-                .orElseGet(() -> splitterMap.get(defaultStrategy));
+    public TextSplitter getTextSplitter(String algorithm) {
+        return Optional.ofNullable(splitterMap.get(algorithm))
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported split algorithm: " + algorithm));
     }
 
 }

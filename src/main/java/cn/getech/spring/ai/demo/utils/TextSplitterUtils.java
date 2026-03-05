@@ -107,7 +107,18 @@ public class TextSplitterUtils {
     }
 
     /**
-     * 按字符计数分割（在标点处断开，尽量保持单词完整）
+     * 按字符计数分割（在标点处断开，保持单词完整）
+     * @param text 待分割文本
+     * @param chunkSize 块大小
+     * @param chunkOverlap 块重叠量
+     * @return 分割后的文本块列表
+     */
+    public static List<String> splitByCharacterCount(String text, int chunkSize, int chunkOverlap) {
+        return TextSplitterUtils.splitByCharacterCount(text, chunkSize, chunkOverlap, true);
+    }
+
+    /**
+     * 按字符计数分割（在标点处断开）
      * @param text 待分割文本
      * @param chunkSize 块大小
      * @param chunkOverlap 块重叠量
@@ -131,14 +142,29 @@ public class TextSplitterUtils {
         int start = 0;
         int end;
 
+        // 如果文本长度小于等于块大小，直接返回整个文本
+        if (text.length() <= chunkSize) {
+            chunks.add(text);
+            return chunks;
+        }
+
         // 定义更多的单词边界字符
         char[] wordBoundaries = {' ', '.', ',', ';', '!', '?', '。', '，', '；', '！', '？'};
 
         while (start < text.length()) {
-            end = Math.min(start + chunkSize, text.length());
+            // 计算剩余文本长度
+            int remainingLength = text.length() - start;
+            
+            // 如果剩余文本长度小于等于块大小，直接添加剩余文本并退出循环
+            if (remainingLength <= chunkSize) {
+                chunks.add(text.substring(start));
+                break;
+            }
+            
+            end = start + chunkSize;
 
-            // 如果需要保持单词完整，并且不是文本末尾
-            if (preserveWords && end < text.length()) {
+            // 如果需要保持单词完整，查找最近的单词边界
+            if (preserveWords) {
                 // 查找最近的单词边界
                 int latestBoundary = -1;
                 for (char boundary : wordBoundaries) {
@@ -177,6 +203,22 @@ public class TextSplitterUtils {
      */
     public static List<String> splitMarkdown(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
         return splitWithPattern(text, pattern, chunkSize, chunkOverlap, new MarkdownFormatProcessor());
+    }
+
+    /**
+     * HTML 分割（不保持结构完整）
+     * @param text 待分割 HTML 文本
+     * @param pattern 分割正则
+     * @param chunkSize 块大小
+     * @param chunkOverlap 块重叠量
+     * @return HTML 块列表
+     */
+    public static List<String> splitHtmlWithNoStructure(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
+        // 预处理：移除多余空白，保持HTML结构
+        if (StrUtil.isNotBlank(text)) {
+            text = text.replaceAll("\\s+", " ").trim();
+        }
+        return splitWithPattern(text, pattern, chunkSize, chunkOverlap, new HtmlNoStructureFormatProcessor());
     }
 
     /**
@@ -240,23 +282,7 @@ public class TextSplitterUtils {
     }
 
     /**
-     * HTML 分割（不保持结构完整）
-     * @param text 待分割 HTML 文本
-     * @param pattern 分割正则
-     * @param chunkSize 块大小
-     * @param chunkOverlap 块重叠量
-     * @return HTML 块列表
-     */
-    public static List<String> splitHtmlWithNoStructure(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
-        // 预处理：移除多余空白，保持HTML结构
-        if (StrUtil.isNotBlank(text)) {
-            text = text.replaceAll("\\s+", " ").trim();
-        }
-        return splitWithPattern(text, pattern, chunkSize, chunkOverlap, new HtmlNoStructureFormatProcessor());
-    }
-
-    /**
-     * JSON 分割（保持结构完整）
+     * JSON 分割（保持结构完整，大块JSON不进行进一步分割）
      * @param text 待分割 JSON 文本
      * @param pattern 分割正则
      * @return JSON 块列表
@@ -362,6 +388,153 @@ public class TextSplitterUtils {
      */
     public static List<String> splitCode(String text, Pattern pattern, int chunkSize, int chunkOverlap) {
         return splitWithPattern(text, pattern, chunkSize, chunkOverlap, new CodeFormatProcessor());
+    }
+
+    /**
+     * 自定义分割Token内容
+     */
+    public static List<String> splitTokenContent(String text) {
+        // 优先按段落分割
+        List<String> paraChunks = splitByParagraph(text);
+        if (paraChunks.size() > 1) {
+            return paraChunks;
+        }
+        // 然后按语句分割
+        List<String> sentChunks = splitBySentence(text);
+        if (sentChunks.size() > 1) {
+            return sentChunks;
+        }
+        // 最后按固定字符数分割
+        return splitByCharacterCount(text, 1000, 100);
+    }
+
+    /**
+     * 自定义按语句分割
+     */
+    public static List<String> splitBySentence(String text) {
+        return Arrays.stream(text.split("[。！？；：\\.!?;:]\\s*"))
+                .map(String::trim)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 自定义按段落分割
+     */
+    public static List<String> splitByParagraph(String text) {
+        return Arrays.stream(text.split("\\n\\s*\\n"))
+                .map(String::trim)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 自定义分割Markdown内容
+     */
+    public static List<String> splitMarkdownContent(String text) {
+        // 按标题分割
+        List<String> chunks = new ArrayList<>();
+        String[] parts = text.split("(?=^#)");
+        for (String part : parts) {
+            if (StrUtil.isNotBlank(part)) {
+                // 对每个标题部分进行段落分割
+                List<String> paraChunks = splitByParagraph(part);
+                chunks.addAll(paraChunks);
+            }
+        }
+        return chunks.isEmpty() ? List.of(text) : chunks;
+    }
+
+    /**
+     * 自定义分割HTML内容
+     */
+    public static List<String> splitHtmlContent(String text) {
+        // 按HTML标签分割
+        List<String> chunks = new ArrayList<>();
+        // 简单实现：按主要标签分割
+        String[] parts = text.split("(?=<(div|p|h[1-6]|section|article))");
+        for (String part : parts) {
+            if (StrUtil.isNotBlank(part)) {
+                chunks.add(part);
+            }
+        }
+        return chunks.isEmpty() ? List.of(text) : chunks;
+    }
+
+    /**
+     * 自定义分割JSON内容
+     */
+    public static List<String> splitJsonContent(String text) {
+        // 尝试按对象和数组分割
+        List<String> chunks = new ArrayList<>();
+        // 简单实现：按大括号和中括号分割
+        String[] parts = text.split("(?=\\{|\\[)");
+        for (String part : parts) {
+            if (StrUtil.isNotBlank(part)) {
+                chunks.add(part);
+            }
+        }
+        return chunks.isEmpty() ? List.of(text) : chunks;
+    }
+
+    /**
+     * 自定义分割中文内容
+     */
+    public static List<String> splitChineseContent(String text) {
+        // 优先按段落分割
+        List<String> paraChunks = splitByParagraph(text);
+        if (paraChunks.size() > 1) {
+            return paraChunks;
+        }
+        // 然后按语句分割
+        List<String> sentChunks = splitBySentence(text);
+        if (sentChunks.size() > 1) {
+            return sentChunks;
+        }
+        // 最后按固定字符数分割
+        return splitByCharacterCount(text, 800, 80);
+    }
+
+    /**
+     * 自定义分割代码内容
+     */
+    public static List<String> splitCodeContent(String text) {
+        // 按函数和类分割
+        List<String> chunks = new ArrayList<>();
+        // 简单实现：按函数定义分割
+        String[] parts = text.split("(?=^\\s*(public|private|protected|def|function)\\s+)");
+        for (String part : parts) {
+            if (StrUtil.isNotBlank(part)) {
+                chunks.add(part);
+            }
+        }
+        return chunks.isEmpty() ? List.of(text) : chunks;
+    }
+
+    /**
+     * 自定义分割通用内容
+     */
+    public static List<String> splitGenericContent(String text) {
+        // 首先尝试固定字符数分割
+        List<String> charChunks = splitByCharacterCount(text, 1000, 100);
+        if (charChunks.size() == 1) {
+            // 如果只有一个块，尝试段落分割
+            List<String> paraChunks = splitByParagraph(text);
+            if (paraChunks.size() > 1) {
+                return paraChunks;
+            } else {
+                // 如果段落分割后仍然只有一个块，尝试语句分割
+                List<String> sentChunks = splitBySentence(text);
+                if (sentChunks.size() > 1) {
+                    return sentChunks;
+                } else {
+                    // 如果语句分割后仍然只有一个块，使用字符分割
+                    return charChunks;
+                }
+            }
+        } else {
+            return charChunks;
+        }
     }
 
     /**

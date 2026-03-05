@@ -1,27 +1,21 @@
 package cn.getech.spring.ai.demo.service.impl;
 
-import cn.getech.spring.ai.demo.dto.TextAnalysisDto;
+import cn.getech.spring.ai.demo.build.TextSplitterBuild;
+import cn.getech.spring.ai.demo.check.DetectTextSegmentCheck;
+import cn.getech.spring.ai.demo.check.TextSplitterCheck;
 import cn.getech.spring.ai.demo.dto.TextSegmentDto;
-import cn.getech.spring.ai.demo.enums.SplitterTypeEnum;
 import cn.getech.spring.ai.demo.factory.TextSplitterFactory;
 import cn.getech.spring.ai.demo.service.TextSplitterService;
-import cn.getech.spring.ai.demo.valid.CodeTextCheck;
-import cn.getech.spring.ai.demo.valid.DetectTextSegmentCheck;
-import cn.getech.spring.ai.demo.valid.HtmlTextCheck;
-import cn.getech.spring.ai.demo.valid.MarkdownTextCheck;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.transformer.splitter.TextSplitter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * 文本分割服务实现类：提供智能文本分割功能，支持多种分割算法和自动文本类型检测
@@ -31,12 +25,11 @@ import java.util.stream.IntStream;
 @Service
 public class TextSplitterServiceImpl implements TextSplitterService {
 
-    /** 文本分割器默认算法 **/
-    @Value("${rag.text-splitting.default-strategy:recursive}")
-    private String defaultStrategy;
-
     @Autowired
     private TextSplitterFactory textSplitterFactory;
+
+    @Autowired
+    private TextSplitterBuild textSplitterBuild;
 
     /**
      * 使用特定分割器分割文本
@@ -48,66 +41,50 @@ public class TextSplitterServiceImpl implements TextSplitterService {
         }
 
         try {
-            validateAlgorithm(algorithm);
+            TextSplitterCheck.validateAlgorithm(algorithm);
             TextSplitter splitter = textSplitterFactory.getTextSplitter(algorithm);
-            Document inputDoc = createDocument(text, metadata);
-            List<Document> documents = splitDocument(splitter, inputDoc);
+            Document inputDoc = textSplitterBuild.createDocument(text, metadata);
+            List<Document> documents = textSplitterBuild.splitDocument(splitter, inputDoc);
             return enrichDocuments(documents, algorithm);
         } catch (Exception e) {
-            log.error("Error during split with algorithm {}: {}", algorithm, e.getMessage(), e);
-            return Collections.singletonList(createDocument(text, metadata));
+            throw new RuntimeException(e);
         }
     }
 
     /**
-     * 智能分割文本：对不同类型的分段使用对应的分割器
+     * 智能分割文本：实现三层智能分割方案
      */
     @Override
     public List<Document> intelligentSplit(String text, Map<String, Object> metadata) {
+        List<Document> allDocuments = new ArrayList<>();
         if (StrUtil.isBlank(text)) {
-            return Collections.emptyList();
+            return allDocuments;
         }
 
         try {
-            // 检测文本分段
+            // 第一层：混合格式块拆分
             List<TextSegmentDto> segments = DetectTextSegmentCheck.detectTextSegments(text);
-            List<Document> allDocuments = new ArrayList<>();
             long timestamp = System.currentTimeMillis();
 
-            // 对每个分段使用对应的分割器
+            // 对每个分段进行处理
             for (int i = 0; i < segments.size(); i++) {
                 TextSegmentDto segment = segments.get(i);
-                String segmentType = segment.getType();
+                String algorithm = segment.getAlgorithm();
                 String segmentText = segment.getText();
 
-                // 根据分段类型选择分割器
-                String algorithm = selectSplitterByType(segmentType);
-                TextSplitter splitter = textSplitterFactory.getTextSplitterOrDefault(algorithm);
+                // 第二层：中文优化预处理
+                String processedText = textSplitterBuild.preprocessChineseText(segmentText);
 
-                // 分割当前分段
-                Document segmentDoc = createDocument(segmentText, metadata);
-                List<Document> segmentDocuments = splitDocument(splitter, segmentDoc);
+                // 第三层：多粒度分层分割
+                List<String> chunks = textSplitterBuild.processMultiGranularitySplit(processedText, algorithm);
 
-                // 丰富元数据
-                int finalI = i;
-                List<Document> enrichedDocuments = segmentDocuments.stream().map(doc -> {
-                    Map<String, Object> docMetadata = new HashMap<>(doc.getMetadata());
-                    docMetadata.put("splitAlgorithm", algorithm);
-                    docMetadata.put("segmentType", segmentType);
-                    docMetadata.put("segmentIndex", finalI);
-                    docMetadata.put("totalSegments", segments.size());
-                    docMetadata.put("chunkSize", doc.getText().length());
-                    docMetadata.put("timestamp", timestamp);
-                    return new Document(doc.getText(), docMetadata);
-                }).collect(Collectors.toList());
-
-                allDocuments.addAll(enrichedDocuments);
+                // 转换为Document对象并丰富元数据
+                List<Document> segmentDocuments = enrichIntelligentDocuments(chunks, metadata, algorithm, i, segments.size(), timestamp);
+                allDocuments.addAll(segmentDocuments);
             }
-
             return allDocuments;
         } catch (Exception e) {
-            log.error("Error during intelligent split: {}", e.getMessage(), e);
-            return Collections.singletonList(createDocument(text, metadata));
+            throw new RuntimeException(e);
         }
     }
 
@@ -122,14 +99,13 @@ public class TextSplitterServiceImpl implements TextSplitterService {
         }
 
         try {
-            validateAlgorithm(algorithm);
+            TextSplitterCheck.validateAlgorithm(algorithm);
             TextSplitter splitter = textSplitterFactory.getTextSplitter(algorithm);
             texts.forEach((docId, text) -> processBatchSplit(results, docId, text, splitter, algorithm));
+            return results;
         } catch (Exception e) {
-            log.error("Error during batch split with algorithm {}: {}", algorithm, e.getMessage(), e);
-            texts.keySet().forEach(docId -> results.put(docId, Collections.emptyList()));
+            throw new RuntimeException(e);
         }
-        return results;
     }
 
     /**
@@ -141,67 +117,17 @@ public class TextSplitterServiceImpl implements TextSplitterService {
                 results.put(docId, Collections.emptyList());
                 return;
             }
-            Document inputDoc = createDocument(text, Map.of("docId", docId));
-            List<Document> documents = splitDocument(splitter, inputDoc);
+            Document inputDoc = textSplitterBuild.createDocument(text, Map.of("docId", docId));
+            List<Document> documents = textSplitterBuild.splitDocument(splitter, inputDoc);
             List<Document> processedDocs = enrichDocuments(documents, algorithm);
             results.put(docId, processedDocs);
         } catch (Exception e) {
-            log.error("Failed to batch split document: {}", docId, e);
-            results.put(docId, Collections.emptyList());
+            throw new RuntimeException(e);
         }
     }
 
     /**
-     * 验证算法参数
-     */
-    private void validateAlgorithm(String algorithm) {
-        if (StrUtil.isBlank(algorithm)) {
-            throw new IllegalArgumentException("Algorithm cannot be blank");
-        }
-    }
-
-    /**
-     * 分析文本特征
-     */
-    private TextAnalysisDto analyzeText(String text) {
-        return TextAnalysisDto.builder()
-                .language(detectLanguage(text))
-                .type(detectTextType(text))
-                .length(text.length())
-                .lineCount(text.split("\n").length)
-                .build();
-    }
-
-    /**
-     * 根据分析结果选择分割器
-     */
-    private String selectSplitterByAnalysis(TextAnalysisDto analysis) {
-        // 优先考虑语言特性
-        if ("chinese".equals(analysis.getLanguage())) {
-            return SplitterTypeEnum.CHINESE.getId();
-        }
-        // 然后考虑文本类型
-        return Optional.ofNullable(SplitterTypeEnum.findByType(analysis.getType()))
-                .map(SplitterTypeEnum::getId)
-                .orElse(defaultStrategy);
-    }
-
-    /**
-     * 创建文档对象
-     */
-    private Document createDocument(String text, Map<String, Object> metadata) {
-        return new Document(text, metadata != null ? metadata : new HashMap<>());
-    }
-
-    /**
-     * 分割文档
-     */
-    private List<Document> splitDocument(TextSplitter splitter, Document document) {
-        return splitter.apply(Collections.singletonList(document));
-    }
-
-    /**
-     * 丰富文档元数据（指定算法）
+     * 丰富文档元数据
      */
     private List<Document> enrichDocuments(List<Document> documents, String algorithm) {
         long timestamp = System.currentTimeMillis();
@@ -215,86 +141,26 @@ public class TextSplitterServiceImpl implements TextSplitterService {
     }
 
     /**
-     * 丰富文档元数据（智能分割）
+     * 丰富智能分割文档元数据
      */
-    private List<Document> enrichDocuments(List<Document> documents, TextAnalysisDto analysis, String algorithm) {
-        long timestamp = System.currentTimeMillis();
-        return IntStream.range(0, documents.size())
-                .mapToObj(i -> {
-                    Document doc = documents.get(i);
-                    Map<String, Object> docMetadata = new HashMap<>(doc.getMetadata());
-                    docMetadata.put("splitAlgorithm", algorithm);
-                    docMetadata.put("detectedType", analysis.getType());
-                    docMetadata.put("detectedLanguage", analysis.getLanguage());
-                    docMetadata.put("chunkSize", doc.getText().length());
-                    docMetadata.put("chunkIndex", i);
-                    docMetadata.put("totalChunks", documents.size());
-                    docMetadata.put("timestamp", timestamp);
-                    return new Document(doc.getText(), docMetadata);
-                }).collect(Collectors.toList());
-    }
-
-    /**
-     * 检测语言类型
-     */
-    private String detectLanguage(String text) {
-        if (StrUtil.isBlank(text)) {
-            return "unknown";
+    private List<Document> enrichIntelligentDocuments(List<String> chunks, Map<String, Object> metadata, String algorithm,
+                                                      int segmentIndex, int totalSegments, long timestamp) {
+        List<Document> documents = new ArrayList<>();
+        for (int j = 0; j < chunks.size(); j++) {
+            String chunk = chunks.get(j);
+            Document doc = textSplitterBuild.createDocument(chunk, metadata);
+            Map<String, Object> docMetadata = new HashMap<>(doc.getMetadata());
+            docMetadata.put("splitAlgorithm", "intelligent");
+            docMetadata.put("algorithm", algorithm);
+            docMetadata.put("segmentIndex", segmentIndex);
+            docMetadata.put("chunkIndex", j);
+            docMetadata.put("totalSegments", totalSegments);
+            docMetadata.put("totalChunks", chunks.size());
+            docMetadata.put("chunkSize", chunk.length());
+            docMetadata.put("timestamp", timestamp);
+            documents.add(new Document(chunk, docMetadata));
         }
-        long chineseCount = text.chars()
-                .filter(c -> Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN)
-                .count();
-        double chineseRatio = (double) chineseCount / text.length();
-        return chineseRatio > 0.3 ? "chinese" : "english";
-    }
-
-    /**
-     * 检测文本类型
-     */
-    private String detectTextType(String text) {
-        if (StrUtil.isBlank(text)) {
-            return "plain";
-        }
-        String trimmed = text.trim();
-        if (MarkdownTextCheck.isMarkdown(trimmed)) {
-            return "markdown";
-        }
-        if (HtmlTextCheck.isHtml(trimmed)) {
-            return "html";
-        }
-        if (JSONUtil.isTypeJSON(trimmed)) {
-            return "json";
-        }
-        if (CodeTextCheck.isCode(trimmed)) {
-            return "code";
-        }
-        return "plain";
-    }
-
-    /**
-     * 根据文本类型选择分割器
-     */
-    private String selectSplitterByType(String type) {
-        switch (type) {
-            case "json":
-                return "json";
-            case "html":
-                return "html";
-            case "code":
-                return "code";
-            case "markdown":
-                return "markdown";
-            case "chinese":
-                return "chinese";
-            case "paragraph":
-                return "paragraph";
-            case "sentence":
-                return "sentence";
-            case "character":
-                return "character";
-            default:
-                return defaultStrategy;
-        }
+        return documents;
     }
 
 }

@@ -1,10 +1,10 @@
 package cn.getech.spring.ai.demo.enums;
 
-import cn.hutool.core.util.StrUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @author 11030
@@ -13,6 +13,7 @@ import java.util.Arrays;
 @AllArgsConstructor
 @NoArgsConstructor
 public enum SplitterTypeEnum {
+
     TOKEN("token", "Token 分割", "基于 Token 数量的分割，适合 LLM 处理", "LLM 处理、API 调用"),
     RECURSIVE("recursive", "递归字符分割", "递归字符分割，按分隔符优先级分割（推荐）", "通用文本、混合内容"),
     SENTENCE("sentence", "句子分割", "句子分割，基于句子边界", "自然语言、文档翻译"),
@@ -29,15 +30,11 @@ public enum SplitterTypeEnum {
     private String description;
     private String recommendedUseCases;
 
-    public static SplitterTypeEnum findByType(String type) {
-        if (StrUtil.isBlank(type)) {
-            return null;
-        }
-
-        return Arrays.stream(values())
-                .filter(splitter -> splitter.getId().equalsIgnoreCase(type))
-                .findFirst()
-                .orElse(null);
+    public static boolean checkAlgorithmExist(String algorithm){
+        long count = Arrays.asList(SplitterTypeEnum.values()).stream()
+                .filter(e -> Objects.equals(e.getId(), algorithm))
+                .count();
+        return count > 0;
     }
 
 }
