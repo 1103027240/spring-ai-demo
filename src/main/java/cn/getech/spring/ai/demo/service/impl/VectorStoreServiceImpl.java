@@ -133,7 +133,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(query)
                 .topK(topK)
-                .similarityThreshold(0.3)
+                .similarityThreshold(0.7)
                 .build();
         return vectorStore.similaritySearch(searchRequest);
     }
