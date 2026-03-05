@@ -39,6 +39,15 @@ public class DetectTextTypeCheck {
     private static final Set<String> STRUCTURE_MARKERS = Set.of(
             "{", "}", "(", ")", "[", "]");
 
+    // 常量定义
+    private static final int MIN_MARKDOWN_MARKERS = 2;
+    private static final int MIN_HTML_TAGS = 2;
+    private static final int MIN_CODE_MARKERS = 2;
+    private static final int MIN_STRUCTURE_MARKERS = 2;
+    private static final double CHINESE_RATIO_THRESHOLD = 0.5;
+    private static final int TEXT_LENGTH_THRESHOLD = 300;
+    private static final int DELIMITER_TYPES_THRESHOLD = 2;
+
     /**
      * 统一的文本类型检测方法
      * @param text 待检测的文本
@@ -50,37 +59,37 @@ public class DetectTextTypeCheck {
         }
 
         // 1. 检测代码
-        if (DetectTextTypeCheck.isCode(text)) {
+        if (isCode(text)) {
             return SplitterTypeEnum.CODE.getId();
         }
 
         // 2. 检测中文文本
-        if (DetectTextTypeCheck.isChineseText(text)) {
+        if (isChineseText(text)) {
             return SplitterTypeEnum.CHINESE.getId();
         }
 
         // 3. 检测英文文本（适合token分割）
-        if (DetectTextTypeCheck.isToken(text)) {
+        if (isToken(text)) {
             return SplitterTypeEnum.TOKEN.getId();
         }
 
         // 4. 检测段落
-        if (DetectTextTypeCheck.isParagraph(text)) {
+        if (isParagraph(text)) {
             return SplitterTypeEnum.PARAGRAPH.getId();
         }
 
         // 5. 检测句子
-        if (DetectTextTypeCheck.isSentence(text)) {
+        if (isSentence(text)) {
             return SplitterTypeEnum.SENTENCE.getId();
         }
 
         // 6. 检测Markdown
-        if (DetectTextTypeCheck.isMarkdown(text)) {
+        if (isMarkdown(text)) {
             return SplitterTypeEnum.MARKDOWN.getId();
         }
 
         // 7. 检测HTML
-        if (DetectTextTypeCheck.isHtml(text)) {
+        if (isHtml(text)) {
             return SplitterTypeEnum.HTML.getId();
         }
 
@@ -90,10 +99,9 @@ public class DetectTextTypeCheck {
         }
 
         // 9. 区分 character 和 recursive 类型
-        // 与 TextSplitterConfig 配置一致，使用 TextSplitterCheck 中封装的判断方法
-        if (DetectTextTypeCheck.isCharacter(text)) {
+        if (isCharacter(text)) {
             return SplitterTypeEnum.CHARACTER.getId();
-        } else if (DetectTextTypeCheck.isRecursive(text)) {
+        } else if (isRecursive(text)) {
             return SplitterTypeEnum.RECURSIVE.getId();
         }
 
@@ -149,7 +157,7 @@ public class DetectTextTypeCheck {
             if (text.contains(marker)) {
                 markerCount++;
                 // 如果找到多个Markdown标记，直接返回true
-                if (markerCount >= 2) {
+                if (markerCount >= MIN_MARKDOWN_MARKERS) {
                     return true;
                 }
             }
@@ -197,7 +205,7 @@ public class DetectTextTypeCheck {
             if (lowerText.contains(tag)) {
                 htmlTagCount++;
                 // 如果找到多个HTML标签，直接返回true
-                if (htmlTagCount >= 2) {
+                if (htmlTagCount >= MIN_HTML_TAGS) {
                     return true;
                 }
             }
@@ -217,7 +225,7 @@ public class DetectTextTypeCheck {
                 .filter(c -> Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN)
                 .count();
         double chineseRatio = (double) chineseCount / text.length();
-        return chineseRatio > 0.5; // 中文比例超过50%
+        return chineseRatio > CHINESE_RATIO_THRESHOLD; // 中文比例超过阈值
     }
 
     /**
@@ -235,64 +243,53 @@ public class DetectTextTypeCheck {
 
         int codeMarkerCount = 0;
 
-        // 检查Java特征
-        for (String marker : JAVA_MARKERS) {
-            if (text.contains(marker)) {
-                codeMarkerCount++;
-                break;
-            }
+        // 检查各种代码特征，使用方法提取提高可读性
+        if (containsAnyMarker(text, JAVA_MARKERS)) {
+            codeMarkerCount++;
+        }
+        if (containsAnyMarker(text, JS_MARKERS)) {
+            codeMarkerCount++;
+        }
+        if (containsAnyMarker(text, PYTHON_MARKERS)) {
+            codeMarkerCount++;
+        }
+        if (containsAnyMarker(text, CPP_MARKERS)) {
+            codeMarkerCount++;
+        }
+        if (containsAnyMarker(text, COMMENT_MARKERS)) {
+            codeMarkerCount++;
+        }
+        if (hasStructureMarkers(text)) {
+            codeMarkerCount++;
         }
 
-        // 检查JavaScript特征
-        for (String marker : JS_MARKERS) {
+        // 如果检测到多个代码特征，返回true
+        return codeMarkerCount >= MIN_CODE_MARKERS;
+    }
+
+    /**
+     * 检查文本是否包含指定集合中的任何标记
+     */
+    private static boolean containsAnyMarker(String text, Set<String> markers) {
+        for (String marker : markers) {
             if (text.contains(marker)) {
-                codeMarkerCount++;
-                break;
+                return true;
             }
         }
+        return false;
+    }
 
-        // 检查Python特征
-        for (String marker : PYTHON_MARKERS) {
-            if (text.contains(marker)) {
-                codeMarkerCount++;
-                break;
-            }
-        }
-
-        // 检查C/C++特征
-        for (String marker : CPP_MARKERS) {
-            if (text.contains(marker)) {
-                codeMarkerCount++;
-                break;
-            }
-        }
-
-        // 检查代码注释
-        for (String marker : COMMENT_MARKERS) {
-            if (text.contains(marker)) {
-                codeMarkerCount++;
-                break;
-            }
-        }
-
-        // 检查代码结构特征
-        boolean hasStructure = false;
+    /**
+     * 检查文本是否包含结构标记
+     */
+    private static boolean hasStructureMarkers(String text) {
         int structureCount = 0;
         for (String marker : STRUCTURE_MARKERS) {
             if (text.contains(marker)) {
                 structureCount++;
             }
         }
-        if (structureCount >= 2) {
-            hasStructure = true;
-        }
-
-        if (hasStructure) {
-            codeMarkerCount++;
-        }
-
-        // 如果检测到多个代码特征，返回true
-        return codeMarkerCount >= 2;
+        return structureCount >= MIN_STRUCTURE_MARKERS;
     }
 
     /**
@@ -305,10 +302,10 @@ public class DetectTextTypeCheck {
         }
 
         // 检查文本长度
-        if (text.length() < 300) {
+        if (text.length() < TEXT_LENGTH_THRESHOLD) {
             // 检查分隔符类型数量
             int delimiterTypes = countDelimiterTypes(text);
-            return delimiterTypes < 2;
+            return delimiterTypes < DELIMITER_TYPES_THRESHOLD;
         }
 
         return false;
@@ -325,12 +322,12 @@ public class DetectTextTypeCheck {
 
         // 检查分隔符类型数量
         int delimiterTypes = countDelimiterTypes(text);
-        if (delimiterTypes >= 2) {
+        if (delimiterTypes >= DELIMITER_TYPES_THRESHOLD) {
             return true;
         }
 
         // 对于较长的文本，默认使用递归字符分割器
-        return text.length() >= 300;
+        return text.length() >= TEXT_LENGTH_THRESHOLD;
     }
 
     /**

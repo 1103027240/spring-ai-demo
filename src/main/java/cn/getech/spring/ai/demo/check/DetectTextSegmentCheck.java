@@ -23,27 +23,8 @@ public class DetectTextSegmentCheck {
         }
 
         // 1. 检测Markdown代码块（最高优先级）
-        int codeBlockStart = text.indexOf("```");
-        if (codeBlockStart != -1) {
-            int codeBlockEnd = text.indexOf("```", codeBlockStart + 3);
-            if (codeBlockEnd != -1) {
-                // 代码块前的部分
-                if (codeBlockStart > 0) {
-                    String prefix = text.substring(0, codeBlockStart);
-                    segments.addAll(detectTextSegments(prefix));
-                }
-
-                // 代码块部分
-                String codeBlock = text.substring(codeBlockStart, codeBlockEnd + 3);
-                segments.add(new TextSegmentDto(codeBlock, SplitterTypeEnum.CODE.getId()));
-
-                // 代码块后的部分
-                if (codeBlockEnd + 3 < text.length()) {
-                    String suffix = text.substring(codeBlockEnd + 3);
-                    segments.addAll(detectTextSegments(suffix));
-                }
-                return segments;
-            }
+        if (processCodeBlocks(text, segments)) {
+            return segments;
         }
 
         // 2. 检测HTML结构（第二优先级）
@@ -85,6 +66,49 @@ public class DetectTextSegmentCheck {
         }
 
         // 7. 合并连续相同类型的行
+        mergeSameTypeLines(lines, segments);
+
+        return segments;
+    }
+
+    /**
+     * 处理代码块
+     * @param text 待处理的文本
+     * @param segments 分段列表
+     * @return 是否处理了代码块
+     */
+    private static boolean processCodeBlocks(String text, List<TextSegmentDto> segments) {
+        int codeBlockStart = text.indexOf("```");
+        if (codeBlockStart != -1) {
+            int codeBlockEnd = text.indexOf("```", codeBlockStart + 3);
+            if (codeBlockEnd != -1) {
+                // 代码块前的部分
+                if (codeBlockStart > 0) {
+                    String prefix = text.substring(0, codeBlockStart);
+                    segments.addAll(detectTextSegments(prefix));
+                }
+
+                // 代码块部分
+                String codeBlock = text.substring(codeBlockStart, codeBlockEnd + 3);
+                segments.add(new TextSegmentDto(codeBlock, SplitterTypeEnum.CODE.getId()));
+
+                // 代码块后的部分
+                if (codeBlockEnd + 3 < text.length()) {
+                    String suffix = text.substring(codeBlockEnd + 3);
+                    segments.addAll(detectTextSegments(suffix));
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 合并连续相同类型的行
+     * @param lines 行数组
+     * @param segments 分段列表
+     */
+    private static void mergeSameTypeLines(String[] lines, List<TextSegmentDto> segments) {
         StringBuilder currentSegment = new StringBuilder();
         String currentType = DetectTextTypeCheck.detectTextType(lines[0]);
 
@@ -109,8 +133,6 @@ public class DetectTextSegmentCheck {
         if (currentSegment.length() > 0) {
             segments.add(new TextSegmentDto(currentSegment.toString(), currentType));
         }
-
-        return segments;
     }
 
 }

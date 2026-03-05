@@ -80,7 +80,7 @@ public class TextSplitterBuild {
         TextSplitterCheck.validateAlgorithm(algorithm);
 
         // 根据不同类型使用不同的分割策略
-        SplitterTypeEnum splitterType = SplitterTypeEnum.valueOf(algorithm);
+        SplitterTypeEnum splitterType = SplitterTypeEnum.valueOf(algorithm.toUpperCase(Locale.ROOT));
         switch (splitterType) {
             case MARKDOWN:
                 // Markdown优先使用Markdown分割器
