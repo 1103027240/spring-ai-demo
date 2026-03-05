@@ -15,6 +15,9 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class VectorStoreConfig {
 
+    /**
+     * RAG向量存储
+     */
     @Bean("ragVectorStore")
     @Primary
     public VectorStore ragDocumentVectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel) {

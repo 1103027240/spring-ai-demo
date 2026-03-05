@@ -81,7 +81,7 @@ public class RagServiceImpl implements RagService {
     public String advanceSearch(String msg) {
         List<Document> docs = search(msg);
 
-        // 拼接上下文(Prompt)
+        // 5. 拼接上下文(Prompt)
         String context = docs.stream()
                 .map(Document::getText)
                 .collect(Collectors.joining("\n---\n"));

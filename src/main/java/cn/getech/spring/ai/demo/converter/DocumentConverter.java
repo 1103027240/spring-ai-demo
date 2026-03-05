@@ -1,5 +1,6 @@
 package cn.getech.spring.ai.demo.converter;
 
+import cn.getech.spring.ai.demo.function.DocumentTransferFunction;
 import org.springframework.ai.document.Document;
 import java.util.Map;
 import java.util.function.Function;
@@ -35,19 +36,11 @@ public class DocumentConverter {
     /**
      * 将 Document 转换为任意对象
      * @param document 源 Document
-     * @param entityBuilder 实体构建函数
+     * @param function 实体构建函数
      * @return 构建的实体
      */
-    public static <T> T toEntity(Document document, DocumentToEntityMapper<T> entityBuilder) {
-        return entityBuilder.map(document.getText(), document.getMetadata());
-    }
-
-    /**
-     * 实体构建器接口
-     */
-    @FunctionalInterface
-    public interface DocumentToEntityMapper<T> {
-        T map(String content, Map<String, Object> metadata);
+    public static <T> T toEntity(Document document, DocumentTransferFunction<T> function) {
+        return function.map(document.getText(), document.getMetadata());
     }
 
 }
