@@ -39,7 +39,7 @@ public class RagController {
         ragService.addDocument(text, null, null);
     }
 
-    @Operation(summary = "查询文档", description = "查询文档")
+    @Operation(summary = "搜索", description = "搜索")
     @PostMapping("/search")
     public List<Document> search(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
@@ -47,7 +47,15 @@ public class RagController {
         return ragService.search(msg);
     }
 
-    @Operation(summary = "分页查询文档", description = "分页查询文档")
+    @Operation(summary = "增强搜索", description = "增强搜索")
+    @PostMapping("/advanceSearch")
+    public String advanceSearch(
+            @Parameter(description = "用户消息内容", required = true, example = "你好")
+            @RequestParam(value = "msg") String msg){
+        return ragService.advanceSearch(msg);
+    }
+
+    @Operation(summary = "分页搜索", description = "分页搜索")
     @GetMapping("/pageSearch")
     public Page<Document> pageSearch(
             @Parameter(description = "用户消息内容", required = true, example = "你好")

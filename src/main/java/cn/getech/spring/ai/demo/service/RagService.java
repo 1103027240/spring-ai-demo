@@ -15,6 +15,8 @@ public interface RagService {
 
     List<Document> search(String query);
 
+    String advanceSearch(String msg);
+
     Page<Document> pageSearch(String query, int page, int size);
 
     Map<String, Object> batchProcessDocuments(Map<String, String> documents, String splitAlgorithm);

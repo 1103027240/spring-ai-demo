@@ -2,13 +2,15 @@ package cn.getech.spring.ai.demo.service.impl;
 
 import cn.getech.spring.ai.demo.service.*;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author 11030
@@ -31,6 +33,9 @@ public class RagServiceImpl implements RagService {
 
     @Autowired
     private VectorStoreService vectorStoreService;
+
+    @Resource(name = "qwenChatClient")
+    private ChatClient qwenChatClient;
 
     @Value("${rag.rerank.top-k:5}")
     private int topK;
@@ -70,6 +75,25 @@ public class RagServiceImpl implements RagService {
 
         // 4. 重排
         return textRerankingService.enhancedRerank(deduplicateResults, query);
+    }
+
+    @Override
+    public String advanceSearch(String msg) {
+        List<Document> docs = search(msg);
+
+        // 拼接上下文(Prompt)
+        String context = docs.stream()
+                .map(Document::getText)
+                .collect(Collectors.joining("\n---\n"));
+
+        String prompt = """
+                请根据以下上下文回答问题，不要编造。
+                上下文：
+                %s
+                问题：%s
+                """.formatted(context, msg);
+
+        return qwenChatClient.prompt().user(prompt).call().content();
     }
 
     /**
