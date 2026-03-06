@@ -176,6 +176,18 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- MCP Server，如果服务端使用STO io协议，禁用spring-boot-starter-web -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server-webflux</artifactId>
+        </dependency>
+
+        <!-- MCP Client -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-client</artifactId>
+        </dependency>
+
         <!-- Milvus向量库依赖，版本2.6.11 -->
         <dependency>
             <groupId>io.milvus</groupId>
@@ -267,6 +279,8 @@
 
     <modules>
         <module>base-demo</module>
+        <module>mcp-server-demo</module>
+        <module>mcp-client-demo</module>
     </modules>
 
 </project>

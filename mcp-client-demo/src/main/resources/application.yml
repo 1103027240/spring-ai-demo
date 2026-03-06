@@ -1,0 +1,104 @@
+server:
+  port: 8032
+  servlet:
+    context-path: /api/mcp-client-demo
+    # 大模型对话中文乱码处理
+    encoding:
+      enabled: true
+      force: true
+      charset: utf-8
+  # 明确指定使用Undertow服务器
+  type: undertow
+  # 配置Undertow服务器
+  undertow:
+    # IO线程数，默认为处理器数量
+    io-threads: 4
+    # 工作线程数，默认为io-threads的8倍
+    worker-threads: 32
+    # 缓冲区大小
+    buffer-size: 1024
+    # 是否直接分配缓冲区
+    direct-buffers: true
+    # HTTP/2支持
+    http2-enabled: true
+    # 最大HTTP头大小
+    max-http-header-size: 8192
+    # 最大实体大小
+    max-entity-size: 10MB
+    # 连接超时时间
+    no-request-timeout: 30000
+    # 优雅关闭超时
+    shutdown-timeout: 30
+
+spring:
+  main:
+    web-application-type: servlet
+    allow-bean-definition-overriding: true
+  application:
+    name: mcp-client-demo
+
+  # mysql配置
+  datasource:
+    url: jdbc:mysql://localhost:3316/rag_demo?useUnicode=true&characterEncoding=utf-8&nullCatalogMeansCurrent=true&useSSL=false&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+    # Druid 连接池配置
+    druid:
+      # 初始连接数
+      initial-size: 5
+      # 最小连接池数量
+      min-idle: 10
+      # 最大连接池数量
+      max-active: 20
+      # 获取连接等待超时的时间
+      max-wait: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      time-between-eviction-runs-millis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      min-evictable-idle-time-millis: 300000
+      # 配置一个连接在池中最大生存的时间，单位是毫秒
+      max-evictable-idle-time-millis: 900000
+      # 配置检测连接是否有效
+      validation-query: SELECT 1
+
+  ai:
+    # 阿里云百炼配置
+    dashscope:
+      api-key: ${qwen-api}
+      base-url: https://dashscope.aliyuncs.com
+#      chat:
+#        options:
+#          model: qwen-plus
+      qwen:
+        model: qwen-plus
+      deepseek:
+        model: deepseek-v3
+
+    # mcp client配置
+    mcp:
+      client:
+        enabled: true
+        type: sync
+        name: mcp-client-demo
+        request-timeout: 60s
+        toolcallback:
+          enabled: true
+        sse:
+          connections:
+            mcp-server-demo:
+              url:  http://localhost:8031/api/mcp-server-demo/mcp/sse
+
+# Knife4j配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+

@@ -1,7 +1,7 @@
 server:
   port: 8030
   servlet:
-    context-path: /api/spring-ai-demo
+    context-path: /api/base-demo
     # 大模型对话中文乱码处理
     encoding:
       enabled: true
