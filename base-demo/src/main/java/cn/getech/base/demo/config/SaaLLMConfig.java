@@ -171,7 +171,7 @@ public class SaaLLMConfig {
      * 常用qwenChatClient
      */
     @Bean
-    public ChatClient qwenChatClient(ChatModel qwenChatModel, ChatMemory hierarchicalChatMemory) {
+    public ChatClient qwenChatClient(ChatModel qwenChatModel) {
         return ChatClient.builder(qwenChatModel).build();
     }
 
@@ -190,7 +190,7 @@ public class SaaLLMConfig {
      * 带RAG的qwenChatClient：先通过知识库搜索，会自动组装上下文，然后调用AI大模型查询
      */
     @Bean
-    public ChatClient ragQwenChatClient(ChatModel qwenChatModel, ChatMemory hierarchicalChatMemory) {
+    public ChatClient ragQwenChatClient(ChatModel qwenChatModel) {
         RetrievalAugmentationAdvisor retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(VectorStoreDocumentRetriever.builder().vectorStore(vectorStore).build())
                 .build();
@@ -200,7 +200,7 @@ public class SaaLLMConfig {
     }
 
     @Bean
-    public ChatClient deepseekChatClient(ChatModel deepseekChatModel, ChatMemory hierarchicalChatMemory) {
+    public ChatClient deepseekChatClient(ChatModel deepseekChatModel) {
         return ChatClient.builder(deepseekChatModel).build();
     }
 
