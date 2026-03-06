@@ -11,12 +11,15 @@ import com.alibaba.cloud.ai.memory.redis.RedissonRedisChatMemoryRepository;
 import com.github.xiaoymin.knife4j.core.util.StrUtil;
 import io.milvus.client.MilvusServiceClient;
 import io.milvus.param.ConnectParam;
+import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.milvus.MilvusVectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -62,6 +65,9 @@ public class SaaLLMConfig {
 
     @Value("${spring.ai.memory.redis.key-prefix:spring_ai_long_chat_memory}")
     private String memoryKeyPrefix;
+
+    @Resource(name = "ragVectorStore")
+    private VectorStore vectorStore;
 
     @Bean
     public DashScopeApi dashScopeApi() {
@@ -171,7 +177,7 @@ public class SaaLLMConfig {
     }
 
     /**
-     * 不带分层记忆qwenChatClient
+     * 常用qwenChatClient
      */
     @Bean
     public ChatClient qwenChatClient(ChatModel qwenChatModel, ChatMemory hierarchicalChatMemory) {
@@ -179,13 +185,26 @@ public class SaaLLMConfig {
     }
 
     /**
-     * 带分层记忆defaultQwenChatClient
+     * 带分层记忆的qwenChatClient
      */
     @Bean
-    public ChatClient defaultQwenChatClient(ChatModel qwenChatModel, ChatMemory hierarchicalChatMemory) {
+    public ChatClient memoryQwenChatClient(ChatModel qwenChatModel, ChatMemory hierarchicalChatMemory) {
         return ChatClient.builder(qwenChatModel)
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(hierarchicalChatMemory)
                         .build())
+                .build();
+    }
+
+    /**
+     * 带RAG的qwenChatClient：先通过知识库搜索，会自动组装上下文，然后调用AI大模型查询
+     */
+    @Bean
+    public ChatClient ragQwenChatClient(ChatModel qwenChatModel, ChatMemory hierarchicalChatMemory) {
+        RetrievalAugmentationAdvisor retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
+                .documentRetriever(VectorStoreDocumentRetriever.builder().vectorStore(vectorStore).build())
+                .build();
+        return ChatClient.builder(qwenChatModel)
+                .defaultAdvisors(retrievalAugmentationAdvisor)
                 .build();
     }
 

@@ -15,7 +15,9 @@ public interface RagService {
 
     List<Document> search(String query);
 
-    String advanceSearch(String msg);
+    String advanceSearchV1(String msg);
+
+    String advanceSearchV2(String msg);
 
     Page<Document> pageSearch(String query, int page, int size);
 

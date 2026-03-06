@@ -47,12 +47,20 @@ public class RagController {
         return ragService.search(msg);
     }
 
-    @Operation(summary = "增强搜索", description = "增强搜索")
-    @PostMapping("/advanceSearch")
-    public String advanceSearch(
+    @Operation(summary = "增强搜索V1", description = "增强搜索V1")
+    @PostMapping("/v1/advanceSearch")
+    public String advanceSearchV1(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String msg){
-        return ragService.advanceSearch(msg);
+        return ragService.advanceSearchV1(msg);
+    }
+
+    @Operation(summary = "增强搜索V2", description = "增强搜索V2")
+    @PostMapping("/v2/advanceSearch")
+    public String advanceSearchV2(
+            @Parameter(description = "用户消息内容", required = true, example = "你好")
+            @RequestParam(value = "msg") String msg){
+        return ragService.advanceSearchV2(msg);
     }
 
     @Operation(summary = "分页搜索", description = "分页搜索")

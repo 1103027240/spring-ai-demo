@@ -28,15 +28,15 @@ public class MemoryVectorServiceImpl implements MemoryVectorService {
     @Resource(name = "qwenChatClient")
     private ChatClient qwenChatClient;
 
-    @Resource(name = "defaultQwenChatClient")
-    private ChatClient defaultQwenChatClient;
+    @Resource(name = "memoryQwenChatClient")
+    private ChatClient memoryQwenChatClient;
 
     @Autowired
     private VectorStore vectorStore;
 
     @Override
     public String doChatHierarchical(String msg, String conversationId) {
-        return defaultQwenChatClient.prompt()
+        return memoryQwenChatClient.prompt()
                 .user(msg)
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .call()

@@ -37,6 +37,9 @@ public class RagServiceImpl implements RagService {
     @Resource(name = "qwenChatClient")
     private ChatClient qwenChatClient;
 
+    @Resource(name = "ragQwenChatClient")
+    private ChatClient ragQwenChatClient;
+
     @Value("${rag.rerank.top-k:5}")
     private int topK;
 
@@ -78,10 +81,10 @@ public class RagServiceImpl implements RagService {
     }
 
     @Override
-    public String advanceSearch(String msg) {
+    public String advanceSearchV1(String msg) {
         List<Document> docs = search(msg);
 
-        // 5. 拼接上下文(Prompt)
+        // 5. 拼接上下文：手动组装
         String context = docs.stream()
                 .map(Document::getText)
                 .collect(Collectors.joining("\n---\n"));
@@ -95,6 +98,19 @@ public class RagServiceImpl implements RagService {
 
         // 6. 调用AI大模型查询
         return qwenChatClient.prompt().user(prompt).call().content();
+    }
+
+    @Override
+    public String advanceSearchV2(String msg) {
+        List<Document> docs = search(msg);
+
+        // 5. 拼接上下文: 自动组装
+        String prompt = docs.stream()
+                .map(Document::getText)
+                .collect(Collectors.joining("\n---\n"));
+
+        // 6. 调用AI大模型查询
+        return ragQwenChatClient.prompt().user(prompt).call().content();
     }
 
     /**
