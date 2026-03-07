@@ -1,11 +1,11 @@
 package cn.getech.mcp.server.demo.service.impl;
 
-import cn.getech.mcp.server.demo.service.ProductService;
 import cn.getech.mcp.server.demo.dto.ProductInfoDto;
 import cn.getech.mcp.server.demo.dto.StockInfoDto;
+import cn.getech.mcp.server.demo.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
-import org.springaicommunity.mcp.annotation.McpTool;
-import org.springaicommunity.mcp.annotation.McpToolParam;
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 
@@ -16,10 +16,10 @@ import java.math.BigDecimal;
 @Service
 public class ProductServiceImpl implements ProductService {
 
-    @McpTool(description = "查询商品详细信息")
+    @Tool(description = "查询商品详细信息")
     @Override
     public ProductInfoDto getProductDetail(
-            @McpToolParam(required = false, description = "商品名称") String name) {
+            @ToolParam(required = false, description = "商品名称") String name) {
         log.info("检索商品名称: {}", name);
         return ProductInfoDto.builder()
                 .skuId("123456")
@@ -28,9 +28,9 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
-    @McpTool(description = "查询库存信息")
+    @Tool(description = "查询库存信息")
     @Override
-    public StockInfoDto getStockInfo(@McpToolParam(description = "商品ID") String skuId) {
+    public StockInfoDto getStockInfo(@ToolParam(description = "商品ID") String skuId) {
         log.info("检索库存ID: {}", skuId);
         return StockInfoDto.builder()
                 .skuId(skuId)
