@@ -14,6 +14,12 @@
     <name>mcp-client-demo</name>
 
     <dependencies>
+        <!-- Web依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
         <!-- Spring WebFlux for SSE -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
