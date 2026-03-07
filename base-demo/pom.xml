@@ -137,6 +137,13 @@
             <artifactId>mybatis-plus-jsqlparser</artifactId>
             <version>${mybatis.version}</version>
         </dependency>
+
+        <!-- Knife4j Swagger增强 -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+            <version>${knife4j.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

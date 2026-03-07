@@ -97,13 +97,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Knife4j Swagger增强 -->
-        <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-            <version>${knife4j.version}</version>
-        </dependency>
-
         <!-- Jackson YAML处理依赖 -->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
