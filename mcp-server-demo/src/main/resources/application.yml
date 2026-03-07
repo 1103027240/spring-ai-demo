@@ -1,12 +1,12 @@
 server:
   port: 8031
-#  servlet:
-#    context-path: /api/mcp-server-demo
-#    # 大模型对话中文乱码处理
-#    encoding:
-#      enabled: true
-#      force: true
-#      charset: utf-8
+  servlet:
+    context-path: /api/mcp-server-demo
+    # 大模型对话中文乱码处理
+    encoding:
+      enabled: true
+      force: true
+      charset: utf-8
 
 spring:
   main:
