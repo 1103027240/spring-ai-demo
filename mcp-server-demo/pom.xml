@@ -13,6 +13,20 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>mcp-server-demo</name>
 
+    <dependencies>
+        <!-- Spring WebFlux for SSE -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- MCP Server，如果服务端使用STO io协议，禁用spring-boot-starter-web -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server-webflux</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <finalName>app</finalName>
         <resources>

@@ -13,6 +13,20 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>mcp-client-demo</name>
 
+    <dependencies>
+        <!-- Spring WebFlux for SSE -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- MCP Client -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-client</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <finalName>app</finalName>
         <resources>

@@ -6,11 +6,12 @@ import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallbackProvider;
-import org.springframework.ai.tool.method.MethodToolCallback;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * Spring AI 大语言模型配置
@@ -68,6 +69,17 @@ public class SaaLLMConfig {
     public ChatClient qwenChatClient(ChatModel qwenChatModel) {
         return ChatClient.builder(qwenChatModel).build();
     }
+
+
+//    @Bean
+//    public McpClient mcpClient() {
+//        return new HttpToolClient(WebClient.create(), mcpServerUrl);
+//
+//        return McpClient.builder()
+//                .baseUrl("http://localhost:8080/server/mcp")
+//                .webClient(WebClient.builder().build())
+//                .build();
+//    }
 
     /**
      * 带ToolCall的qwenChatClient

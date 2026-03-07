@@ -112,23 +112,10 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- 核心Web Starter依赖 -->
+        <!-- Web依赖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <!-- 排除Tomcat服务器 -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- 使用Undertow服务器 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-undertow</artifactId>
         </dependency>
 
         <!--  Redis，版本8.2.4 -->
@@ -174,18 +161,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
-        </dependency>
-
-        <!-- MCP Server，如果服务端使用STO io协议，禁用spring-boot-starter-web -->
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-starter-mcp-server-webflux</artifactId>
-        </dependency>
-
-        <!-- MCP Client -->
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-starter-mcp-client</artifactId>
         </dependency>
 
         <!-- Milvus向量库依赖，版本2.6.11 -->
