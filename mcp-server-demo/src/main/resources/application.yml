@@ -60,9 +60,6 @@ spring:
         type: sync
         name: mcp-server-demo
         version: 1.0.0
-        # SSE配置
-        sse-endpoint: /mcp/sse
-        sse-message-endpoint: /mcp/message
 
 # Knife4j配置
 springdoc:
