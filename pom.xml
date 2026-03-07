@@ -118,12 +118,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!--  Redis，版本8.2.4 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-
         <!-- Spring AI Alibaba -->
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
@@ -134,12 +128,6 @@
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-agent-framework</artifactId>
-            <version>${spring-ai-alibaba.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.alibaba.cloud.ai</groupId>
-            <artifactId>spring-ai-alibaba-starter-memory-redis</artifactId>
             <version>${spring-ai-alibaba.version}</version>
         </dependency>
 
@@ -161,6 +149,18 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <!--  Redis，版本8.2.4 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-starter-memory-redis</artifactId>
+            <version>${spring-ai-alibaba.version}</version>
         </dependency>
 
         <!-- Milvus向量库依赖，版本2.6.11 -->
