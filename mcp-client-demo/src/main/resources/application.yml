@@ -29,7 +29,7 @@ spring:
         enabled: true
         type: async
         name: mcp-client-demo
-        request-timeout: 60s
+        request-timeout: 120s
         toolcallback:
           enabled: true
         sse:

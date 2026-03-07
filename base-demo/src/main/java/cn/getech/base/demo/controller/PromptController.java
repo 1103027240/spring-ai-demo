@@ -15,7 +15,7 @@ import reactor.core.publisher.Flux;
 /**
  * @author 11030
  */
-@Tag(name = "提示词Prompt接口", description = "提示词Prompt相关API")
+@Tag(name = "Prompt提示词接口", description = "Prompt提示词相关API")
 @RequestMapping("/prompt")
 @RestController
 public class PromptController {
