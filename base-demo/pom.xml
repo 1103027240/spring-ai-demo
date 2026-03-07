@@ -138,6 +138,19 @@
             <version>${mybatis.version}</version>
         </dependency>
 
+        <!-- MCP Client -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-client</artifactId>
+            <version>${spring-ai.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.ai</groupId>
+                    <artifactId>spring-ai-mcp-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- Knife4j Swagger增强 -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>

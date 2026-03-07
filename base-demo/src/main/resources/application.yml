@@ -90,6 +90,14 @@ spring:
       implementation: lettuce  # 切换到 redisson
       redis:
         key-prefix: spring_ai_long_chat_memory # 长期记忆缓存key前缀
+    mcp:
+      client:
+        enabled: true
+        request-timeout: 60s
+        toolcallback:
+          enabled: true
+        stdio:
+          servers-configuration: classpath:/mcp-server.json
 
 # Knife4j配置
 springdoc:

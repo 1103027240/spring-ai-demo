@@ -15,6 +15,7 @@ import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -196,6 +197,16 @@ public class SaaLLMConfig {
                 .build();
         return ChatClient.builder(qwenChatModel)
                 .defaultAdvisors(retrievalAugmentationAdvisor)
+                .build();
+    }
+
+    /**
+     * 带远程mcp的qwenChatClient
+     */
+    @Bean
+    public ChatClient mcpQwenChatClient(ChatModel qwenChatModel, ToolCallbackProvider provider) {
+        return ChatClient.builder(qwenChatModel)
+                .defaultToolCallbacks(provider.getToolCallbacks())
                 .build();
     }
 
