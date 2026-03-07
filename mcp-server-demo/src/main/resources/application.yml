@@ -14,19 +14,7 @@ spring:
   application:
     name: mcp-server-demo
   ai:
-    # 阿里云百炼配置
-    dashscope:
-      api-key: ${qwen-api}
-      base-url: https://dashscope.aliyuncs.com
-#      chat:
-#        options:
-#          model: qwen-plus
-      qwen:
-        model: qwen-plus
-      deepseek:
-        model: deepseek-v3
-
-    # mcp server配置
+   # mcp server配置
     mcp:
       server:
         enabled: true
