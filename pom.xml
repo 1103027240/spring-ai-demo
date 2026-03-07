@@ -144,13 +144,6 @@
             <version>${spring-ai.version}</version>
         </dependency>
 
-        <!-- 配置属性提示和自动补全 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-
         <!--  Redis，版本8.2.4 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -170,7 +163,6 @@
             <version>${milvus-sdk.version}</version>
         </dependency>
 
-        <!-- Spring AI Milvus VectorStore -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-vector-store-milvus</artifactId>
@@ -220,6 +212,13 @@
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-jsqlparser</artifactId>
             <version>${mybatis.version}</version>
+        </dependency>
+
+        <!-- 配置属性提示和自动补全 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!-- Knife4j Swagger增强 -->
