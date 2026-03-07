@@ -19,7 +19,7 @@ public class McpServerConfig {
      */
     @Bean
     public ToolCallbackProvider mcpServerTools(ProductServiceImpl productServiceImpl,
-                                             WeatherServiceImpl weatherServiceImpl){
+                                               WeatherServiceImpl weatherServiceImpl){
         return MethodToolCallbackProvider.builder()
                 .toolObjects(productServiceImpl, weatherServiceImpl)
                 .build();
