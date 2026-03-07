@@ -1,12 +1,12 @@
 server:
   port: 8032
-  servlet:
-    context-path: /api/mcp-client-demo
-    # 大模型对话中文乱码处理
-    encoding:
-      enabled: true
-      force: true
-      charset: utf-8
+#  servlet:
+#    context-path: /api/mcp-client-demo
+#    #大模型对话中文乱码处理
+#    encoding:
+#      enabled: true
+#      force: true
+#      charset: utf-8
 
 spring:
   main:
@@ -30,7 +30,7 @@ spring:
     mcp:
       client:
         enabled: true
-        type: sync
+        type: async
         name: mcp-client-demo
         request-timeout: 60s
         toolcallback:
@@ -38,7 +38,7 @@ spring:
         sse:
           connections:
             server1:
-              url: http://localhost:8031/api/mcp-server-demo/sse
+              url: http://localhost:8031
 
 # Knife4j配置
 springdoc:

@@ -14,17 +14,17 @@ public class McpClientDemoApplication {
 
     public static void main(String[] args) throws UnknownHostException {
         ConfigurableApplicationContext application = SpringApplication.run(McpClientDemoApplication.class, args);
-        Environment env = application.getEnvironment();
-        String ip = InetAddress.getLocalHost().getHostAddress();
-
-        String port = env.getProperty("server.port");
-        String path = env.getProperty("server.servlet.context-path");
-
-        log.info("\n----------------------------------------------------------\n\t" +
-                "Application is running! Access URLs:\n\t" +
-                "Local: \t\thttp://localhost:" + port + path + "/doc.html\n\t" +
-                "Doc: \t\thttp://" + ip + ":" + port + path + "/doc.html\n\t" +
-                "----------------------------------------------------------");
+//        Environment env = application.getEnvironment();
+//        String ip = InetAddress.getLocalHost().getHostAddress();
+//
+//        String port = env.getProperty("server.port");
+//        String path = env.getProperty("server.servlet.context-path");
+//
+//        log.info("\n----------------------------------------------------------\n\t" +
+//                "Application is running! Access URLs:\n\t" +
+//                "Local: \t\thttp://localhost:" + port + path + "/doc.html\n\t" +
+//                "Doc: \t\thttp://" + ip + ":" + port + path + "/doc.html\n\t" +
+//                "----------------------------------------------------------");
     }
 
 }

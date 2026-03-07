@@ -1,12 +1,12 @@
 server:
   port: 8031
-  servlet:
-    context-path: /api/mcp-server-demo
-    # 大模型对话中文乱码处理
-    encoding:
-      enabled: true
-      force: true
-      charset: utf-8
+#  servlet:
+#    context-path: /api/mcp-server-demo
+#    # 大模型对话中文乱码处理
+#    encoding:
+#      enabled: true
+#      force: true
+#      charset: utf-8
 
 spring:
   main:
@@ -18,12 +18,12 @@ spring:
     mcp:
       server:
         enabled: true
-        type: sync
+        type: async
         name: mcp-server-demo
         version: 1.0.0
-        # SSE 配置
-        sse-endpoint: /sse
-        sse-message-endpoint: /message
+#        # SSE 配置
+#        sse-endpoint: /sse
+#        sse-message-endpoint: /message
 
 # Knife4j配置
 springdoc:
