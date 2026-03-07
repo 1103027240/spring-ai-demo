@@ -65,7 +65,7 @@ spring:
         sse:
           connections:
             server1:
-              url: http://localhost:8031/api/mcp-server-demo
+              url: http://localhost:8031/api/mcp-server-demo/sse
 
 # Knife4j配置
 springdoc:

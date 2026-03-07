@@ -24,7 +24,7 @@
         <finalName>app</finalName>
         <resources>
             <resource>
-                <directory>base-demo/src/src/main/resources</directory>
+                <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
         </resources>
