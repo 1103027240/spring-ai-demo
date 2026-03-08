@@ -55,6 +55,12 @@
             <version>${spring-ai-alibaba.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-graph-core</artifactId>
+            <version>${spring-ai-alibaba.version}</version>
+        </dependency>
+
         <!-- Spring AI 公共模块（替代spring-ai-core） -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
