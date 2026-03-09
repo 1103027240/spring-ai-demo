@@ -77,17 +77,17 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
 
         try {
             // 1.将threadId转成threadName
-            String threadName = getThreadName(instanceId);
-            if (threadName == null) {
-                return Map.of(
-                        "success", false,
-                        "instanceId", instanceId,
-                        "error", String.format("无法根据标识[%s]，定位到有效且未释放的工作流线程，请确认工作流已成功启动并中断。", instanceId));
-            }
+//            String threadName = getThreadName(instanceId);
+//            if (threadName == null) {
+//                return Map.of(
+//                        "success", false,
+//                        "instanceId", instanceId,
+//                        "error", String.format("无法根据标识[%s]，定位到有效且未释放的工作流线程，请确认工作流已成功启动并中断。", instanceId));
+//            }
 
             // 2、创建运行配置
             RunnableConfig config = RunnableConfig.builder()
-                    .threadId(threadName) // 使用从数据库查出的thread_name
+                    .threadId(instanceId) // 使用从数据库查出的thread_name
                     .build();
 
             // 3.尝试获取状态快照
