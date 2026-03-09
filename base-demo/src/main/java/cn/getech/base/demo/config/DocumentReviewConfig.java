@@ -48,38 +48,38 @@ public class DocumentReviewConfig {
         // 创建状态图
         StateGraph stateGraph = new StateGraph("DocumentReviewGraph", DocumentReviewFactory.documentReviewKeyStrategyFactory())
                 // 创建节点
-                .addNode("content_analysis", node_async(new ContentAnalysisNode()))
-                .addNode("compliance_check", node_async(new ComplianceCheckNode()))
-                .addNode("risk_assessment", node_async(new RiskAssessmentNode()))
-                .addNode("human_approval", node_async(new HumanApprovalNode()))
-                .addNode("approve_processing", node_async(new ApproveProcessingNode()))
-                .addNode("reject_processing", node_async(new RejectProcessingNode()))
-                .addNode("final_report", node_async(new FinalReportNode()))
+                .addNode("内容分析", node_async(new ContentAnalysisNode()))
+                .addNode("合规检查", node_async(new ComplianceCheckNode()))
+                .addNode("风险评估", node_async(new RiskAssessmentNode()))
+                .addNode("人工审批", node_async(new HumanApprovalNode()))
+                .addNode("通过", node_async(new ApproveProcessingNode()))
+                .addNode("拒绝", node_async(new RejectProcessingNode()))
+                .addNode("最终报告", node_async(new FinalReportNode()))
 
                 // 创建边
-                .addEdge(StateGraph.START, "content_analysis")
-                .addEdge("content_analysis", "compliance_check")
-                .addEdge("compliance_check", "risk_assessment")
-                .addEdge("risk_assessment", "human_approval")
+                .addEdge(StateGraph.START, "内容分析")
+                .addEdge("内容分析", "合规检查")
+                .addEdge("合规检查", "风险评估")
+                .addEdge("风险评估", "人工审批")
 
                 // 创建条件边
-                .addConditionalEdges("human_approval",
+                .addConditionalEdges("人工审批",
                         edge_async(new ApprovalDecisionRouter()),
                         Map.of(
-                                "APPROVE", "approve_processing",
-                                "REJECT", "reject_processing"
+                                "APPROVE", "通过", // 通过节点
+                                "REJECT", "拒绝" //拒绝节点
                         ))
 
-                .addEdge("approve_processing", "final_report")
-                .addEdge("reject_processing", "final_report")
-                .addEdge("final_report", StateGraph.END);
+                .addEdge("通过", "最终报告")
+                .addEdge("拒绝", "最终报告")
+                .addEdge("最终报告", StateGraph.END);
 
         // 配置持久化和中断节点
         CompileConfig compileConfig = CompileConfig.builder()
                 .saverConfig(SaverConfig.builder()
                         .register(mySqlSaver) // 注册Mysql状态存储
                         .build())
-                .interruptBefore("human_approval") // 关键：在此节点前中断
+                .interruptBefore("人工审批") // 在此节点前中断
                 .build();
 
         // 配置可视化视图

@@ -47,7 +47,7 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
 
         try {
             // 3.核心执行：调用 stream() 方法启动工作流
-            // 工作流会同步或异步执行，直到遇到配置的中断点（human_approval前），此时，当前完整状态会通过MysqlSaver自动保存到数据库
+            // 工作流会同步或异步执行，直到遇到配置的中断点（人工审批前），此时，当前完整状态会通过MysqlSaver自动保存到数据库
             Flux<NodeOutput> outputFlux = documentReviewGraph.stream(inputs, config);
 
             // 4.订阅结果（异步处理）

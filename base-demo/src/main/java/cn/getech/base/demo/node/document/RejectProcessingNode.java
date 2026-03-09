@@ -20,7 +20,7 @@ public class RejectProcessingNode implements NodeActionWithConfig {
             log.info("执行拒绝处理逻辑...");
             return Map.of(
                     "processing_result", "文档已拒绝，已通知相关人员",
-                    "next_node", "final_report");
+                    "next_node", "最终报告");
     }
 
 }

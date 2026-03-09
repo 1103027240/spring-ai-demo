@@ -20,7 +20,7 @@ public class FinalReportNode implements NodeActionWithConfig {
         log.info("生成最终报告...");
 
         // 汇总所有结果
-        String report = String.format(
+        String finalReport = String.format(
             "审批流程最终报告：\n" +
             "1. 内容分析: %s\n" +
             "2. 合规检查: %s\n" +
@@ -34,7 +34,7 @@ public class FinalReportNode implements NodeActionWithConfig {
                 state.value("processing_result").orElse(""));
 
         return Map.of(
-                "final_report", report,
+                "final_report", finalReport,
                 "approval_status", "COMPLETED");
     }
 

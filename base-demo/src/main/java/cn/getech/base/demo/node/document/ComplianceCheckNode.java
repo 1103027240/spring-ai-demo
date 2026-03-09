@@ -24,7 +24,7 @@ public class ComplianceCheckNode implements NodeActionWithConfig {
 
         return Map.of(
                 "compliance_check_result", complianceCheckResult,
-                "next_node", "risk_assessment");
+                "next_node", "风险评估");
     }
 
 }

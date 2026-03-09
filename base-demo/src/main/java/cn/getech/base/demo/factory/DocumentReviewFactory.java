@@ -21,8 +21,12 @@ public class DocumentReviewFactory {
             strategies.put("content_analysis_result", new ReplaceStrategy());
             strategies.put("compliance_check_result", new ReplaceStrategy());
             strategies.put("risk_assessment_result", new ReplaceStrategy());
-            strategies.put("approval_decision", new ReplaceStrategy()); // 审批决定
-            strategies.put("final_action", new ReplaceStrategy());
+            strategies.put("risk_level", new ReplaceStrategy());
+            strategies.put("approval_decision", new ReplaceStrategy());
+            strategies.put("approval_output", new ReplaceStrategy());
+            strategies.put("processing_result", new ReplaceStrategy());
+            strategies.put("final_report", new ReplaceStrategy());
+            strategies.put("approval_status", new ReplaceStrategy());
 
             return strategies;
         };

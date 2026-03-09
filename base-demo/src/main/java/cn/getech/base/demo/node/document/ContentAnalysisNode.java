@@ -25,7 +25,7 @@ public class ContentAnalysisNode implements NodeActionWithConfig {
 
         return Map.of(
                 "content_analysis_result", contentAnalysisResult,
-                "next_node", "compliance_check");
+                "next_node", "合规检查");
     }
 
 }

@@ -20,7 +20,7 @@ public class ApproveProcessingNode implements NodeActionWithConfig {
             log.info("执行批准处理逻辑...");
             return Map.of(
                     "processing_result", "文档已批准",
-                    "next_node", "final_report");
+                    "next_node", "最终报告");
     }
 
 }
