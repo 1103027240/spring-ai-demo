@@ -21,7 +21,7 @@ public class HumanApprovalNode implements NodeActionWithConfig {
         String documentContent = state.value("document_content", "");
         String riskLevel = (String) state.value("risk_level").orElse("UNKNOWN");
 
-        // 关键：从状态中获取恢复时传入的审批决策，通过 resumeData 传入的
+        // 从状态中获取恢复时传入的审批决策，通过documentReviewGraph.updateState(config, updates)获取的
         String decision = (String) state.value("approval_decision").orElse("PENDING");
         if ("PENDING".equals(decision)) {
             // 理论上不会进入这里，因为中断恢复时必须传入决策。

@@ -20,7 +20,7 @@ public class ComplianceCheckNode implements NodeActionWithConfig {
         String contentAnalysisResult = state.value("content_analysis_result", "");
 
         // 模拟合规检查
-        String complianceCheckResult = "合规检查通过：符合公司政策要求";
+        String complianceCheckResult = "合规检查通过：符合公司政策要求。";
 
         return Map.of(
                 "compliance_check_result", complianceCheckResult,

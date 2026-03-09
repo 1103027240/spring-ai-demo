@@ -19,7 +19,7 @@ public class ApproveProcessingNode implements NodeActionWithConfig {
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) {
             log.info("执行批准处理逻辑...");
             return Map.of(
-                    "processing_result", "文档已批准，进入下一步流程",
+                    "processing_result", "文档已批准",
                     "next_node", "final_report");
     }
 

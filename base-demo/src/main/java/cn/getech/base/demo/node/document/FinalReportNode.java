@@ -19,14 +19,13 @@ public class FinalReportNode implements NodeActionWithConfig {
         log.info("生成最终报告...");
 
         // 汇总所有结果
-        String report = String.format("""
-            审批流程最终报告：
-            1. 内容分析: %s
-            2. 合规检查: %s
-            3. 风险评估: %s
-            4. 审批决定: %s
-            5. 处理结果: %s
-            """,
+        String report = String.format(
+            "审批流程最终报告：\n" +
+            "1. 内容分析: %s\n" +
+            "2. 合规检查: %s\n" +
+            "3. 风险评估: %s\n" +
+            "4. 审批决定: %s\n" +
+            "5. 处理结果: %s",
                 state.value("content_analysis_result").orElse(""),
                 state.value("compliance_check_result").orElse(""),
                 state.value("risk_assessment_result").orElse(""),
@@ -35,7 +34,7 @@ public class FinalReportNode implements NodeActionWithConfig {
 
         return Map.of(
                 "final_report", report,
-                "workflow_status", "COMPLETED");
+                "approval_status", "COMPLETED");
     }
 
 }

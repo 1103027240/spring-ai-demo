@@ -21,11 +21,11 @@ public class RiskAssessmentNode implements NodeActionWithConfig {
 
         // 模拟风险评估
         String riskLevel = "MEDIUM"; // 风险等级: HIGH, MEDIUM, LOW
-        String riskResult = "风险评估完成，建议人工审批。";
+        String riskAssessmentResult = "风险评估完成，建议人工审批。";
 
         return Map.of(
                 "risk_level", riskLevel,
-                "message", riskResult);
+                "risk_assessment_result", riskAssessmentResult);
     }
 
 }
