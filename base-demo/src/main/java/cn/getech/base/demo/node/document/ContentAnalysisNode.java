@@ -21,10 +21,10 @@ public class ContentAnalysisNode implements NodeActionWithConfig {
                 .orElseThrow(() -> new IllegalStateException("文档内容为空"));
 
         // 模拟内容分析
-        String analysisResult = "内容分析完成：文档主题明确，结构清晰";
+        String contentAnalysisResult = "分析完成：文档结构完整，主题明确，无明显错误。";
 
         return Map.of(
-                "content_analysis_result", analysisResult,
+                "content_analysis_result", contentAnalysisResult,
                 "next_node", "compliance_check");
     }
 

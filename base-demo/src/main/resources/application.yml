@@ -16,7 +16,7 @@ spring:
 
   # mysql配置
   datasource:
-    url: jdbc:mysql://localhost:3316/rag_document?useUnicode=true&characterEncoding=utf-8&nullCatalogMeansCurrent=true&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3316/document_review?useUnicode=true&characterEncoding=utf-8&nullCatalogMeansCurrent=true&useSSL=false&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: root
@@ -104,12 +104,6 @@ spring:
           enabled: true
         stdio:
           servers-configuration: classpath:/mcp-server.json
-
-    # Graph状态存储
-    graph:
-      checkpoint:
-        mysql:
-          table-name: document_review_checkpoints
 
 # Knife4j配置
 springdoc:

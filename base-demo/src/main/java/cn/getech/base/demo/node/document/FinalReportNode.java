@@ -20,7 +20,7 @@ public class FinalReportNode implements NodeActionWithConfig {
 
         // 汇总所有结果
         String report = String.format("""
-            文档审核完成报告：
+            审批流程最终报告：
             1. 内容分析: %s
             2. 合规检查: %s
             3. 风险评估: %s
@@ -30,7 +30,7 @@ public class FinalReportNode implements NodeActionWithConfig {
                 state.value("content_analysis_result").orElse(""),
                 state.value("compliance_check_result").orElse(""),
                 state.value("risk_assessment_result").orElse(""),
-                state.value("approval_decision").orElse(""),
+                state.value("approval_output").orElse(""),
                 state.value("processing_result").orElse(""));
 
         return Map.of(

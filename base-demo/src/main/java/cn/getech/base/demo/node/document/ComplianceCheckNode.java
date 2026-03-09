@@ -17,13 +17,13 @@ public class ComplianceCheckNode implements NodeActionWithConfig {
 
     @Override
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
-        String analysisResult = state.value("content_analysis_result", "");
+        String contentAnalysisResult = state.value("content_analysis_result", "");
 
         // 模拟合规检查
-        String complianceResult = "合规检查通过：符合公司政策要求";
+        String complianceCheckResult = "合规检查通过：符合公司政策要求";
 
         return Map.of(
-                "compliance_check_result", complianceResult,
+                "compliance_check_result", complianceCheckResult,
                 "next_node", "risk_assessment");
     }
 

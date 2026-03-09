@@ -11,17 +11,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class ApprovalDecisionCondition implements EdgeAction {
+public class ApprovalDecisionRouter implements EdgeAction {
 
     @Override
-    public String apply(OverAllState state) throws Exception {
-        String decision = (String) state.value("approval_decision")
+    public String apply(OverAllState state) {
+        String decision = (String) state.value("approval_output")
                 .orElseThrow(() -> new IllegalStateException("未找到审批决定"));
         log.info("审批决策分发: decision = {}", decision);
 
+        // 返回条件值
         return switch (decision) {
-            case "APPROVE" -> "approve_processing";
-            case "REJECT" -> "reject_processing";
+            case "APPROVE" -> "APPROVE";
+            case "REJECT" -> "REJECT";
             default -> throw new IllegalArgumentException("无效的审批决定: " + decision);
         };
     }

@@ -20,11 +20,12 @@ public class RiskAssessmentNode implements NodeActionWithConfig {
         String complianceCheckResult = state.value("compliance_check_result", "");
 
         // 模拟风险评估
-        String riskResult = "风险评估：中等风险，建议人工审批";
+        String riskLevel = "MEDIUM"; // 风险等级: HIGH, MEDIUM, LOW
+        String riskResult = "风险评估完成，建议人工审批。";
 
         return Map.of(
-                "risk_assessment_result", riskResult,
-                "next_node", "human_approval");
+                "risk_level", riskLevel,
+                "message", riskResult);
     }
 
 }

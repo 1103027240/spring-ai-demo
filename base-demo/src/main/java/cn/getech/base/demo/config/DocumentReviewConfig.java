@@ -6,7 +6,9 @@ import com.alibaba.cloud.ai.graph.CompileConfig;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.GraphRepresentation;
 import com.alibaba.cloud.ai.graph.StateGraph;
+import com.alibaba.cloud.ai.graph.action.EdgeAction;
 import com.alibaba.cloud.ai.graph.checkpoint.config.SaverConfig;
+import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.CreateOption;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.MysqlSaver;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +30,9 @@ public class DocumentReviewConfig {
     @Bean
     public MysqlSaver mySqlSaver(DataSource dataSource) {
         return MysqlSaver.builder()
-                .dataSource(dataSource)
-                .build();
+                .dataSource(dataSource) // 注入数据源
+                .createOption(CreateOption.CREATE_IF_NOT_EXISTS) // 表不存在则自动创建
+                .build(); // 使用默认的 StateSerializer（先转成二进制，然后再base64加密，序列化方法encodeState，反序列化方法decodeState）
     }
 
     /**
@@ -61,7 +64,7 @@ public class DocumentReviewConfig {
 
                 // 创建条件边
                 .addConditionalEdges("human_approval",
-                        edge_async(new ApprovalDecisionCondition()),
+                        edge_async(new ApprovalDecisionRouter()),
                         Map.of(
                                 "APPROVE", "approve_processing",
                                 "REJECT", "reject_processing"
@@ -74,14 +77,14 @@ public class DocumentReviewConfig {
         // 配置持久化和中断节点
         CompileConfig compileConfig = CompileConfig.builder()
                 .saverConfig(SaverConfig.builder()
-                        .register(mySqlSaver) // mysql状态存储
+                        .register(mySqlSaver) // 注册Mysql状态存储
                         .build())
-                .interruptBefore("human_approval")  // 关键：在此节点前中断
+                .interruptBefore("human_approval") // 关键：在此节点前中断
                 .build();
 
         // 配置可视化视图
         GraphRepresentation representation = stateGraph.getGraph(GraphRepresentation.Type.PLANTUML, "DocumentReviewGraph");
-        log.info("\n=== expander Document Review UML Flow ===");
+        log.info("\n=== Document Review UML Flow ===");
         log.info(representation.content());
         log.info("==========================\n");
 
