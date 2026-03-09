@@ -24,6 +24,7 @@
         <spring-ai.version>1.1.2</spring-ai.version>
         <spring-ai-alibaba.version>1.1.2.0</spring-ai-alibaba.version>
         <milvus-sdk.version>2.6.12</milvus-sdk.version>
+        <protobuf.version>3.24.4</protobuf.version>
         <druid.version>1.2.27</druid.version>
         <mysql.version>8.3.0</mysql.version>
         <mybatis.version>3.5.15</mybatis.version>

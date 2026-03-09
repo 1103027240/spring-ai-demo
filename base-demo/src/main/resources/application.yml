@@ -38,6 +38,10 @@ spring:
       max-evictable-idle-time-millis: 900000
       # 配置检测连接是否有效
       validation-query: SELECT 1
+  # 数据库初始化配置
+  jdbc:
+    init:
+      mode: always  # always: 每次启动都执行 | embedded: 仅嵌入式数据库 | never: 从不执行
 
   # Redis配置
   data:
@@ -90,6 +94,8 @@ spring:
       implementation: lettuce  # 切换到 redisson
       redis:
         key-prefix: spring_ai_long_chat_memory # 长期记忆缓存key前缀
+
+    # MCP客户端配置
     mcp:
       client:
         enabled: true
@@ -98,6 +104,12 @@ spring:
           enabled: true
         stdio:
           servers-configuration: classpath:/mcp-server.json
+
+    # Graph状态存储
+    graph:
+      checkpoint:
+        mysql:
+          table-name: document_review_checkpoints
 
 # Knife4j配置
 springdoc:
