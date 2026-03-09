@@ -18,7 +18,7 @@ public class HumanApprovalNode implements NodeActionWithConfig {
 
     @Override
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
-        String content = state.value("document_content", "");
+        String documentContent = state.value("document_content", "");
         String riskLevel = (String) state.value("risk_level").orElse("UNKNOWN");
 
         // 关键：从状态中获取恢复时传入的审批决策，通过 resumeData 传入的

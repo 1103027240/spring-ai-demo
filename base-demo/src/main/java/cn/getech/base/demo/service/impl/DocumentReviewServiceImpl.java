@@ -107,8 +107,8 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
                 // 即使有历史，也按失败处理，因为框架行为不一致
                 return Map.of(
                         "success", false,
+                        "instanceId", instanceId,
                         "error", "框架状态加载异常。stateOf() 返回空，但数据库中存在检查点。可能涉及状态反序列化问题。",
-                        "threadName", threadName,
                         "suggestion", "请检查应用日志中是否有 MysqlSaver 相关的反序列化错误。");
             } else {
                 // 成功获取状态，进行恢复
@@ -127,14 +127,14 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
 
                 // 6.订阅处理结果
                 resumeFlux.subscribe(
-                        output -> handleNodeOutput(output, threadName),
+                        output -> handleNodeOutput(output, instanceId),
                         error -> {
-                            log.error("工作流恢复执行失败: thread_name = {}", threadName, error);
-                            executionResults.put(threadName, "RESUME_ERROR: " + error.getMessage());
+                            log.error("工作流恢复执行失败: thread_id = {}", instanceId, error);
+                            executionResults.put(instanceId, "RESUME_ERROR: " + error.getMessage());
                         },
                         () -> {
-                            log.info("工作流恢复执行完成: thread_name = {}", threadName);
-                            executionResults.put(threadName, "COMPLETED");
+                            log.info("工作流恢复执行完成: thread_id = {}", instanceId);
+                            executionResults.put(instanceId, "COMPLETED");
                         }
                 );
 
