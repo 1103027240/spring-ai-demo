@@ -107,7 +107,11 @@ spring:
 
     # 工作流可视化视图配置
     studio:
-      enabled=true:
+      enabled: true
+      graph:
+        # Graph可视化配置
+        auto-register: true  # 自动注册Graph Bean
+        show-details: true   # 显示详细信息
 
 # Knife4j配置
 springdoc:
