@@ -1,5 +1,6 @@
 package cn.getech.base.demo.config;
 
+import cn.getech.base.demo.build.GraphBuild;
 import cn.getech.base.demo.contant.WorkFlowTitleConstant;
 import cn.getech.base.demo.enums.ApprovalDecisionEnum;
 import cn.getech.base.demo.factory.DocumentReviewFactory;
@@ -14,6 +15,7 @@ import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.CreateOption;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.MysqlSaver;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
@@ -35,16 +37,8 @@ import static com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.CreateOption.CR
 @Slf4j
 public class DocumentReviewConfig {
 
-    /**
-     * 状态存储持久化方式: Mysql
-     */
-    @Bean
-    public MysqlSaver mySqlSaver(DataSource dataSource) {
-        return MysqlSaver.builder()
-                .dataSource(dataSource) // 注入数据源
-                .createOption(CREATE_IF_NOT_EXISTS) // 表不存在则自动创建
-                .build(); // 使用默认StateSerializer（先转成二进制，然后再base64加密，序列化方法encodeState，反序列化方法decodeState）
-    }
+    @Autowired
+    private GraphBuild graphBuild;
 
     /**
      * 工作流Graph可视化表示，用于Studio展示工作流结构
@@ -54,11 +48,10 @@ public class DocumentReviewConfig {
         StateGraph stateGraph = createDocumentReviewGraph();
 
         // 生成PlantUML格式的可视化图
-        GraphRepresentation representation = stateGraph.getGraph(
-                GraphRepresentation.Type.PLANTUML,
-                DOCUMENT_REVIEW_TITLE);
+        GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, DOCUMENT_REVIEW_TITLE);
 
-        log.info("\n=== Document Review Graph ===");
+        log.info("\n" + "=".repeat(80));
+        log.info("=== Document Review Graph ===");
         log.info(representation.content());
         log.info("========================================================\n");
 
@@ -78,18 +71,11 @@ public class DocumentReviewConfig {
     public CompiledGraph documentReviewGraph(MysqlSaver mySqlSaver) throws GraphStateException {
         StateGraph stateGraph = createDocumentReviewGraph();
 
-        // 配置持久化和中断节点
-        CompileConfig compileConfig = CompileConfig.builder()
-                .saverConfig(SaverConfig.builder()
-                        .register(mySqlSaver) // Mysql状态存储
-                        .build())
-                .interruptBefore(HUMAN_APPROVAL.getName()) // 在此节点前中断
-                .build();
+        // 生成PlantUML格式的可视化图
+        GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, DOCUMENT_REVIEW_TITLE);
 
-        // 输出可视化视图到日志
-        GraphRepresentation representation = stateGraph.getGraph(
-                GraphRepresentation.Type.PLANTUML,
-                DOCUMENT_REVIEW_TITLE);
+        // 配置持久化和中断节点
+        CompileConfig compileConfig = graphBuild.buildCompileConfig(mySqlSaver, HUMAN_APPROVAL.getName());
 
         log.info("\n" + "=".repeat(80));
         log.info("=== Document Review Graph ===");
@@ -134,8 +120,7 @@ public class DocumentReviewConfig {
                     edge_async(new ApprovalDecisionRouter()),
                     Map.of(
                             APPROVE.getId(), APPROVE_PROCESSING.getName(), // 通过节点
-                            REJECT.getId(), REJECT_PROCESSING.getName() // 拒绝节点
-                    ))
+                            REJECT.getId(), REJECT_PROCESSING.getName())) // 拒绝节点
 
             .addEdge(APPROVE_PROCESSING.getName(), FINAL_REPORT.getName())
             .addEdge(REJECT_PROCESSING.getName(), FINAL_REPORT.getName())
