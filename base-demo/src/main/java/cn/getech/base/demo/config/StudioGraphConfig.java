@@ -24,7 +24,7 @@ public class StudioGraphConfig {
      * 注册文档审批工作流到 Studio
      */
     @Bean
-    @DependsOn("documentReviewGraph")
+    @DependsOn({"documentReviewGraph", "documentReviewGraphRepresentation"})
     public Map<String, Object> studioWorkflowRegistry(
             CompiledGraph documentReviewGraph,
             GraphRepresentation documentReviewGraphRepresentation) throws GraphStateException {
