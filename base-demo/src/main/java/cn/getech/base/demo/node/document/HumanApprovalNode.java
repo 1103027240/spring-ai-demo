@@ -1,15 +1,19 @@
 package cn.getech.base.demo.node.document;
 
+import cn.getech.base.demo.enums.ApprovalDecisionEnum;
+import cn.getech.base.demo.enums.ApprovalStatusEnum;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.alibaba.cloud.ai.graph.action.NodeActionWithConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import java.util.Arrays;
 import java.util.Map;
+import static cn.getech.base.demo.enums.ApprovalDecisionEnum.*;
 
 /**
  * 人工审批节点（中断节点）
- * 关键：此节点配置了 interrupt: true，流程会在此暂停
+ * 此节点配置interrupt为true，流程会在此节点前暂停
  * @author 11030
  */
 @Component
@@ -18,19 +22,23 @@ public class HumanApprovalNode implements NodeActionWithConfig {
 
     @Override
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
-        String documentContent = state.value("document_content", "");
-        String riskLevel = (String) state.value("risk_level").orElse("UNKNOWN");
+        String riskLevel = state.value("risk_level", "Unknown");
+        String riskAssessmentResult = state.value("risk_assessment_result", "");
 
-        // 从状态中获取恢复时传入的审批决策，通过documentReviewGraph.updateState(config, updates)获取的
-        String decision = (String) state.value("approval_decision").orElse("PENDING");
-        if ("PENDING".equals(decision)) {
-            // 理论上不会进入这里，因为中断恢复时必须传入决策。
-            log.info("审批决策仍为PENDING，流程可能未正确恢复。");
-            return Map.of("approval_output", "WAITING", "next_node", "human_approval");
+        // approval_decision通过documentReviewGraph.updateState(config, updates)更新状态，然后从状态中获取更新后的approval_decision
+        String approvalDecision = state.value("approval_decision", "PENDING");
+        if (Arrays.asList(PENDING.getId(), WAITING.getId()).contains(approvalDecision)) {
+            // 理论上不会进入这里，因为中断恢复时审批决策传APPROVE/REJECT
+            log.info("审批决策仍为PENDING或WAIT，流程可能未正确从中断恢复。。。");
+
+            return Map.of(
+                    "approval_output", ApprovalDecisionEnum.WAITING.getId(), //决策状态为待审批
+                    "approval_status", ApprovalStatusEnum.WAITING.getId(), //流程状态为待审批
+                    "next_node", "human_approval"); //返回当前人工审批节点
         }
 
-        // 返回审批结果，将由 ApprovalDecisionRouter 路由到下一个节点
-        return Map.of("approval_output", decision);
+        // 通过ApprovalDecisionRouter路由到下一个节点
+        return Map.of("approval_output", approvalDecision);
     }
 
 }

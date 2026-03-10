@@ -18,8 +18,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Tool(description = "查询商品详细信息")
     @Override
-    public ProductInfoDto getProductDetail(
-            @ToolParam(required = false, description = "商品名称") String name) {
+    public ProductInfoDto getProductDetail(@ToolParam(description = "商品名称") String name) {
         log.info("检索商品名称: {}", name);
         return ProductInfoDto.builder()
                 .skuId("123456")

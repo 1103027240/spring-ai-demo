@@ -1,11 +1,11 @@
 package cn.getech.base.demo.check;
 
 import cn.getech.base.demo.dto.TextSegmentDto;
-import cn.getech.base.demo.enums.SplitterTypeEnum;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import java.util.ArrayList;
 import java.util.List;
+import static cn.getech.base.demo.enums.SplitterTypeEnum.*;
 
 /**
  * 检测文本中的类型分段
@@ -29,19 +29,19 @@ public class DetectTextSegmentCheck {
 
         // 2. 检测HTML结构（第二优先级）
         if (DetectTextTypeCheck.isHtml(text)) {
-            segments.add(new TextSegmentDto(text, SplitterTypeEnum.HTML.getId()));
+            segments.add(new TextSegmentDto(text, HTML.getId()));
             return segments;
         }
 
         // 3. 检测JSON结构（第三优先级）
         if (JSONUtil.isTypeJSON(text)) {
-            segments.add(new TextSegmentDto(text, SplitterTypeEnum.JSON.getId()));
+            segments.add(new TextSegmentDto(text, JSON.getId()));
             return segments;
         }
 
         // 4. 检测Markdown（第四优先级）
         if (DetectTextTypeCheck.isMarkdown(text)) {
-            segments.add(new TextSegmentDto(text, SplitterTypeEnum.MARKDOWN.getId()));
+            segments.add(new TextSegmentDto(text, MARKDOWN.getId()));
             return segments;
         }
 
@@ -90,7 +90,7 @@ public class DetectTextSegmentCheck {
 
                 // 代码块部分
                 String codeBlock = text.substring(codeBlockStart, codeBlockEnd + 3);
-                segments.add(new TextSegmentDto(codeBlock, SplitterTypeEnum.CODE.getId()));
+                segments.add(new TextSegmentDto(codeBlock, CODE.getId()));
 
                 // 代码块后的部分
                 if (codeBlockEnd + 3 < text.length()) {

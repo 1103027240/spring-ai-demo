@@ -25,16 +25,18 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     @Tool(description = "输入城市获取天气信息")
+    @Override
     public String getWeather(@ToolParam(description = "城市名称") String city) {
         if (CITIES.containsKey(city)) {
             // 这里可以调用实际天气API
             return String.format("%s的天气：晴，温度25°C，湿度60%%，风向东南风3级", city);
         } else {
-            return String.format("抱歉，暂不支持%s的天气查询", city);
+            return String.format("抱歉，暂不支持[%s]天气查询", city);
         }
     }
 
     @Tool(description = "获取天气预报")
+    @Override
     public WeatherForecastDto getForecast(@ToolParam(description = "城市名称") String city, @ToolParam(description = "预报天数") int days) {
         return WeatherForecastDto.builder()
                 .city(city)

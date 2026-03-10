@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.Map;
 
+import static cn.getech.base.demo.enums.ApprovalStatusEnum.COMPLETED;
+
 /**
  * 最终报告节点
  * @author 11030
@@ -35,7 +37,7 @@ public class FinalReportNode implements NodeActionWithConfig {
 
         return Map.of(
                 "final_report", finalReport,
-                "approval_status", "COMPLETED");
+                "approval_status", COMPLETED.getId());
     }
 
 }

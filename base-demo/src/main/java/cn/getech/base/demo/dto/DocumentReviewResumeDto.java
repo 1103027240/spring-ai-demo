@@ -10,8 +10,8 @@ import lombok.Data;
 @Builder
 public class DocumentReviewResumeDto {
 
-    private String instanceId;
-    private String decision;  // "APPROVE" 或 "REJECT"
+    private String instanceId; // threadId
+    private String decision;  // 传入APPROVE或REJECT
     private String comment;
     private String approver;
 

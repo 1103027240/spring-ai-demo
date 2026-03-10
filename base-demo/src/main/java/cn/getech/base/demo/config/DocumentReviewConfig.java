@@ -1,5 +1,7 @@
 package cn.getech.base.demo.config;
 
+import cn.getech.base.demo.contant.WorkFlowTitleConstant;
+import cn.getech.base.demo.enums.ApprovalDecisionEnum;
 import cn.getech.base.demo.factory.DocumentReviewFactory;
 import cn.getech.base.demo.node.document.*;
 import com.alibaba.cloud.ai.graph.CompileConfig;
@@ -16,6 +18,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 import java.util.Map;
+import static cn.getech.base.demo.enums.ApprovalDecisionEnum.APPROVE;
+import static cn.getech.base.demo.enums.ApprovalDecisionEnum.REJECT;
+import static cn.getech.base.demo.enums.DocumentReviewNodeEnum.*;
 import static com.alibaba.cloud.ai.graph.action.AsyncEdgeAction.edge_async;
 import static com.alibaba.cloud.ai.graph.action.AsyncNodeActionWithConfig.node_async;
 
@@ -27,15 +32,19 @@ import static com.alibaba.cloud.ai.graph.action.AsyncNodeActionWithConfig.node_a
 @Slf4j
 public class DocumentReviewConfig {
 
+    /**
+     * 状态存储持久化方式: mysql
+     */
     @Bean
     public MysqlSaver mySqlSaver(DataSource dataSource) {
         return MysqlSaver.builder()
                 .dataSource(dataSource) // 注入数据源
                 .createOption(CreateOption.CREATE_IF_NOT_EXISTS) // 表不存在则自动创建
-                .build(); // 使用默认的 StateSerializer（先转成二进制，然后再base64加密，序列化方法encodeState，反序列化方法decodeState）
+                .build(); // 使用默认StateSerializer（先转成二进制，然后再base64加密，序列化方法encodeState，反序列化方法decodeState）
     }
 
     /**
+     * 工作流
      * 1.内容分析
      * 2.合规检查
      * 3.风险评估
@@ -46,44 +55,44 @@ public class DocumentReviewConfig {
     @Bean
     public CompiledGraph documentReviewGraph(MysqlSaver mySqlSaver) throws GraphStateException {
         // 创建状态图
-        StateGraph stateGraph = new StateGraph("DocumentReviewGraph", DocumentReviewFactory.documentReviewKeyStrategyFactory())
+        StateGraph stateGraph = new StateGraph(WorkFlowTitleConstant.DOCUMENT_REVIEW_TITLE, DocumentReviewFactory.documentReviewKeyStrategyFactory())
                 // 创建节点
-                .addNode("内容分析", node_async(new ContentAnalysisNode()))
-                .addNode("合规检查", node_async(new ComplianceCheckNode()))
-                .addNode("风险评估", node_async(new RiskAssessmentNode()))
-                .addNode("人工审批", node_async(new HumanApprovalNode()))
-                .addNode("通过", node_async(new ApproveProcessingNode()))
-                .addNode("拒绝", node_async(new RejectProcessingNode()))
-                .addNode("最终报告", node_async(new FinalReportNode()))
+                .addNode(CONTENT_ANALYSIS.getName(), node_async(new ContentAnalysisNode()))
+                .addNode(COMPLIANCE_CHECK.getName(), node_async(new ComplianceCheckNode()))
+                .addNode(RISK_ASSESSMENT.getName(), node_async(new RiskAssessmentNode()))
+                .addNode(HUMAN_APPROVAL.getName(), node_async(new HumanApprovalNode()))
+                .addNode(APPROVE_PROCESSING.getName(), node_async(new ApproveProcessingNode()))
+                .addNode(REJECT_PROCESSING.getName(), node_async(new RejectProcessingNode()))
+                .addNode(FINAL_REPORT.getName(), node_async(new FinalReportNode()))
 
                 // 创建边
-                .addEdge(StateGraph.START, "内容分析")
-                .addEdge("内容分析", "合规检查")
-                .addEdge("合规检查", "风险评估")
-                .addEdge("风险评估", "人工审批")
+                .addEdge(StateGraph.START, CONTENT_ANALYSIS.getName())
+                .addEdge(CONTENT_ANALYSIS.getName(), COMPLIANCE_CHECK.getName())
+                .addEdge(COMPLIANCE_CHECK.getName(), RISK_ASSESSMENT.getName())
+                .addEdge(RISK_ASSESSMENT.getName(), HUMAN_APPROVAL.getName())
 
                 // 创建条件边
-                .addConditionalEdges("人工审批",
+                .addConditionalEdges(HUMAN_APPROVAL.getName(),
                         edge_async(new ApprovalDecisionRouter()),
                         Map.of(
-                                "APPROVE", "通过", // 通过节点
-                                "REJECT", "拒绝" //拒绝节点
+                                APPROVE.getId(), APPROVE_PROCESSING.getName(), // 通过节点
+                                REJECT.getId(), REJECT_PROCESSING.getName() //拒绝节点
                         ))
 
-                .addEdge("通过", "最终报告")
-                .addEdge("拒绝", "最终报告")
-                .addEdge("最终报告", StateGraph.END);
+                .addEdge(APPROVE_PROCESSING.getName(), FINAL_REPORT.getName())
+                .addEdge(REJECT_PROCESSING.getName(), FINAL_REPORT.getName())
+                .addEdge(FINAL_REPORT.getName(), StateGraph.END);
 
         // 配置持久化和中断节点
         CompileConfig compileConfig = CompileConfig.builder()
                 .saverConfig(SaverConfig.builder()
-                        .register(mySqlSaver) // 注册Mysql状态存储
+                        .register(mySqlSaver) // Mysql状态存储
                         .build())
-                .interruptBefore("人工审批") // 在此节点前中断
+                .interruptBefore(HUMAN_APPROVAL.getName()) // 在此节点前中断
                 .build();
 
         // 配置可视化视图
-        GraphRepresentation representation = stateGraph.getGraph(GraphRepresentation.Type.PLANTUML, "DocumentReviewGraph");
+        GraphRepresentation representation = stateGraph.getGraph(GraphRepresentation.Type.PLANTUML, WorkFlowTitleConstant.DOCUMENT_REVIEW_TITLE);
         log.info("\n=== Document Review UML Flow ===");
         log.info(representation.content());
         log.info("==========================\n");

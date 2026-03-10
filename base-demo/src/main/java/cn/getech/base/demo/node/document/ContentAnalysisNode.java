@@ -23,9 +23,7 @@ public class ContentAnalysisNode implements NodeActionWithConfig {
         // 模拟内容分析
         String contentAnalysisResult = "分析完成：文档结构完整，主题明确，无明显错误。";
 
-        return Map.of(
-                "content_analysis_result", contentAnalysisResult,
-                "next_node", "合规检查");
+        return Map.of("content_analysis_result", contentAnalysisResult);
     }
 
 }

@@ -105,6 +105,10 @@ spring:
         stdio:
           servers-configuration: classpath:/mcp-server.json
 
+    # 工作流可视化视图配置
+    studio:
+      enabled=true:
+
 # Knife4j配置
 springdoc:
   swagger-ui:

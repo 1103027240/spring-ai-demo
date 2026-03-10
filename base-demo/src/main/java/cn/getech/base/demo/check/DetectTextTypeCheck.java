@@ -1,9 +1,9 @@
 package cn.getech.base.demo.check;
 
-import cn.getech.base.demo.enums.SplitterTypeEnum;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import java.util.Set;
+import static cn.getech.base.demo.enums.SplitterTypeEnum.*;
 
 /**
  * @author 11030
@@ -55,58 +55,58 @@ public class DetectTextTypeCheck {
      */
     public static String detectTextType(String text) {
         if (StrUtil.isBlank(text)) {
-            return SplitterTypeEnum.CHARACTER.getId();
+            return CHARACTER.getId();
         }
 
         // 1. 检测代码
         if (isCode(text)) {
-            return SplitterTypeEnum.CODE.getId();
+            return CODE.getId();
         }
 
         // 2. 检测中文文本
         if (isChineseText(text)) {
-            return SplitterTypeEnum.CHINESE.getId();
+            return CHINESE.getId();
         }
 
         // 3. 检测英文文本（适合token分割）
         if (isToken(text)) {
-            return SplitterTypeEnum.TOKEN.getId();
+            return TOKEN.getId();
         }
 
         // 4. 检测段落
         if (isParagraph(text)) {
-            return SplitterTypeEnum.PARAGRAPH.getId();
+            return PARAGRAPH.getId();
         }
 
         // 5. 检测句子
         if (isSentence(text)) {
-            return SplitterTypeEnum.SENTENCE.getId();
+            return SENTENCE.getId();
         }
 
         // 6. 检测Markdown
         if (isMarkdown(text)) {
-            return SplitterTypeEnum.MARKDOWN.getId();
+            return MARKDOWN.getId();
         }
 
         // 7. 检测HTML
         if (isHtml(text)) {
-            return SplitterTypeEnum.HTML.getId();
+            return HTML.getId();
         }
 
         // 8. 检测JSON
         if (JSONUtil.isTypeJSON(text)) {
-            return SplitterTypeEnum.JSON.getId();
+            return JSON.getId();
         }
 
         // 9. 区分 character 和 recursive 类型
         if (isCharacter(text)) {
-            return SplitterTypeEnum.CHARACTER.getId();
+            return CHARACTER.getId();
         } else if (isRecursive(text)) {
-            return SplitterTypeEnum.RECURSIVE.getId();
+            return RECURSIVE.getId();
         }
 
         // 默认为递归字符分割（推荐的默认分割器）
-        return SplitterTypeEnum.RECURSIVE.getId();
+        return RECURSIVE.getId();
     }
 
     /**

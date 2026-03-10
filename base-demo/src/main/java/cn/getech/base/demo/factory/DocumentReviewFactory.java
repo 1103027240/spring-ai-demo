@@ -3,7 +3,6 @@ package cn.getech.base.demo.factory;
 import com.alibaba.cloud.ai.graph.KeyStrategy;
 import com.alibaba.cloud.ai.graph.KeyStrategyFactory;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +26,8 @@ public class DocumentReviewFactory {
             strategies.put("processing_result", new ReplaceStrategy());
             strategies.put("final_report", new ReplaceStrategy());
             strategies.put("approval_status", new ReplaceStrategy());
+            strategies.put("approver_comment", new ReplaceStrategy());
+            strategies.put("approver", new ReplaceStrategy());
 
             return strategies;
         };

@@ -22,9 +22,7 @@ public class ComplianceCheckNode implements NodeActionWithConfig {
         // 模拟合规检查
         String complianceCheckResult = "合规检查通过：符合公司政策要求。";
 
-        return Map.of(
-                "compliance_check_result", complianceCheckResult,
-                "next_node", "风险评估");
+        return Map.of("compliance_check_result", complianceCheckResult);
     }
 
 }
