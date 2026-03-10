@@ -2,6 +2,7 @@ package cn.getech.base.demo.node.document;
 
 import cn.getech.base.demo.enums.ApprovalDecisionEnum;
 import cn.getech.base.demo.enums.ApprovalStatusEnum;
+import cn.getech.base.demo.enums.DocumentReviewNodeEnum;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.alibaba.cloud.ai.graph.action.NodeActionWithConfig;
@@ -34,7 +35,7 @@ public class HumanApprovalNode implements NodeActionWithConfig {
             return Map.of(
                     "approval_output", ApprovalDecisionEnum.WAITING.getId(), //决策状态为待审批
                     "approval_status", ApprovalStatusEnum.WAITING.getId(), //流程状态为待审批
-                    "next_node", "human_approval"); //返回当前人工审批节点
+                    "next_node", DocumentReviewNodeEnum.HUMAN_APPROVAL.getName()); //返回当前人工审批节点
         }
 
         // 通过ApprovalDecisionRouter路由到下一个节点

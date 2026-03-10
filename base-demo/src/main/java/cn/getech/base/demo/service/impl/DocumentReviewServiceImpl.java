@@ -102,7 +102,7 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
 
             // 准备恢复数据
             Map<String, Object> reviewUpdats = new HashMap<>();
-            //reviewUpdats.put("approval_decision", dto.getDecision());
+            reviewUpdats.put("approval_decision", dto.getDecision());
             reviewUpdats.put("approver_comment", dto.getComment());
             reviewUpdats.put("approver", dto.getApprover());
 
