@@ -22,7 +22,7 @@ public class HumanApprovalNode implements NodeActionWithConfig {
 
     @Override
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
-        String riskLevel = state.value("risk_level", "Unknown");
+        String riskLevel = state.value("risk_level", "UNKNOWN");
         String riskAssessmentResult = state.value("risk_assessment_result", "");
 
         // approval_decision通过documentReviewGraph.updateState(config, updates)更新状态，然后从状态中获取更新后的approval_decision
@@ -38,6 +38,7 @@ public class HumanApprovalNode implements NodeActionWithConfig {
         }
 
         // 通过ApprovalDecisionRouter路由到下一个节点
+        log.info("人工审批节点执行完毕。当前决策为: {}。", approvalDecision);
         return Map.of("approval_output", approvalDecision);
     }
 

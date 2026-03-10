@@ -93,20 +93,20 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
                     stateSnapshot.node(), stateSnapshot.next(), stateSnapshot.config().checkPointId().orElse("N/A"));
 
             // 判断中断点是否是人工审批节点
-            if(!HUMAN_APPROVAL.getName().equals(stateSnapshot.node())){
+            if(!HUMAN_APPROVAL.getName().equals(stateSnapshot.next())){
                 return Map.of(
                         "success", false,
                         "instanceId", instanceId,
-                        "error", String.format("该工作流实例[%s]对应的当前节点。不是中断节点[%s]", instanceId, HUMAN_APPROVAL.name()));
+                        "error", String.format("该工作流实例[%s]对应的当前节点。不是中断节点[%s]", instanceId, HUMAN_APPROVAL.getName()));
             }
 
             // 准备恢复数据
             Map<String, Object> reviewUpdats = new HashMap<>();
-            reviewUpdats.put("approval_decision", dto.getDecision());
+            //reviewUpdats.put("approval_decision", dto.getDecision());
             reviewUpdats.put("approver_comment", dto.getComment());
             reviewUpdats.put("approver", dto.getApprover());
 
-            // 2.更新状态数据，并指定下一个执行节点
+            // 2.更新状态数据，并指定当前执行节点
             RunnableConfig resumeConfig = documentReviewGraph.updateState(interruptionConfig, reviewUpdats, HUMAN_APPROVAL.getName());
 
             // 3.获取当前状态数据（更新后的状态数据）
