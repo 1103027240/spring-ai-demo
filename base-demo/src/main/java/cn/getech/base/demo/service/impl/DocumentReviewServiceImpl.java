@@ -97,7 +97,7 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
                 return Map.of(
                         "success", false,
                         "instanceId", instanceId,
-                        "error", String.format("该工作流实例[%s]对应的当前节点。不是中断节点[%s]", instanceId, HUMAN_APPROVAL.getName()));
+                        "error", String.format("该工作流实例[%s]对应的当前节点[%s]，不是中断节点[%s]", instanceId, stateSnapshot.next(), HUMAN_APPROVAL.getName()));
             }
 
             // 准备恢复数据
