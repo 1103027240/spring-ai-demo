@@ -9,7 +9,7 @@ import static cn.getech.base.demo.enums.ApprovalDecisionEnum.APPROVE;
 import static cn.getech.base.demo.enums.ApprovalDecisionEnum.REJECT;
 
 /**
- * 审批决策分发器（条件边）
+ * 路由决策（条件边）
  * @author 11030
  */
 @Component
@@ -18,11 +18,17 @@ public class ApprovalDecisionRouter implements EdgeAction {
 
     @Override
     public String apply(OverAllState state) {
-        String approvalOutput = (String) state.value("approval_output")
+        String approvalOutput = state.value("approval_output", String.class)
                 .orElseThrow(() -> new IllegalStateException("未找到审批决策"));
         log.info("审批决策分发: decision = {}", approvalOutput);
 
-        // 返回审批决策
+        // 返回条件值
+        String conditionalValue = determineRouteDecision(approvalOutput);
+        log.info("文档审批路由决策: conditionalValue = {}", conditionalValue);
+        return conditionalValue;
+    }
+
+    private String determineRouteDecision(String approvalOutput) {
         ApprovalDecisionEnum approvalOutputEnum = ApprovalDecisionEnum.valueOf(approvalOutput);
         return switch (approvalOutputEnum) {
             case APPROVE -> APPROVE.getId();

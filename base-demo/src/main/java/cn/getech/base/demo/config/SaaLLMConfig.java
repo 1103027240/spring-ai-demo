@@ -203,12 +203,12 @@ public class SaaLLMConfig {
     /**
      * 带远程mcp的qwenChatClient
      */
-    @Bean
-    public ChatClient mcpQwenChatClient(ChatModel qwenChatModel, ToolCallbackProvider provider) {
-        return ChatClient.builder(qwenChatModel)
-                .defaultToolCallbacks(provider.getToolCallbacks())
-                .build();
-    }
+//    @Bean
+//    public ChatClient mcpQwenChatClient(ChatModel qwenChatModel, ToolCallbackProvider provider) {
+//        return ChatClient.builder(qwenChatModel)
+//                .defaultToolCallbacks(provider.getToolCallbacks())
+//                .build();
+//    }
 
     @Bean
     public ChatClient deepseekChatClient(ChatModel deepseekChatModel) {

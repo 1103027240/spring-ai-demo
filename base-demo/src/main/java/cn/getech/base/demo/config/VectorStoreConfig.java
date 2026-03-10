@@ -19,7 +19,6 @@ public class VectorStoreConfig {
      * RAG向量存储
      */
     @Bean("ragVectorStore")
-    @Primary
     public VectorStore ragDocumentVectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel) {
         return MilvusVectorStore.builder(milvusClient, embeddingModel)
                 .collectionName("rag_document")
@@ -33,6 +32,16 @@ public class VectorStoreConfig {
     public VectorStore longTermMemoryVectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel) {
         return MilvusVectorStore.builder(milvusClient, embeddingModel)
                 .collectionName("long_term_chat_memory")
+                .build();
+    }
+
+    /**
+     * 售后客服工作流向量存储
+     */
+    @Bean("customerKnowledgeVectorStore")
+    public VectorStore customerKnowledgeVectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel) {
+        return MilvusVectorStore.builder(milvusClient, embeddingModel)
+                .collectionName("customer_knowledge")
                 .build();
     }
 

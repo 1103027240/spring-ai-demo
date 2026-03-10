@@ -11,7 +11,6 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -71,7 +70,6 @@ public class TextSplitterConfig {
      * 递归字符分割器（默认使用，支持多级分隔符）
      */
     @Bean
-    @Primary
     public RecursiveCharacterTextSplitter recursiveCharacterTextSplitter() {
         return new RecursiveCharacterTextSplitter(recursiveCharacterTextConfig.getChunkSize(), recursiveCharacterTextConfig.getPattern());
     }

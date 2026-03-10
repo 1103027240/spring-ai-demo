@@ -12,23 +12,26 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public enum DocumentReviewNodeEnum {
 
-    CONTENT_ANALYSIS("内容分析"),
+    CONTENT_ANALYSIS("content_analysis", "内容分析"),
 
-    COMPLIANCE_CHECK("合规检查"),
+    COMPLIANCE_CHECK("compliance_check", "合规检查"),
 
-    RISK_ASSESSMENT("风险评估"),
+    RISK_ASSESSMENT("risk_assessment", "风险评估"),
 
-    HUMAN_APPROVAL("人工审批"),
+    HUMAN_APPROVAL("human_approval", "人工审批"),
 
-    APPROVE_PROCESSING("通过"),
+    APPROVE_PROCESSING("approve_processing", "通过"),
 
-    REJECT_PROCESSING("拒绝"),
+    REJECT_PROCESSING("reject_processing", "拒绝"),
 
-    FINAL_REPORT("最终报告"),
+    FINAL_REPORT("final_report", "最终报告"),
 
     ;
 
+    private String id;
+
     private String name;
+
 
 }
 

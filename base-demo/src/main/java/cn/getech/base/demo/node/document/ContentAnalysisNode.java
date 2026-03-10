@@ -17,7 +17,7 @@ public class ContentAnalysisNode implements NodeActionWithConfig {
 
     @Override
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
-        String documentContent = (String) state.value("document_content")
+        String documentContent = state.value("document_content", String.class)
                 .orElseThrow(() -> new IllegalStateException("文档内容为空"));
 
         // 模拟内容分析

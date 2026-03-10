@@ -1,0 +1,59 @@
+package cn.getech.base.demo.entity;
+
+import cn.getech.base.demo.enums.AfterSalesStatusEnum;
+import cn.getech.base.demo.enums.AfterSalesTypeEnum;
+import com.baomidou.mybatisplus.annotation.*;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+/**
+ * @author 11030
+ */
+@Data
+@TableName("after_sales")
+public class AfterSales {
+
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    @TableField("service_number")
+    private String serviceNumber;
+
+    @TableField("order_id")
+    private Long orderId;
+
+    @TableField("order_item_id")
+    private Long orderItemId;
+
+    @TableField("user_id")
+    private Long userId;
+
+    private Integer type;  // 售后类型: 1-退货,2-换货,3-维修,4-补发
+
+    private String reason;  // 售后原因
+
+    private Integer status;  // 状态: 0-待处理,1-处理中,2-已完成,3-已关闭
+
+    @TableField("refund_amount")
+    private BigDecimal refundAmount;  // 退款金额
+
+    private String solution;  // 解决方案
+
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
+
+    // 售后类型文本
+    public String getTypeText() {
+        return AfterSalesTypeEnum.getDescription(type);
+    }
+
+    // 售后状态文本
+    public String getStatusText() {
+        return AfterSalesStatusEnum.getDescription(status);
+    }
+
+}

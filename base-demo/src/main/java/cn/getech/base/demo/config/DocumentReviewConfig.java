@@ -75,7 +75,7 @@ public class DocumentReviewConfig {
         GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, DOCUMENT_REVIEW_TITLE);
 
         // 配置持久化和中断节点
-        CompileConfig compileConfig = graphBuild.buildCompileConfig(mySqlSaver, HUMAN_APPROVAL.getName());
+        CompileConfig compileConfig = graphBuild.buildCompileConfig(mySqlSaver, true, HUMAN_APPROVAL.getName());
 
         log.info("\n" + "=".repeat(80));
         log.info("=== Document Review Graph ===");
@@ -118,9 +118,11 @@ public class DocumentReviewConfig {
             // 创建条件边
             .addConditionalEdges(HUMAN_APPROVAL.getName(),
                     edge_async(new ApprovalDecisionRouter()),
+                    // 根据条件值（APPROVE/REJECT）找到对应节点
                     Map.of(
-                            APPROVE.getId(), APPROVE_PROCESSING.getName(), // 通过节点
-                            REJECT.getId(), REJECT_PROCESSING.getName())) // 拒绝节点
+                            APPROVE.getId(), APPROVE_PROCESSING.getName(),
+                            REJECT.getId(), REJECT_PROCESSING.getName()
+                    ))
 
             .addEdge(APPROVE_PROCESSING.getName(), FINAL_REPORT.getName())
             .addEdge(REJECT_PROCESSING.getName(), FINAL_REPORT.getName())

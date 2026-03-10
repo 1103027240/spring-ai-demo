@@ -29,11 +29,11 @@ public class FinalReportNode implements NodeActionWithConfig {
             "3. 风险评估: %s\n" +
             "4. 审批决定: %s\n" +
             "5. 处理结果: %s",
-                state.value("content_analysis_result").orElse(""),
-                state.value("compliance_check_result").orElse(""),
-                state.value("risk_assessment_result").orElse(""),
-                state.value("approval_output").orElse(""),
-                state.value("processing_result").orElse(""));
+                state.value("content_analysis_result", ""),
+                state.value("compliance_check_result", ""),
+                state.value("risk_assessment_result", ""),
+                state.value("approval_output", ""),
+                state.value("processing_result", ""));
 
         return Map.of(
                 "final_report", finalReport,

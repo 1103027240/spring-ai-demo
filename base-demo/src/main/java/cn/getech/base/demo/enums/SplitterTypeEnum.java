@@ -38,8 +38,11 @@ public enum SplitterTypeEnum {
     ;
 
     private String id;
+
     private String name;
+
     private String description;
+
     private String recommendedUseCases;
 
     public static boolean checkAlgorithmExist(String algorithm){

@@ -12,12 +12,13 @@ import reactor.core.publisher.Flux;
 @Service
 public class McpServiceImpl implements McpService {
 
-    @Resource(name = "mcpQwenChatClient")
-    private ChatClient mcpQwenChatClient;
+//    @Resource(name = "mcpQwenChatClient")
+//    private ChatClient mcpQwenChatClient;
 
     @Override
     public Flux<String> doChat(String msg) {
-        return mcpQwenChatClient.prompt(msg).stream().content();
+        //return mcpQwenChatClient.prompt(msg).stream().content();
+        return null;
     }
 
 }
