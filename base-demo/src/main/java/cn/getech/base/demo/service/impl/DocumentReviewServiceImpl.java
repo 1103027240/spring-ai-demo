@@ -106,10 +106,10 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
             reviewUpdats.put("approver_comment", dto.getComment());
             reviewUpdats.put("approver", dto.getApprover());
 
-            // 2.更新状态数据，并指定当前执行节点
-            RunnableConfig resumeConfig = documentReviewGraph.updateState(interruptionConfig, reviewUpdats, HUMAN_APPROVAL.getName());
+            // 2.更新状态数据
+            RunnableConfig resumeConfig = documentReviewGraph.updateState(interruptionConfig, reviewUpdats);
 
-            // 3.获取当前状态数据（更新后的状态数据）
+            // 3.重新获取当前状态数据（更新后的状态数据）
             Map<String, Object> resumeStateMap  = documentReviewGraph.getState(resumeConfig).state().data();
 
             // 4.执行工作流
