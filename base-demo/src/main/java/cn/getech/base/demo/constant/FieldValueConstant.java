@@ -14,6 +14,17 @@ public class FieldValueConstant {
     public static final Pattern SERVICE_NUMBER_PATTERN = Pattern.compile("[A-Z]{2}\\d{8,12}");
 
     /**
+     * AI回复可能的键名
+     */
+    public static final String[] AI_RESPONSE_KEYS = {
+            "aiResponse",
+            "response",
+            "answer",
+            "content",
+            "message"
+    };
+
+    /**
      * 工作流名称
      */
     public static final String WORKFLOW_CUSTOMER_SERVICE = "customer_service";
@@ -27,17 +38,6 @@ public class FieldValueConstant {
      * AI回复错误消息
      */
     public static final String ERROR_AI_RESPONSE = "抱歉，系统处理您的请求时出现了问题，请稍后重试。";
-
-    /**
-     * AI回复可能的键名
-     */
-    public static final String[] AI_RESPONSE_KEYS = {
-            "aiResponse",
-            "response",
-            "answer",
-            "content",
-            "message"
-    };
 
     /**
      * 事务提交后延迟时间（毫秒）

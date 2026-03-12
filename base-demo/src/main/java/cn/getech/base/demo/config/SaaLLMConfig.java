@@ -59,7 +59,7 @@ public class SaaLLMConfig {
     private String memoryKeyPrefix;
 
     @Resource(name = "ragDocumentVectorStore")
-    private VectorStore vectorStore;
+    private VectorStore ragDocumentVectorStore;
 
     @Bean
     public DashScopeApi dashScopeApi() {
@@ -193,7 +193,7 @@ public class SaaLLMConfig {
     @Bean
     public ChatClient ragQwenChatClient(ChatModel qwenChatModel) {
         RetrievalAugmentationAdvisor retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(VectorStoreDocumentRetriever.builder().vectorStore(vectorStore).build())
+                .documentRetriever(VectorStoreDocumentRetriever.builder().vectorStore(ragDocumentVectorStore).build())
                 .build();
         return ChatClient.builder(qwenChatModel)
                 .defaultAdvisors(retrievalAugmentationAdvisor)
