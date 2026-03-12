@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.NEGATIVE;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.URGENT;
 
@@ -110,6 +109,12 @@ public class CustomerServiceStateDto {
         this.userInput = userInput;
         this.userId = userId;
         this.userName = userName;
+    }
+
+    public CustomerServiceStateDto(String executionId, String sessionId, String userInput, Long userId, String userName, Long startTime) {
+        this(sessionId, userInput, userId, userName);
+        this.executionId = executionId;
+        this.startTime = startTime;
     }
 
     private String generateExecutionId() {
