@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import static cn.getech.base.demo.contant.RedisKeyConstants.SESSION_ACTIVE;
 
 /**
@@ -61,7 +62,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
         sessionInfo.put("sessionId", sessionId);
         sessionInfo.put("lastActiveTime", System.currentTimeMillis());
         String sessionJson = objectMapper.writeValueAsString(sessionInfo);
-        //redisTemplate.opsForValue().set(sessionKey, sessionJson, 3600, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(sessionKey, sessionJson, 3600, TimeUnit.SECONDS);
     }
 
 }
