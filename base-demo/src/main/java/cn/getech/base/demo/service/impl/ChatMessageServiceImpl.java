@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import static cn.getech.base.demo.constant.RedisKeyConstant.SESSION_HISTORY;
 
 @Slf4j
@@ -147,12 +146,12 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     /**
      * 缓存消息到Redis
      */
-    private void cacheChatMessage(String sessionId, List<Map<String, Object>> history) {
+    private void cacheChatMessage(String sessionId, List<Map<String, Object>> historyList) {
         try {
-            String historyJson = objectMapper.writeValueAsString(history);
+            String historyJson = objectMapper.writeValueAsString(historyList);
             String historyKey = SESSION_HISTORY + sessionId;
             redisTemplate.opsForValue().set(historyKey, historyJson, sessionHistoryExpireSeconds, TimeUnit.SECONDS);
-            log.debug("会话历史已缓存到Redis，sessionId: {}, 消息数量: {}", sessionId, history.size());
+            log.debug("会话历史已缓存到Redis，sessionId: {}, 消息数量: {}", sessionId, historyList.size());
         } catch (Exception e) {
             log.error("缓存会话历史到Redis失败", e);
         }
