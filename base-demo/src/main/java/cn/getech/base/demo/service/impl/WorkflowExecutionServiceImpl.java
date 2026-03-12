@@ -1,47 +1,48 @@
 package cn.getech.base.demo.service.impl;
 
+import cn.getech.base.demo.constant.RedisKeyConstant;
+import cn.getech.base.demo.constant.WorkflowConstant;
 import cn.getech.base.demo.dto.CustomerServiceStateDto;
+import cn.getech.base.demo.dto.WorkflowRequestDto;
 import cn.getech.base.demo.entity.ChatMessage;
-import cn.getech.base.demo.entity.ChatSession;
-import cn.getech.base.demo.entity.MessageSyncTask;
 import cn.getech.base.demo.entity.WorkflowExecution;
-import cn.getech.base.demo.enums.*;
-import cn.getech.base.demo.mapper.ChatMessageMapper;
-import cn.getech.base.demo.mapper.ChatSessionMapper;
-import cn.getech.base.demo.mapper.MessageSyncTaskMapper;
+import cn.getech.base.demo.enums.CustomerServiceNodeEnum;
+import cn.getech.base.demo.enums.WorkflowExecutionStatusEnum;
 import cn.getech.base.demo.mapper.WorkflowExecutionMapper;
 import cn.getech.base.demo.service.ChatMessageService;
 import cn.getech.base.demo.service.ChatSessionService;
 import cn.getech.base.demo.service.MessageSyncTaskService;
 import cn.getech.base.demo.service.WorkflowExecutionService;
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.statement.select.KSQLWindow;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.retry.support.RetryTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 import static cn.getech.base.demo.constant.RedisKeyConstant.*;
+import static cn.getech.base.demo.constant.WorkflowConstant.*;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.AFTER_SALES;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.ORDER_QUERY;
 import static cn.getech.base.demo.enums.WorkflowExecutionStatusEnum.SUCCESS;
 
 /**
+ * 工作流执行服务实现
  * @author 11030
  */
 @Slf4j
@@ -55,7 +56,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     private int executionDetailsExpireSeconds;
 
     @Resource(name = "customerServiceGraph")
-    private CompiledGraph compiledGraph;
+    private CompiledGraph customerServiceGraph;
 
     @Autowired
     private WorkflowExecutionMapper workflowExecutionMapper;
@@ -69,14 +70,14 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     @Autowired
     private MessageSyncTaskService messageSyncTaskService;
 
-    @Resource(name = "customerKnowledgeVectorStore")
-    private VectorStore vectorStore;
-
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Resource(name = "workflowExecutor")
+    private Executor workflowExecutor;
 
     /**
      * 生产环境加分布式锁处理
@@ -84,22 +85,32 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     @Transactional
     @Override
     public Map<String, Object> executeWorkflow(String userInput, Long userId, String userName) {
+        WorkflowRequestDto dto = new WorkflowRequestDto(userInput, userId, userName);
+        return executeWorkflow(dto);
+    }
+
+    /**
+     * 执行工作流（DTO版本）
+     */
+    @Transactional
+    public Map<String, Object> executeWorkflow(WorkflowRequestDto dto) {
         String executionId = UUID.randomUUID().toString().replace("-", "");
         String sessionId = UUID.randomUUID().toString().replace("-", "");
         long startTime = System.currentTimeMillis();
+        log.info("【主流程】开始执行工作流，executionId: {}, sessionId: {}, userId: {}", executionId, sessionId, dto.getUserId());
 
         try {
             // 1.执行工作流
-            CustomerServiceStateDto state = executeWorkflow(executionId, sessionId, userInput, userId, userName);
+            CustomerServiceStateDto state = executeWorkflowInternal(executionId, sessionId, dto);
 
             // 2.保存执行记录
-            saveWorkflowExecution(executionId, sessionId, userId, userInput, state);
+            saveWorkflowExecution(executionId, sessionId, dto, state);
 
             // 3.创建或更新会话
-            chatSessionService.createOrUpdateChatSession(sessionId, userId, userName);
+            chatSessionService.createOrUpdateChatSession(sessionId, dto.getUserId(), dto.getUserName());
 
             // 4.保存用户消息
-            ChatMessage userMessage = chatMessageService.saveUserMessage(sessionId, userInput, state, executionId);
+            ChatMessage userMessage = chatMessageService.saveUserMessage(sessionId, dto.getUserInput(), state, executionId);
 
             // 5.保存AI回复消息
             ChatMessage aiMessage = chatMessageService.saveAiMessage(sessionId, state.getAiResponse(), state, executionId);
@@ -122,9 +133,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
             return buildSuccessResponse(state, executionId, duration);
         } catch (Exception e) {
             log.error("【主流程】工作流执行失败，executionId: {}", executionId, e);
-
-            saveFailureRecord(executionId, sessionId, userId, userInput, e);
-
+            saveFailureRecord(executionId, sessionId, dto, e);
             return buildErrorResponse(executionId, e);
         }
     }
@@ -132,42 +141,23 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     /**
      * 执行工作流逻辑
      */
-    private CustomerServiceStateDto executeWorkflow(String executionId, String sessionId, String userInput, Long userId, String userName) {
+    private CustomerServiceStateDto executeWorkflowInternal(String executionId, String sessionId, WorkflowRequestDto dto) {
         try {
             Map<String, Object> initialState = new HashMap<>();
             initialState.put("executionId", executionId);
             initialState.put("sessionId", sessionId);
-            initialState.put("userId", userId);
-            initialState.put("userName", userName);
-            initialState.put("userInput", userInput);
+            initialState.put("userId", dto.getUserId());
+            initialState.put("userName", dto.getUserName());
+            initialState.put("userInput", dto.getUserInput());
 
-            // 1.执行工作流
             OverAllState overAllState = new OverAllState(initialState);
             RunnableConfig config = RunnableConfig.builder().build();
-            Map<String, Object> output = compiledGraph.invoke(overAllState, config)
+
+            Map<String, Object> output = customerServiceGraph.invoke(overAllState, config)
                     .map(OverAllState::data)
                     .orElseThrow(() -> new RuntimeException("【售后客服工作流】执行未返回结果"));
 
-            // 2.封装工作流状态
-            CustomerServiceStateDto state = new CustomerServiceStateDto(executionId, sessionId, userInput, userId, userName, System.currentTimeMillis());
-            state.setIntent((String) output.get("intent"));
-            state.setSentiment((String) output.get("sentiment"));
-            state.setKnowledgeContext((String) output.get("knowledgeContext"));
-
-            if (output.containsKey("orderResults")) {
-                List<Map<String, Object>> orderResults = (List<Map<String, Object>>) output.get("orderResults");
-                state.recordNodeResult(ORDER_QUERY.getId(), Map.of("results", orderResults));
-            }
-
-            if (output.containsKey("afterSalesResult")) {
-                Map<String, Object> afterSalesResult = (Map<String, Object>) output.get("afterSalesResult");
-                state.recordNodeResult(AFTER_SALES.getId(), Map.of("result", afterSalesResult));
-            }
-
-            String aiResponse = extractAiResponse(output);
-            state.complete(SUCCESS.getId(), aiResponse);
-
-            return state;
+            return buildCustomerServiceState(executionId, sessionId, dto, output);
         } catch (Exception e) {
             log.error("【售后客服工作流】执行失败", e);
             throw new RuntimeException("【售后客服工作流】执行失败: " + e.getMessage(), e);
@@ -175,64 +165,98 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     }
 
     /**
+     * 构建客服状态DTO
+     */
+    private CustomerServiceStateDto buildCustomerServiceState(String executionId, String sessionId, WorkflowRequestDto dto,
+                                                              Map<String, Object> output) {
+        CustomerServiceStateDto state = new CustomerServiceStateDto(executionId, sessionId, dto.getUserInput(), dto.getUserId(), dto.getUserName(), System.currentTimeMillis());
+
+        state.setIntent((String) output.get(INTENT));
+        state.setSentiment((String) output.get(SENTIMENT));
+        state.setKnowledgeContext((String) output.get(KNOWLEDGE_CONTEXT));
+
+        if (output.containsKey(ORDER_RESULTS)) {
+            List<Map<String, Object>> orderResults = (List<Map<String, Object>>) output.get(ORDER_RESULTS);
+            state.recordNodeResult(ORDER_QUERY.getId(), Map.of("results", orderResults));
+        }
+
+        if (output.containsKey(AFTER_SALES_RESULT)) {
+            Map<String, Object> afterSalesResult = (Map<String, Object>) output.get(AFTER_SALES_RESULT);
+            state.recordNodeResult(AFTER_SALES.getId(), Map.of("result", afterSalesResult));
+        }
+
+        String aiResponse = extractAiResponse(output);
+        state.complete(SUCCESS.getId(), aiResponse);
+
+        return state;
+    }
+
+    /**
      * 保存成功执行记录
      */
-    private void saveWorkflowExecution(String executionId, String sessionId, Long userId, String userInput,
+    private void saveWorkflowExecution(String executionId, String sessionId, WorkflowRequestDto request,
                                        CustomerServiceStateDto state) throws JsonProcessingException {
-        WorkflowExecution execution = new WorkflowExecution();
-        execution.setExecutionId(executionId);
-        execution.setWorkflowName("customer_service");
-        execution.setSessionId(sessionId);
-        execution.setUserId(userId);
-        execution.setStatus(SUCCESS.getId());
-        execution.setStartTime(LocalDateTime.now());
-        execution.setEndTime(LocalDateTime.now());
+        WorkflowExecution execution = createBaseWorkflowExecution(executionId, sessionId, request, SUCCESS.getId());
         execution.setDurationMs(state.getDuration());
-
-        // 输入数据
-        Map<String, Object> inputData = new HashMap<>();
-        inputData.put("userInput", userInput);
-        inputData.put("sessionId", sessionId);
-        inputData.put("userId", userId);
-        inputData.put("timestamp", System.currentTimeMillis());
-        execution.setInputData(objectMapper.writeValueAsString(inputData));
-
-        // 输出数据
-        Map<String, Object> outputData = new HashMap<>();
-        outputData.put("aiResponse", state.getAiResponse());
-        outputData.put("intent", state.getIntent());
-        outputData.put("sentiment", state.getSentiment());
-        outputData.put("workflowStatus", state.getStatus());
-        outputData.put("executionPath", state.getExecutionPath());
-        execution.setOutputData(objectMapper.writeValueAsString(outputData));
+        execution.setInputData(buildInputDataJson(request, sessionId));
+        execution.setOutputData(buildOutputDataJson(state));
         workflowExecutionMapper.insert(execution);
     }
 
     /**
      * 保存失败执行记录
      */
-    private void saveFailureRecord(String executionId, String sessionId, Long userId, String userInput, Exception e) {
+    private void saveFailureRecord(String executionId, String sessionId, WorkflowRequestDto request, Exception e) {
         try {
-            WorkflowExecution execution = new WorkflowExecution();
-            execution.setExecutionId(executionId);
-            execution.setWorkflowName("customer_service");
-            execution.setSessionId(sessionId);
-            execution.setUserId(userId);
-            execution.setStatus("failed");
-            execution.setStartTime(LocalDateTime.now());
-            execution.setEndTime(LocalDateTime.now());
+            WorkflowExecution execution = createBaseWorkflowExecution(executionId, sessionId, request, WorkflowExecutionStatusEnum.FAILED.getId());
             execution.setErrorMessage(e.getMessage());
-
-            Map<String, Object> inputData = new HashMap<>();
-            inputData.put("userInput", userInput);
-            inputData.put("sessionId", sessionId);
-            inputData.put("userId", userId);
-            execution.setInputData(objectMapper.writeValueAsString(inputData));
-
+            execution.setInputData(buildInputDataJson(request, sessionId));
             workflowExecutionMapper.insert(execution);
         } catch (Exception ex) {
             log.error("保存失败记录失败", ex);
         }
+    }
+
+    /**
+     * 创建基础工作流执行记录
+     */
+    private WorkflowExecution createBaseWorkflowExecution(String executionId, String sessionId,
+                                                          WorkflowRequestDto request, String status) {
+        WorkflowExecution execution = new WorkflowExecution();
+        execution.setExecutionId(executionId);
+        execution.setWorkflowName(WORKFLOW_CUSTOMER_SERVICE);
+        execution.setSessionId(sessionId);
+        execution.setUserId(request.getUserId());
+        execution.setStatus(status);
+        execution.setStartTime(LocalDateTime.now());
+        execution.setEndTime(LocalDateTime.now());
+        return execution;
+    }
+
+    /**
+     * 构建输入数据JSON
+     */
+    private String buildInputDataJson(WorkflowRequestDto request, String sessionId) throws JsonProcessingException {
+        Map<String, Object> inputData = new HashMap<>();
+        inputData.put("userInput", request.getUserInput());
+        inputData.put("sessionId", sessionId);
+        inputData.put("userId", request.getUserId());
+        inputData.put("userName", request.getUserName());
+        inputData.put("timestamp", System.currentTimeMillis());
+        return objectMapper.writeValueAsString(inputData);
+    }
+
+    /**
+     * 构建输出数据JSON
+     */
+    private String buildOutputDataJson(CustomerServiceStateDto state) throws JsonProcessingException {
+        Map<String, Object> outputData = new HashMap<>();
+        outputData.put("aiResponse", state.getAiResponse());
+        outputData.put("intent", state.getIntent());
+        outputData.put("sentiment", state.getSentiment());
+        outputData.put("workflowStatus", state.getStatus());
+        outputData.put("executionPath", state.getExecutionPath());
+        return objectMapper.writeValueAsString(outputData);
     }
 
     /**
@@ -259,47 +283,41 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
                     @Override
                     public void afterCommit() {
                         log.info("【售后客服工作流】事务提交成功，触发异步同步，sessionId: {}", sessionId);
-
-                        // 生产环境，推送到MQ消息队列
-                        new Thread(() -> {
-                            try {
-                                Thread.sleep(100);  // 稍微延迟，确保事务完全提交
-                                messageSyncTaskService.processSyncTask(sessionId);
-                            } catch (Exception e) {
-                                log.error("【售后客服工作流】异步同步处理失败", e);
-                            }
-                        }).start();
+                        asyncProcessSyncTask(sessionId);
                     }
                 }
         );
     }
 
     /**
+     * 异步处理同步任务
+     */
+    @Async("workflowExecutor")
+    private void asyncProcessSyncTask(String sessionId) {
+        try {
+            Thread.sleep(TRANSACTION_COMMIT_DELAY_MS);
+            messageSyncTaskService.processSyncTask(sessionId);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("【售后客服工作流】异步同步处理被中断，sessionId: {}", sessionId, e);
+        } catch (Exception e) {
+            log.error("【售后客服工作流】异步同步处理失败，sessionId: {}", sessionId, e);
+        }
+    }
+
+    /**
      * 从输出中提取AI回复
      */
     private String extractAiResponse(Map<String, Object> output) {
-        if (output.containsKey("aiResponse")) {
-            Object aiResponseObj = output.get("aiResponse");
-            if (aiResponseObj instanceof String) {
-                return (String) aiResponseObj;
-            } else if (aiResponseObj != null) {
-                return aiResponseObj.toString();
-            }
-        }
-
-        // 如果AI回复不存在，尝试从其他可能的键中获取
-        for (String key : Arrays.asList("response", "answer", "content", "message")) {
+        for (String key : AI_RESPONSE_KEYS) {
             if (output.containsKey(key)) {
-                Object responseObj = output.get(key);
-                if (responseObj instanceof String) {
-                    return (String) responseObj;
-                } else if (responseObj != null) {
-                    return responseObj.toString();
+                Object aiResponseObj = output.get(key);
+                if (aiResponseObj != null) {
+                    return aiResponseObj.toString();
                 }
             }
         }
-
-        return "您好，请问有什么可以帮助您的？";
+        return DEFAULT_AI_RESPONSE;
     }
 
     /**
@@ -325,7 +343,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         response.put("executionId", executionId);
         response.put("status", "error");
         response.put("error", e.getMessage());
-        response.put("aiResponse", "抱歉，系统处理您的请求时出现了问题，请稍后重试。");
+        response.put("aiResponse", ERROR_AI_RESPONSE);
         response.put("timestamp", System.currentTimeMillis());
         return response;
     }

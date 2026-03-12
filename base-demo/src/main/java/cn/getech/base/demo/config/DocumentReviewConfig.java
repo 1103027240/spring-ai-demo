@@ -13,10 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import java.util.Map;
-import static cn.getech.base.demo.constant.WorkFlowConstant.DOCUMENT_REVIEW_NAME;
-import static cn.getech.base.demo.constant.WorkFlowConstant.DOCUMENT_REVIEW_TITLE;
+import static cn.getech.base.demo.constant.WorkflowConstant.DOCUMENT_REVIEW_NAME;
+import static cn.getech.base.demo.constant.WorkflowConstant.DOCUMENT_REVIEW_TITLE;
 import static cn.getech.base.demo.enums.ApprovalDecisionEnum.APPROVE;
 import static cn.getech.base.demo.enums.ApprovalDecisionEnum.REJECT;
 import static cn.getech.base.demo.enums.DocumentReviewNodeEnum.*;

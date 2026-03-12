@@ -1,9 +1,10 @@
 package cn.getech.base.demo.constant;
 
 /**
+ * 工作流相关常量
  * @author 11030
  */
-public class WorkFlowConstant {
+public class WorkflowConstant {
 
     public final static String DOCUMENT_REVIEW_NAME = "文档审批工作流";
 
