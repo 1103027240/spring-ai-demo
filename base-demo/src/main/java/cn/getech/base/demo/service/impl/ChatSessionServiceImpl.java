@@ -13,9 +13,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import static cn.getech.base.demo.contant.RedisKeyConstants.SESSION_ACTIVE;
+import static cn.getech.base.demo.constant.RedisKeyConstant.SESSION_ACTIVE;
 
 /**
  * @author 11030

@@ -1,9 +1,9 @@
-package cn.getech.base.demo.contant;
+package cn.getech.base.demo.constant;
 
 /**
  * @author 11030
  */
-public class RedisKeyConstants {
+public class RedisKeyConstant {
 
     public static final String WORKFLOW_CUSTOMER_PREFIX = "ai_customer:";
 

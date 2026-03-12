@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.regex.Matcher;
-import static cn.getech.base.demo.contant.FieldValueConstants.ORDER_NUMBER_PATTERN;
+import static cn.getech.base.demo.constant.FieldValueConstant.ORDER_NUMBER_PATTERN;
 import static cn.getech.base.demo.enums.AfterSalesTypeEnum.*;
 import static cn.hutool.core.date.DatePattern.PURE_DATE_PATTERN;
 

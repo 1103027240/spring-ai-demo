@@ -1,4 +1,4 @@
-package cn.getech.base.demo.contant;
+package cn.getech.base.demo.constant;
 
 /**
  * @author 11030
