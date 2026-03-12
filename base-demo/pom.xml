@@ -104,12 +104,6 @@
             <artifactId>spring-ai-starter-vector-store-milvus</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>${protobuf.version}</version>
-        </dependency>
-
         <!-- Mysql驱动，版本8.4.7-->
         <dependency>
             <groupId>com.mysql</groupId>
