@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.*;
+import static cn.getech.base.demo.enums.IntentRecognitionEnum.GENERAL_QUESTION;
+import static cn.getech.base.demo.enums.SentimentAnalysisEnum.*;
 
 /**
  * 路由决策（条件边）
@@ -17,32 +19,37 @@ public class CustomerServiceDecisionRouter implements EdgeAction {
 
     @Override
     public String apply(OverAllState state) {
-        log.info("开始售后客服路由决策");
-        String intentRecognition = state.value("intentRecognition", String.class).orElse("generalQuestion");
-        String sentimentAnalysis = state.value("sentimentAnalysis", String.class).orElse("neutral");
+        log.info("【售后客服路由决策】开始执行");
+
+        String intent = state.value("intent", String.class).orElse(GENERAL_QUESTION.getId());
+        String sentiment = state.value("sentiment", String.class).orElse(NEUTRAL.getId());
 
         // 根据意图和情感决定路由决策
-        String conditionalValue = determineRouteDecision(intentRecognition, sentimentAnalysis);
-        log.info("售后客服路由决策: intentRecognition = {}, sentimentAnalysis = {}, conditionalValue = {}", intentRecognition, sentimentAnalysis, conditionalValue);
+        String conditionalValue = determineRouteDecision(intent, sentiment);
+        log.info("售【售后客服路由决策】: intent = {}, sentiment = {}, conditionalValue = {}", intent, sentiment, conditionalValue);
         return conditionalValue;
     }
 
-    private String determineRouteDecision(String intentRecognition, String sentimentAnalysis) {
-        switch (intentRecognition) {
+    private String determineRouteDecision(String intent, String sentiment) {
+        switch (intent) {
             case "order_query":
-                return ORDER_QUERY.getId();
+                return ORDER_QUERY.getId();  // 订单查询路由
             case "after_sales":
-                return AFTER_SALES.getId();
+            case "complaint":
+                return AFTER_SALES.getId();  // 售后处理路由
+            case "product_info":
+            case "policy_question":
+            case "general_question":
+                return KNOWLEDGE_RETRIEVAL.getId();  // 知识库检索路由
             case "payment_issue":
             case "logistics_query":
-                if (Arrays.asList("urgent", "negative").contains(sentimentAnalysis)) {
-                    return AFTER_SALES.getId(); // 紧急或负面情绪转售后处理
+                if (Arrays.asList(URGENT.getId(), NEGATIVE.getId()).contains(sentiment)) {
+                    return AFTER_SALES.getId();  // 紧急或负面情绪转售后处理
+                } else {
+                    return KNOWLEDGE_RETRIEVAL.getId();  // 其他情况走知识库检索
                 }
-                return KNOWLEDGE_RETRIEVAL.getId();
-            case "complaint":
-                return AFTER_SALES.getId(); // 投诉转售后处理
             default:
-                return KNOWLEDGE_RETRIEVAL.getId();
+                return KNOWLEDGE_RETRIEVAL.getId();  // 默认知识库检索
         }
     }
 

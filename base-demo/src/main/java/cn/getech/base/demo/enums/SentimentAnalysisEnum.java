@@ -3,6 +3,8 @@ package cn.getech.base.demo.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @author 11030
@@ -27,5 +29,13 @@ public enum SentimentAnalysisEnum {
     private String description;
 
     private String detailDescription;
+
+    public static String getDescription(String id) {
+        return Arrays.asList(SentimentAnalysisEnum.values())
+                .stream().filter(e -> Objects.equals(e.getId(), id))
+                .findFirst()
+                .map(SentimentAnalysisEnum::getDescription)
+                .orElse("未知");
+    }
 
 }

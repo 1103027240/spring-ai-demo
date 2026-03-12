@@ -7,11 +7,13 @@ import java.util.Map;
  */
 public interface AfterSalesService {
 
-    Map<String, Object> processReturnRequest(String userInput);
+    Map<String, Object> processReturnRequest(String userInput, Long userId);
 
-    Map<String, Object> processExchangeRequest(String userInput);
+    Map<String, Object> processExchangeRequest(String userInput, Long userId);
 
-    Map<String, Object> processRefundRequest(String userInput);
+    Map<String, Object> processRepairRequest(String userInput, Long userId);
+
+    Map<String, Object> processRefundRequest(String userInput, Long userId);
 
     Map<String, Object> queryAfterSalesProgress(String serviceNumber);
 

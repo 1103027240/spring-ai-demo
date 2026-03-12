@@ -1,6 +1,6 @@
 package cn.getech.base.demo.service;
 
-import cn.getech.base.demo.entity.StudentRecord;
+import cn.getech.base.demo.entity.Student;
 import reactor.core.publisher.Flux;
 
 /**
@@ -14,6 +14,6 @@ public interface PromptService {
 
     Flux<String> doChatRoleCombine(String msg);
 
-    StudentRecord doChatOutput(String name, String id, Integer age, String email);
+    Student doChatOutput(String name, String id, Integer age, String email);
 
 }

@@ -26,7 +26,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
     @Autowired
     private MilvusServiceClient milvusClient;
 
-    @Resource(name = "ragVectorStore")
+    @Resource(name = "ragDocumentVectorStore")
     private VectorStore vectorStore;
 
     // 操作是milvus数据库中long_term_chat_memory集合

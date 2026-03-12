@@ -8,7 +8,7 @@ import lombok.experimental.SuperBuilder;
  */
 @Data
 @SuperBuilder
-public class MilvusDocumentEntity {
+public class MilvusDocument {
 
     /**
      * 文档唯一ID（Milvus自动生成）

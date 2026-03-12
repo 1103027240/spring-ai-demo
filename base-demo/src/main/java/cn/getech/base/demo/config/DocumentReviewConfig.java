@@ -1,33 +1,27 @@
 package cn.getech.base.demo.config;
 
 import cn.getech.base.demo.build.GraphBuild;
-import cn.getech.base.demo.contant.WorkFlowTitleConstant;
-import cn.getech.base.demo.enums.ApprovalDecisionEnum;
 import cn.getech.base.demo.factory.DocumentReviewFactory;
 import cn.getech.base.demo.node.document.*;
 import com.alibaba.cloud.ai.graph.CompileConfig;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.GraphRepresentation;
 import com.alibaba.cloud.ai.graph.StateGraph;
-import com.alibaba.cloud.ai.graph.action.EdgeAction;
-import com.alibaba.cloud.ai.graph.checkpoint.config.SaverConfig;
-import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.CreateOption;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.MysqlSaver;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import javax.sql.DataSource;
+
 import java.util.Map;
-import static cn.getech.base.demo.contant.WorkFlowTitleConstant.DOCUMENT_REVIEW_NAME;
-import static cn.getech.base.demo.contant.WorkFlowTitleConstant.DOCUMENT_REVIEW_TITLE;
+import static cn.getech.base.demo.contant.WorkFlowConstant.DOCUMENT_REVIEW_NAME;
+import static cn.getech.base.demo.contant.WorkFlowConstant.DOCUMENT_REVIEW_TITLE;
 import static cn.getech.base.demo.enums.ApprovalDecisionEnum.APPROVE;
 import static cn.getech.base.demo.enums.ApprovalDecisionEnum.REJECT;
 import static cn.getech.base.demo.enums.DocumentReviewNodeEnum.*;
 import static com.alibaba.cloud.ai.graph.action.AsyncEdgeAction.edge_async;
 import static com.alibaba.cloud.ai.graph.action.AsyncNodeActionWithConfig.node_async;
-import static com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.CreateOption.CREATE_IF_NOT_EXISTS;
 
 /**
  * 文档审批工作流

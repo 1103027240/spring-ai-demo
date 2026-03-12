@@ -12,15 +12,17 @@ import java.util.Objects;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public enum AfterSalesTypeEnum {
+public enum MessageTaskStatusEnum {
 
-    RETURNED(1, "return_request", "退货申请"),
+    PENDING(0, "待处理"),
 
-    EXCHANGE(2, "exchange_request", "换货申请"),
+    PROCESSING(1, "处理中"),
 
-    REPAIR(3, "repair_request", "维修申请"),
+    COMPLETED(2, "已完成"),
 
-    REFUNDED(5, "refund_request", "退款申请"),
+    FAILED(3,"已失败"),
+
+    CANCELLED(4, "已取消"),
 
     ;
 
@@ -28,13 +30,11 @@ public enum AfterSalesTypeEnum {
 
     private String description;
 
-    private String detailDescription;
-
-    public static String getDetailDescription(Integer code) {
-        return Arrays.asList(AfterSalesTypeEnum.values())
+    public static String getDescription(Integer code) {
+        return Arrays.asList(MessageTaskStatusEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(AfterSalesTypeEnum::getDetailDescription)
+                .map(MessageTaskStatusEnum::getDescription)
                 .orElse("未知");
     }
 

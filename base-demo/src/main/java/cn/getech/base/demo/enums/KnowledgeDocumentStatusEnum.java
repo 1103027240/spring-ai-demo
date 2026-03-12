@@ -12,15 +12,15 @@ import java.util.Objects;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public enum AfterSalesTypeEnum {
+public enum KnowledgeDocumentStatusEnum {
 
-    RETURNED(1, "return_request", "退货申请"),
+    DISABLED(0, "禁用"),
 
-    EXCHANGE(2, "exchange_request", "换货申请"),
+    ENABLED(1, "启用"),
 
-    REPAIR(3, "repair_request", "维修申请"),
+    PENDING(3, "待审核"),
 
-    REFUNDED(5, "refund_request", "退款申请"),
+    DELETED(4, "已删除"),
 
     ;
 
@@ -28,13 +28,11 @@ public enum AfterSalesTypeEnum {
 
     private String description;
 
-    private String detailDescription;
-
-    public static String getDetailDescription(Integer code) {
-        return Arrays.asList(AfterSalesTypeEnum.values())
+    public static String getDescription(Integer code) {
+        return Arrays.asList(KnowledgeDocumentStatusEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(AfterSalesTypeEnum::getDetailDescription)
+                .map(KnowledgeDocumentStatusEnum::getDescription)
                 .orElse("未知");
     }
 

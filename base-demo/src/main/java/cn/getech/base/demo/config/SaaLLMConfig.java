@@ -58,7 +58,7 @@ public class SaaLLMConfig {
     @Value("${spring.ai.memory.redis.key-prefix:spring_ai_long_chat_memory}")
     private String memoryKeyPrefix;
 
-    @Resource(name = "ragVectorStore")
+    @Resource(name = "ragDocumentVectorStore")
     private VectorStore vectorStore;
 
     @Bean

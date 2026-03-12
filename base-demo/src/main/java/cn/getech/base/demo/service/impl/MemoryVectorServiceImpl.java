@@ -1,7 +1,7 @@
 package cn.getech.base.demo.service.impl;
 
 import cn.getech.base.demo.converter.DocumentConverter;
-import cn.getech.base.demo.entity.LongTermChatMemoryEntity;
+import cn.getech.base.demo.entity.LongTermChatMemory;
 import cn.getech.base.demo.service.MemoryVectorService;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
@@ -45,7 +45,7 @@ public class MemoryVectorServiceImpl implements MemoryVectorService {
 
     @Override
     public void addMemory(String msg) {
-        LongTermChatMemoryEntity longTermChatMemoryEntity = LongTermChatMemoryEntity.builder()
+        LongTermChatMemory longTermChatMemory = LongTermChatMemory.builder()
                 .content(msg)
                 .conversationId("123456")
                 .createTime(String.valueOf(System.currentTimeMillis()))
@@ -53,17 +53,17 @@ public class MemoryVectorServiceImpl implements MemoryVectorService {
                 .build();
 
         Document doc = DocumentConverter.toDocument(
-                longTermChatMemoryEntity,
-                LongTermChatMemoryEntity::getContent,
+                longTermChatMemory,
+                LongTermChatMemory::getContent,
                 e -> Map.of(
-                        "conversationId", longTermChatMemoryEntity.getConversationId(),
-                        "createTime", longTermChatMemoryEntity.getCreateTime(),
-                        "memoryType", longTermChatMemoryEntity.getMemoryType()));
+                        "conversationId", longTermChatMemory.getConversationId(),
+                        "createTime", longTermChatMemory.getCreateTime(),
+                        "memoryType", longTermChatMemory.getMemoryType()));
         vectorStore.add(List.of(doc));
     }
 
     @Override
-    public List<LongTermChatMemoryEntity> getMemory(String msg) {
+    public List<LongTermChatMemory> getMemory(String msg) {
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(msg)
                 .topK(longTermTopK)
@@ -72,15 +72,14 @@ public class MemoryVectorServiceImpl implements MemoryVectorService {
 
         return vectorStore.similaritySearch(searchRequest)
                 .stream()
-                .map(e -> DocumentConverter.toEntity(e, (content, metadata) -> {
-                    return LongTermChatMemoryEntity.builder()
-                            .docId(e.getId())
-                            .content(content)
-                            .conversationId((String) metadata.get("conversationId"))
-                            .createTime((String) metadata.get("createTime"))
-                            .memoryType((String) metadata.get("memoryType"))
-                            .build();
-                })).collect(Collectors.toList());
+                .map(e -> DocumentConverter.toEntity(e, (content, metadata) ->
+                        LongTermChatMemory.builder()
+                                .docId(e.getId())
+                                .content(content)
+                                .conversationId((String) metadata.get("conversationId"))
+                                .createTime((String) metadata.get("createTime"))
+                                .memoryType((String) metadata.get("memoryType"))
+                                .build())).collect(Collectors.toList());
     }
 
 }

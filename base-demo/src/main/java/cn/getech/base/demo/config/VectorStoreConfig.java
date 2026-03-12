@@ -18,7 +18,7 @@ public class VectorStoreConfig {
     /**
      * RAG向量存储
      */
-    @Bean("ragVectorStore")
+    @Bean("ragDocumentVectorStore")
     public VectorStore ragDocumentVectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel) {
         return MilvusVectorStore.builder(milvusClient, embeddingModel)
                 .collectionName("rag_document")

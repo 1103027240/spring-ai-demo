@@ -1,6 +1,6 @@
 package cn.getech.base.demo.controller;
 
-import cn.getech.base.demo.entity.LongTermChatMemoryEntity;
+import cn.getech.base.demo.entity.LongTermChatMemory;
 import cn.getech.base.demo.service.MemoryVectorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -43,7 +43,7 @@ public class MemoryVectorController {
 
     @Operation(summary = "查询向量数据", description = "查询向量数据")
     @GetMapping("/getMemory")
-    public List<LongTermChatMemoryEntity> getMemory(
+    public List<LongTermChatMemory> getMemory(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String msg){
         return memoryVectorService.getMemory(msg);

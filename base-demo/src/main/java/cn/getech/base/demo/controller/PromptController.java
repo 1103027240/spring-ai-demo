@@ -1,6 +1,6 @@
 package cn.getech.base.demo.controller;
 
-import cn.getech.base.demo.entity.StudentRecord;
+import cn.getech.base.demo.entity.Student;
 import cn.getech.base.demo.service.PromptService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,7 +49,7 @@ public class PromptController {
 
     @Operation(summary = "格式化输出", description = "格式化输出")
     @GetMapping("/chat/output")
-    public StudentRecord doChatOutput(
+    public Student doChatOutput(
             @Parameter(description = "姓名", required = true, example = "张三")
             @RequestParam(value = "name") String name,
             @Parameter(description = "编号", required = true, example = "123456")

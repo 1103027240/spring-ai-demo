@@ -1,6 +1,6 @@
 package cn.getech.base.demo.service.impl;
 
-import cn.getech.base.demo.entity.StudentRecord;
+import cn.getech.base.demo.entity.Student;
 import cn.getech.base.demo.properties.TemplateProperties;
 import cn.getech.base.demo.service.PromptService;
 import jakarta.annotation.Resource;
@@ -63,7 +63,7 @@ public class PromptServiceImpl implements PromptService {
     }
 
     @Override
-    public StudentRecord doChatOutput(String name, String id, Integer age, String email) {
+    public Student doChatOutput(String name, String id, Integer age, String email) {
         return qwenChatClient.prompt()
                 .user(promptUserSpec ->
                         promptUserSpec.text(templateProperties.getDemoStudentTemplate())
@@ -72,7 +72,7 @@ public class PromptServiceImpl implements PromptService {
                                 .param("age", age)
                                 .param("email", email))
                 .call()
-                .entity(StudentRecord.class);
+                .entity(Student.class);
     }
 
 }

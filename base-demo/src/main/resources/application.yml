@@ -115,6 +115,14 @@ spring:
         auto-register: true  # 自动注册Graph Bean
         show-details: true   # 显示详细信息
 
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*Mapper.xml
+  # 实体扫描，多个package用逗号或者分号分隔
+  typeAliasesPackage: cn.getech.base.demo.entity
+  # 打印sql日志
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
 # Knife4j配置
 springdoc:
   swagger-ui:

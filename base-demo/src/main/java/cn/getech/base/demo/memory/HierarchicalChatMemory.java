@@ -1,7 +1,7 @@
 package cn.getech.base.demo.memory;
 
 import cn.getech.base.demo.converter.DocumentConverter;
-import cn.getech.base.demo.entity.LongTermChatMemoryEntity;
+import cn.getech.base.demo.entity.LongTermChatMemory;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
@@ -116,7 +116,7 @@ public class HierarchicalChatMemory implements ChatMemory {
         String memorySummary = generateMemorySummary(conversationId, toLongTermMessages);
 
         // 3. 写入Milvus向量库：id由Milvus自动生成，memoryVector由EmbeddingModel通过memory自动向量化生成
-        LongTermChatMemoryEntity longTermChatMemoryEntity = LongTermChatMemoryEntity.builder()
+        LongTermChatMemory longTermChatMemory = LongTermChatMemory.builder()
                 .content(memorySummary)
                 .conversationId(conversationId)
                 .createTime(String.valueOf(System.currentTimeMillis()))
@@ -124,12 +124,12 @@ public class HierarchicalChatMemory implements ChatMemory {
                 .build();
 
         Document doc = DocumentConverter.toDocument(
-                longTermChatMemoryEntity,
-                LongTermChatMemoryEntity::getContent,
+                longTermChatMemory,
+                LongTermChatMemory::getContent,
                 e -> Map.of(
-                        "conversationId", longTermChatMemoryEntity.getConversationId(),
-                        "createTime", longTermChatMemoryEntity.getCreateTime(),
-                        "memoryType", longTermChatMemoryEntity.getMemoryType()));
+                        "conversationId", longTermChatMemory.getConversationId(),
+                        "createTime", longTermChatMemory.getCreateTime(),
+                        "memoryType", longTermChatMemory.getMemoryType()));
         vectorStore.add(List.of(doc));
 
         // 4. 重置短期记忆，只保留最新N条

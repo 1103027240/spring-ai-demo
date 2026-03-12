@@ -3,7 +3,6 @@ package cn.getech.base.demo.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
-
 import java.util.Map;
 
 /**
@@ -13,7 +12,7 @@ import java.util.Map;
 @Data
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
-public class RagDocumentEntity extends MilvusDocumentEntity {
+public class RagDocument extends MilvusDocument {
 
     /**
      * 文档来源
@@ -185,6 +184,5 @@ public class RagDocumentEntity extends MilvusDocumentEntity {
      * 4. 其他自定义相似度函数
      */
     private Double originalScore;
-
 
 }

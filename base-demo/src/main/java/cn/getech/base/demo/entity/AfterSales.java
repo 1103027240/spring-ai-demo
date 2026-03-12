@@ -48,7 +48,7 @@ public class AfterSales {
 
     // 售后类型文本
     public String getTypeText() {
-        return AfterSalesTypeEnum.getDescription(type);
+        return AfterSalesTypeEnum.getDetailDescription(type);
     }
 
     // 售后状态文本

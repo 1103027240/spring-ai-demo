@@ -12,15 +12,15 @@ import java.util.Objects;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public enum AfterSalesTypeEnum {
+public enum ChatMessageTypeEnum {
 
-    RETURNED(1, "return_request", "退货申请"),
+     USER(1, "用户消息"),
 
-    EXCHANGE(2, "exchange_request", "换货申请"),
+     AI(2, "AI回复"),
 
-    REPAIR(3, "repair_request", "维修申请"),
+     SYSTEM(3, "系统消息"),
 
-    REFUNDED(5, "refund_request", "退款申请"),
+     CUSTOMER_SERVICE(4, "客服消息"),
 
     ;
 
@@ -28,13 +28,11 @@ public enum AfterSalesTypeEnum {
 
     private String description;
 
-    private String detailDescription;
-
-    public static String getDetailDescription(Integer code) {
-        return Arrays.asList(AfterSalesTypeEnum.values())
+    public static String getDescription(Integer code) {
+        return Arrays.asList(ChatMessageTypeEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(AfterSalesTypeEnum::getDetailDescription)
+                .map(ChatMessageTypeEnum::getDescription)
                 .orElse("未知");
     }
 

@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
-public class LongTermChatMemoryEntity extends MilvusDocumentEntity {
+public class LongTermChatMemory extends MilvusDocument {
 
     /**
      * 会话ID
