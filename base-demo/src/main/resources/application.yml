@@ -16,7 +16,7 @@ spring:
 
   # mysql配置
   datasource:
-    url: jdbc:mysql://localhost:3316/document_review?useUnicode=true&characterEncoding=utf-8&nullCatalogMeansCurrent=true&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3316/ai_demo?useUnicode=true&characterEncoding=utf-8&nullCatalogMeansCurrent=true&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: root
