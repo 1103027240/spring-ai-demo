@@ -102,7 +102,7 @@ public class SentimentAnalysisNode implements NodeActionWithConfig {
         }
 
         String lowerInput = userInput.toLowerCase();
-        SentimentAnalysisEnum sentimentAnalysisEnum = valueOf(sentiment);
+        SentimentAnalysisEnum sentimentAnalysisEnum = SentimentAnalysisEnum.valueOf(sentiment.toUpperCase());
 
         switch (sentimentAnalysisEnum) {
             case POSITIVE:
