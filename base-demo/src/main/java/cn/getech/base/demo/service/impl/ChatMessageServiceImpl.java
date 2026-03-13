@@ -21,7 +21,7 @@ import java.util.List;
 @Service
 public class ChatMessageServiceImpl implements ChatMessageService {
 
-    @Value("${sync.mysql.retention:count:20}")
+    @Value("${sync.mysql.retention.count:20}")
     private String mysqlRetentionCount;
 
     @Autowired

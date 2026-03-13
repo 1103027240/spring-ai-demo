@@ -95,7 +95,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
         }
 
         result.put(USER_ID, userId);
-        log.info("【订单查询节点】解析订单提前结果: {}", JSONObject.toJSONString(result));
+        log.info("【订单查询节点】解析订单提前结果: {}", result);
         return result;
     }
 
