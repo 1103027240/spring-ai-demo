@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
+
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import static cn.getech.base.demo.enums.WorkflowExecutionStatusEnum.*;
@@ -14,7 +16,8 @@ import static cn.getech.base.demo.enums.WorkflowExecutionStatusEnum.*;
 @Data
 @TableName("workflow_execution")
 @Accessors(chain = true)
-public class WorkflowExecution {
+public class WorkflowExecution implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
     private Long id;

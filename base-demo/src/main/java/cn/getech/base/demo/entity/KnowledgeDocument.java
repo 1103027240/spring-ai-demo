@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import static cn.getech.base.demo.enums.KnowledgeDocumentStatusEnum.ENABLED;
@@ -14,7 +16,8 @@ import static cn.getech.base.demo.enums.KnowledgeDocumentStatusEnum.ENABLED;
 @Data
 @TableName("knowledge_document")
 @Accessors(chain = true)
-public class KnowledgeDocument {
+public class KnowledgeDocument implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
     private Long id;

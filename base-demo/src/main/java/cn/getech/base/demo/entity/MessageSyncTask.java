@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.Duration;
 import static cn.getech.base.demo.enums.MessageTaskStatusEnum.*;
@@ -14,7 +15,8 @@ import static cn.getech.base.demo.enums.MessageTaskStatusEnum.*;
 @Data
 @TableName("message_sync_task")
 @Accessors(chain = true)
-public class MessageSyncTask {
+public class MessageSyncTask implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
     private Long id;

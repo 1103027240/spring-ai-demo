@@ -4,6 +4,8 @@ import cn.getech.base.demo.enums.AfterSalesStatusEnum;
 import cn.getech.base.demo.enums.AfterSalesTypeEnum;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -12,7 +14,8 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("after_sales")
-public class AfterSales {
+public class AfterSales implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
     private Long id;
