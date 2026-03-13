@@ -13,9 +13,9 @@ import java.util.Map;
  * @author 11030
  */
 @Tag(name = "文档审批工作流接口", description = "文档审批工作流相关API")
-@RequestMapping("/document")
+@RequestMapping("/documentReview")
 @RestController
-public class DocumentReviewGraphController {
+public class DocumentReviewController {
 
     @Autowired
     private DocumentReviewService documentReviewService;

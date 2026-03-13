@@ -1,9 +1,12 @@
 package cn.getech.base.demo.build;
 
+import cn.getech.base.demo.converter.DocumentConverter;
 import cn.getech.base.demo.dto.CustomerServiceStateDto;
+import cn.getech.base.demo.dto.MessageDocumentVO;
 import cn.getech.base.demo.entity.WorkflowExecution;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
@@ -11,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import static cn.getech.base.demo.constant.FieldValueConstant.ERROR_AI_RESPONSE;
 import static cn.getech.base.demo.constant.FieldValueConstant.WORKFLOW_CUSTOMER_SERVICE;
+import static cn.getech.base.demo.constant.MessageSyncConstant.MetadataField.*;
 
 @Component
 public class WorkflowExecutionBuild {
@@ -93,6 +97,24 @@ public class WorkflowExecutionBuild {
         response.put("aiResponse", ERROR_AI_RESPONSE);
         response.put("timestamp", System.currentTimeMillis());
         return response;
+    }
+
+    /**
+     * 转换为MessageDocument
+     */
+    public MessageDocumentVO convertToMessageDocumentVO(Document doc) {
+        return DocumentConverter.toEntity(doc, (content, metadata) ->
+                MessageDocumentVO.builder()
+                        .id(doc.getId())
+                        .content(doc.getText())
+                        .metadata(metadata)
+                        .messageId((Long) metadata.get(MESSAGE_ID))
+                        .userId((Long) metadata.get(USER_ID))
+                        .sessionId((String) metadata.get(SESSION_ID))
+                        .messageType((Integer) metadata.get(MESSAGE_TYPE))
+                        .workflowExecutionId((String) metadata.get(WORKFLOW_EXECUTION_ID))
+                        .createTime((LocalDateTime) metadata.get(CREATE_TIME))
+                        .build());
     }
 
 }

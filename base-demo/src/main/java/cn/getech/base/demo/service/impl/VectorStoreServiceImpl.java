@@ -4,17 +4,25 @@ import cn.getech.base.demo.service.VectorStoreService;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.milvus.client.MilvusServiceClient;
+import io.milvus.common.clientenum.ConsistencyLevelEnum;
+import io.milvus.grpc.DataType;
+import io.milvus.param.IndexType;
+import io.milvus.param.MetricType;
+import io.milvus.param.R;
+import io.milvus.param.collection.CreateCollectionParam;
+import io.milvus.param.collection.FieldType;
+import io.milvus.param.collection.HasCollectionParam;
+import io.milvus.param.collection.LoadCollectionParam;
+import io.milvus.param.index.CreateIndexParam;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author 11030
@@ -27,14 +35,14 @@ public class VectorStoreServiceImpl implements VectorStoreService {
     private MilvusServiceClient milvusClient;
 
     @Resource(name = "ragDocumentVectorStore")
-    private VectorStore vectorStore;
+    private VectorStore ragDocumentVectorStore;
 
     // 操作是milvus数据库中long_term_chat_memory集合
-//    @Value("${spring.ai.vectorstore.milvus.collection-name}")
-//    private String collectionName;
-//
-//    @Value("${spring.ai.vectorstore.milvus.embedding-dimension}")
-//    private int embeddingDimension;
+    @Value("${spring.ai.vectorstore.milvus.collection-name}")
+    private String collectionName;
+
+    @Value("${spring.ai.vectorstore.milvus.embedding-dimension}")
+    private int embeddingDimension;
 
     /**
      * 创建集合
@@ -114,7 +122,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
         if (documents.isEmpty()) {
             return;
         }
-        vectorStore.add(documents);
+        ragDocumentVectorStore.add(documents);
     }
 
     /**
@@ -127,7 +135,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
                 .topK(topK)
                 .similarityThreshold(0.7)
                 .build();
-        return vectorStore.similaritySearch(searchRequest);
+        return ragDocumentVectorStore.similaritySearch(searchRequest);
     }
 
     /**
@@ -155,7 +163,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
                 .similarityThreshold(0.3)
                 .build();
 
-        List<Document> allResults = vectorStore.similaritySearch(searchRequest);
+        List<Document> allResults = ragDocumentVectorStore.similaritySearch(searchRequest);
         resultPage.setRecords(allResults);
         resultPage.setTotal(allResults.size());
         return resultPage;
@@ -170,7 +178,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
                 .query(query)
                 .filterExpression("hashValue == '" + hashValue + "'")
                 .build();
-        return vectorStore.similaritySearch(searchRequest);
+        return ragDocumentVectorStore.similaritySearch(searchRequest);
     }
 
     /**
@@ -178,7 +186,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
      */
     @Override
     public void deleteDocument(String docId) {
-        vectorStore.delete(Collections.singletonList(docId));
+        ragDocumentVectorStore.delete(Collections.singletonList(docId));
     }
 
     /**
@@ -188,7 +196,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
     public void clearCollection() {
         List<String> allDocIds = getAllDocumentIds();
         if (CollUtil.isNotEmpty(allDocIds)) {
-            vectorStore.delete(allDocIds);
+            ragDocumentVectorStore.delete(allDocIds);
         }
     }
 
@@ -197,7 +205,6 @@ public class VectorStoreServiceImpl implements VectorStoreService {
      */
     public List<String> getAllDocumentIds() {
         // 这里需要实现获取所有文档ID的逻辑
-        // 由于Spring AI的限制，可能需要直接使用Milvus SDK
         return Collections.emptyList();
     }
 

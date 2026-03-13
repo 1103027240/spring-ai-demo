@@ -98,18 +98,14 @@ public class MessageSyncTaskBuild {
     private Map<String, Object> buildDocumentMetadata(ChatMessage message) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(MessageSyncConstant.MetadataField.MESSAGE_ID, message.getId());
+        metadata.put(MessageSyncConstant.MetadataField.USER_ID, message.getUserId());
         metadata.put(MessageSyncConstant.MetadataField.SESSION_ID, message.getSessionId());
         metadata.put(MessageSyncConstant.MetadataField.MESSAGE_TYPE, message.getMessageType());
-        metadata.put(MessageSyncConstant.MetadataField.MESSAGE_TYPE_TEXT, ChatMessageTypeEnum.getDescription(message.getMessageType()));
         metadata.put(MessageSyncConstant.MetadataField.IS_AI, message.getIsAiResponse());
         metadata.put(MessageSyncConstant.MetadataField.WORKFLOW_EXECUTION_ID, message.getWorkflowExecutionId());
-        metadata.put(MessageSyncConstant.MetadataField.CREATE_TIME, message.getCreateTime().toString());
-        metadata.put(MessageSyncConstant.MetadataField.SYNC_TIME, LocalDateTime.now().toString());
+        metadata.put(MessageSyncConstant.MetadataField.CREATE_TIME, message.getCreateTime());
+        metadata.put(MessageSyncConstant.MetadataField.SYNC_TIME, LocalDateTime.now());
         metadata.put(MessageSyncConstant.MetadataField.SOURCE, SOURCE_MYSQL_SYNC);
-
-        if (message.getResponseTime() != null) {
-            metadata.put(MessageSyncConstant.MetadataField.RESPONSE_TIME_MS, message.getResponseTime());
-        }
 
         if (StrUtil.isNotBlank(message.getIntent())) {
             metadata.put(MessageSyncConstant.MetadataField.INTENT, message.getIntent());
@@ -117,6 +113,10 @@ public class MessageSyncTaskBuild {
 
         if (StrUtil.isNotBlank(message.getSentiment())) {
             metadata.put(MessageSyncConstant.MetadataField.SENTIMENT, message.getSentiment());
+        }
+
+        if (message.getResponseTime() != null) {
+            metadata.put(MessageSyncConstant.MetadataField.RESPONSE_TIME_MS, message.getResponseTime());
         }
 
         return metadata;

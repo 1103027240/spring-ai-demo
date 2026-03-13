@@ -5,6 +5,7 @@ import cn.getech.base.demo.build.WorkflowExecutionBuild;
 import cn.getech.base.demo.constant.RedisKeyConstant;
 import cn.getech.base.demo.constant.WorkflowConstant;
 import cn.getech.base.demo.dto.CustomerServiceStateDto;
+import cn.getech.base.demo.dto.MessageDocumentVO;
 import cn.getech.base.demo.dto.WorkflowRequestDto;
 import cn.getech.base.demo.entity.ChatMessage;
 import cn.getech.base.demo.entity.WorkflowExecution;
@@ -18,11 +19,15 @@ import cn.getech.base.demo.service.WorkflowExecutionService;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,7 +40,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import static cn.getech.base.demo.constant.FieldValueConstant.*;
+import static cn.getech.base.demo.constant.MessageSyncConstant.MetadataField.CREATE_TIME;
 import static cn.getech.base.demo.constant.RedisKeyConstant.*;
 import static cn.getech.base.demo.constant.WorkflowConstant.*;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.AFTER_SALES;
@@ -86,6 +93,9 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     @Autowired
     private WorkflowExecutionBuild workflowExecutionBuild;
 
+    @Resource(name = "customerKnowledgeVectorStore")
+    private VectorStore customerKnowledgeVectorStore;
+
     /**
      * 生产环境加分布式锁处理
      */
@@ -96,8 +106,20 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         return executeWorkflow(dto);
     }
 
+    @Override
+    public Page<MessageDocumentVO> pageChatHistory(Long userId, String currentPage, String pageSize) {
+        int page = Integer.parseInt(currentPage);
+        int size = Integer.parseInt(pageSize);
+
+        List<MessageDocumentVO> messages = queryMilvusByUserId(userId, page, size);
+        Page<MessageDocumentVO> resultPage = new Page<>(page, size);
+        resultPage.setRecords(messages);
+        resultPage.setTotal(messages.size());
+        return resultPage;
+    }
+
     /**
-     * 执行工作流（DTO版本）
+     * 执行工作流
      */
     @Transactional
     public Map<String, Object> executeWorkflow(WorkflowRequestDto dto) {
@@ -127,10 +149,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
             // 7.创建同步任务
             messageSyncTaskService.createSyncTask(state, userMessage, aiMessage);
 
-            // 8.缓存工作流状态到Redis
-            cacheCustomerServiceState(state);
-
-            // 9.事务提交之后，异步同步会话消息到Milvus
+            // 8.事务提交之后，异步同步会话消息到Milvus
             registerPostCommitHook(sessionId);
 
             long duration = System.currentTimeMillis() - startTime;
@@ -165,8 +184,8 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
 
             return customerServiceStateBuild.buildCustomerServiceState(executionId, sessionId, dto, output);
         } catch (Exception e) {
-            log.error("【售后客服工作流】执行失败", e);
-            throw new RuntimeException("【售后客服工作流】执行失败: " + e.getMessage(), e);
+            log.error("【售后客服工作流】工作流执行失败", e);
+            throw new RuntimeException("【售后客服工作流】工作流执行失败: " + e.getMessage(), e);
         }
     }
 
@@ -189,26 +208,6 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         execution.setInputData(workflowExecutionBuild.buildInputDataJson(dto.getUserInput(), dto.getUserId(), dto.getUserName(), sessionId));
         execution.setErrorMessage(e.getMessage());
         workflowExecutionMapper.insert(execution);
-    }
-
-    /**
-     * 缓存工作流状态到Redis
-     */
-    private void cacheCustomerServiceState(CustomerServiceStateDto state){
-        String stateKey = WORKFLOW_STATE + state.getExecutionId();
-        String detailKey = EXECUTION_DETAIL + state.getExecutionId();
-
-        try {
-            String stateJson = objectMapper.writeValueAsString(state.toMap());
-
-            // 缓存完整状态
-            redisTemplate.opsForValue().set(stateKey, stateJson, workflowStateExpireSeconds, TimeUnit.SECONDS);
-
-            // 缓存执行详情
-            redisTemplate.opsForValue().set(detailKey, stateJson, executionDetailsExpireSeconds, TimeUnit.SECONDS);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -239,6 +238,36 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
             log.error("【售后客服工作流】异步同步处理被中断，sessionId: {}", sessionId, e);
         } catch (Exception e) {
             log.error("【售后客服工作流】异步同步处理失败，sessionId: {}", sessionId, e);
+        }
+    }
+
+    /**
+     * 查询Milvus用户会话消息
+     */
+    private List<MessageDocumentVO> queryMilvusByUserId(Long userId, int currentPage, int pageSize) {
+        try {
+            SearchRequest searchRequest = SearchRequest.builder()
+                    .filterExpression("userId == '" + userId + "'")
+                    .build();
+
+            // 执行搜索
+            List<Document> documents = customerKnowledgeVectorStore.similaritySearch(searchRequest);
+
+            // 手动排序
+            return documents.stream()
+                    .sorted((d1, d2) -> {
+                        // 按时间倒序排序
+                        LocalDateTime t1 = (LocalDateTime) d1.getMetadata().get(CREATE_TIME);
+                        LocalDateTime t2 = (LocalDateTime) d2.getMetadata().get(CREATE_TIME);
+                        return t2.compareTo(t1);
+                    })
+                    .skip((currentPage - 1) * pageSize)
+                    .limit(pageSize)
+                    .map(e -> workflowExecutionBuild.convertToMessageDocumentVO(e))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("查询Milvus数据失败", e);
+            return Collections.emptyList();
         }
     }
 

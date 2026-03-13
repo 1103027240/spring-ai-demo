@@ -16,17 +16,17 @@ public class MessageSyncConstant {
      */
     public static final class MetadataField {
         public static final String MESSAGE_ID = "messageId";
+        public static final String USER_ID = "userId";
         public static final String SESSION_ID = "sessionId";
         public static final String MESSAGE_TYPE = "messageType";
-        public static final String MESSAGE_TYPE_TEXT = "messageTypeText";
         public static final String IS_AI = "isAi";
         public static final String WORKFLOW_EXECUTION_ID = "workflowExecutionId";
+        public static final String INTENT = "intent";
+        public static final String SENTIMENT = "sentiment";
         public static final String CREATE_TIME = "createTime";
         public static final String SYNC_TIME = "syncTime";
         public static final String SOURCE = "source";
         public static final String RESPONSE_TIME_MS = "responseTimeMs";
-        public static final String INTENT = "intent";
-        public static final String SENTIMENT = "sentiment";
 
     }
 

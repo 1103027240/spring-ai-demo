@@ -26,12 +26,6 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     @Autowired
     private ChatSessionMapper chatSessionMapper;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
     @Override
     public void createOrUpdateChatSession(CustomerServiceStateDto state) throws JsonProcessingException {
         // 插入或更新会话
@@ -51,18 +45,6 @@ public class ChatSessionServiceImpl implements ChatSessionService {
             session.setLastMessageTime(LocalDateTime.now());
             chatSessionMapper.updateById(session);
         }
-
-        // 缓存活跃会话
-        cacheActiveSession(state.getSessionId());
-    }
-
-    private void cacheActiveSession(String sessionId) throws JsonProcessingException {
-        String sessionKey = SESSION_ACTIVE + sessionId;
-        Map<String, Object> sessionInfo = new HashMap<>();
-        sessionInfo.put("sessionId", sessionId);
-        sessionInfo.put("lastActiveTime", System.currentTimeMillis());
-        String sessionJson = objectMapper.writeValueAsString(sessionInfo);
-        redisTemplate.opsForValue().set(sessionKey, sessionJson, 3600, TimeUnit.SECONDS);
     }
 
 }
