@@ -35,6 +35,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -140,8 +141,8 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         } catch (Exception e) {
             log.error("【售后客服工作流】执行失败", e);
 
-            // 如果已创建工作流，删除该工作流
-            graphCheckPointService.deleteByThreadId(state);
+            // 如果已创建工作流，删除该工作流，因为工作流不支持事务
+            deleteFailWorkflow(state);
 
             throw new RuntimeException(e);
         }
@@ -217,26 +218,34 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
                     @Override
                     public void afterCommit() {
                         log.info("【售后客服工作流】事务提交成功，触发异步同步，sessionId: {}", sessionId);
-                        asyncProcessSyncTask(sessionId); //生产环境推送到MQ消息
+                        asyncProcessSyncTask(sessionId);
                     }
                 }
         );
     }
 
     /**
-     * 异步处理同步任务
+     * 异步处理同步任务（生产环境推送到MQ消息处理）
      */
-    @Async("workflowExecutor")
     public void asyncProcessSyncTask(String sessionId) {
-        try {
-            Thread.sleep(TRANSACTION_COMMIT_DELAY_MS);
-            messageSyncTaskService.processSyncTask(sessionId);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("【售后客服工作流】异步同步处理被中断，sessionId: {}", sessionId, e);
-        } catch (Exception e) {
-            log.error("【售后客服工作流】异步同步处理失败，sessionId: {}", sessionId, e);
-        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(TRANSACTION_COMMIT_DELAY_MS);
+                messageSyncTaskService.processSyncTask(sessionId);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("【售后客服工作流】异步同步处理被中断，sessionId: {}", sessionId, e);
+            } catch (Exception e) {
+                log.error("【售后客服工作流】异步同步处理失败，sessionId: {}", sessionId, e);
+            }
+        });
+    }
+
+    // 如果已创建工作流，删除该工作流，因为工作流不支持事务（生产环境推送MQ消息处理）
+    public void deleteFailWorkflow(CustomerServiceStateDto state) {
+        CompletableFuture.runAsync(() -> {
+            graphCheckPointService.deleteByThreadId(state);
+        });
     }
 
     /**
