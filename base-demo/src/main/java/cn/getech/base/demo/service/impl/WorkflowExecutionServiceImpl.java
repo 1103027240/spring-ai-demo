@@ -119,19 +119,16 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
             // 3.创建或更新会话
             chatSessionService.createOrUpdateChatSession(state);
 
-            // 4.保存用户消息
-            ChatMessage userMessage = chatMessageService.saveUserMessage(state);
+            // 4.保存用户消息和AI消息
+            List<ChatMessage> messages = chatMessageService.batchSaveMessages(state);
 
-            // 5.保存AI回复消息
-            ChatMessage aiMessage = chatMessageService.saveAiMessage(state);
+            // 5.创建同步任务
+            messageSyncTaskService.createSyncTask(state, messages);
 
-            // 6.清理Mysql中的会话消息（Mysql保存最近的N条消息）
+            // 6.清理Mysql中的会话消息
             chatMessageService.cleanupOldMessageInMysql(dto.getUserId());
 
-            // 7.创建同步任务
-            messageSyncTaskService.createSyncTask(state, userMessage, aiMessage);
-
-            // 8.事务提交之后，异步同步会话消息到Milvus
+            // 7.事务提交之后，异步同步会话消息到Milvus
             registerPostCommitHook(sessionId);
 
             long duration = System.currentTimeMillis() - startTime;

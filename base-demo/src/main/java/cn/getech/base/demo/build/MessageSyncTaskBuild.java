@@ -31,7 +31,7 @@ public class MessageSyncTaskBuild {
         task.setSyncType(INCREMENTAL.getCode());
         task.setStatus(MessageTaskStatusEnum.PENDING.getCode());
         task.setRetryCount(0);
-        task.setLastMessageId(determineLastMessageId(aiMessage, userMessage));
+        task.setLastMessageId(determineLastMessageId(userMessage, aiMessage));
         task.setCreatedTime(LocalDateTime.now());
         task.setUpdatedTime(LocalDateTime.now());
         return task;
@@ -55,7 +55,7 @@ public class MessageSyncTaskBuild {
     /**
      * 确定最后的消息ID
      */
-    private Long determineLastMessageId(ChatMessage aiMessage, ChatMessage userMessage) {
+    private Long determineLastMessageId(ChatMessage userMessage, ChatMessage aiMessage) {
         if (aiMessage != null) {
             return aiMessage.getId();
         }

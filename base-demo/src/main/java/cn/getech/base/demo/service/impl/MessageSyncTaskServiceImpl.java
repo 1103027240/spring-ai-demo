@@ -1,33 +1,26 @@
 package cn.getech.base.demo.service.impl;
 
+import cn.getech.base.demo.build.CustomerKnowledgeBuild;
 import cn.getech.base.demo.build.MessageSyncTaskBuild;
 import cn.getech.base.demo.dto.CustomerServiceStateDto;
 import cn.getech.base.demo.entity.ChatMessage;
 import cn.getech.base.demo.entity.MessageSyncTask;
 import cn.getech.base.demo.enums.MessageTaskStatusEnum;
-import cn.getech.base.demo.enums.MessageTaskSyncTypeEnum;
 import cn.getech.base.demo.mapper.MessageSyncTaskMapper;
 import cn.getech.base.demo.service.ChatMessageService;
 import cn.getech.base.demo.service.MessageSyncTaskService;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import static cn.getech.base.demo.constant.FieldValueConstant.SYNC_TASK_CACHE_EXPIRE_SECONDS;
 import static cn.getech.base.demo.constant.RedisKeyConstant.SYNC_TASKS;
-import static cn.getech.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
 
 /**
  * 消息同步任务服务实现
@@ -50,15 +43,16 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     @Autowired
     private ChatMessageService chatMessageService;
 
-    @Resource(name = "customerKnowledgeVectorStore")
-    private VectorStore customerKnowledgeVectorStore;
-
     @Autowired
     private MessageSyncTaskBuild messageSyncTaskBuild;
 
-    @Transactional
+    @Autowired
+    private CustomerKnowledgeBuild customerKnowledgeBuild;
+
     @Override
-    public void createSyncTask(CustomerServiceStateDto state, ChatMessage userMessage, ChatMessage aiMessage) {
+    public void createSyncTask(CustomerServiceStateDto state, List<ChatMessage> messages) {
+        ChatMessage userMessage = messages.get(0);
+        ChatMessage aiMessage = messages.size() > 1 ? messages.get(1) : null;
         MessageSyncTask task = messageSyncTaskBuild.buildSyncTask(state, userMessage, aiMessage);
 
         // 创建同步任务
@@ -71,7 +65,6 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     /**
      * 异步同步处理（增加消息保存在mysql，全量消息保存在Milvus）
      */
-    @Transactional
     @Override
     public void processSyncTask(String sessionId) {
         // 1.首先从Redis获取缓存同步任务，如果获取不到，再从数据库获取
@@ -86,7 +79,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
             updateTaskStatus(task, MessageTaskStatusEnum.PROCESSING.getCode());
 
             // 3.会话消息同步到Milvus
-            if (!syncMessagesToMilvus(sessionId, task.getSyncType())) {
+            if (!customerKnowledgeBuild.syncMessagesToMilvus(sessionId, task.getSyncType())) {
                 throw new RuntimeException("会话消息同步到Milvus失败");
             }
 
@@ -139,42 +132,6 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
             messageSyncTaskMapper.updateById(task);
             cacheSyncTask(sessionId, task);
         }
-    }
-
-    /**
-     * 同步消息到Milvus
-     */
-    public boolean syncMessagesToMilvus(String sessionId, Integer syncType) {
-        try {
-            List<ChatMessage> chatMessages = selectMessagesBySyncType(sessionId, syncType);
-            log.info("【异步同步】同步类型: {}, sessionId: {}, 消息数量: {}", MessageTaskSyncTypeEnum.getDescription(syncType), sessionId, chatMessages.size());
-
-            if (CollUtil.isEmpty(chatMessages)) {
-                log.info("【异步同步】没有需要同步的消息，sessionId: {}", sessionId);
-                return true;
-            }
-
-            List<Document> documents = messageSyncTaskBuild.buildDocument(chatMessages);
-            if (CollUtil.isEmpty(documents)) {
-                log.warn("【异步同步】没有有效的文档需要同步，sessionId: {}", sessionId);
-                return true;
-            }
-            customerKnowledgeVectorStore.add(documents);
-            return true;
-        } catch (Exception e) {
-            log.error("【异步同步】同步消息到Milvus失败，sessionId: {}", sessionId, e);
-            return false;
-        }
-    }
-
-    /**
-     * 根据同步类型选择消息
-     */
-    public List<ChatMessage> selectMessagesBySyncType(String sessionId, Integer syncType) {
-        if (INCREMENTAL.getCode().equals(syncType)) {
-            return chatMessageService.selectUnsyncedMessages(sessionId);
-        }
-        return chatMessageService.selectAllValidMessages(sessionId);
     }
 
     /**

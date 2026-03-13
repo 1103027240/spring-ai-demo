@@ -1,9 +1,8 @@
 package cn.getech.base.demo.service.impl;
 
+import cn.getech.base.demo.build.ChatMessageBuild;
 import cn.getech.base.demo.dto.CustomerServiceStateDto;
 import cn.getech.base.demo.entity.ChatMessage;
-import cn.getech.base.demo.enums.ChatMessageSyncStatusEnum;
-import cn.getech.base.demo.enums.ChatMessageTypeEnum;
 import cn.getech.base.demo.mapper.ChatMessageMapper;
 import cn.getech.base.demo.service.ChatMessageService;
 import cn.hutool.core.collection.CollUtil;
@@ -12,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -25,71 +24,46 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     @Autowired
     private ChatMessageMapper chatMessageMapper;
 
-    @Transactional
-    @Override
-    public ChatMessage saveUserMessage(CustomerServiceStateDto state) {
-        ChatMessage message = new ChatMessage();
-        message.setSessionId(state.getSessionId());
-        message.setUserId(state.getUserId());
-        message.setMessageType(ChatMessageTypeEnum.USER.getCode());
-        message.setContent(state.getUserInput());
-        message.setIntent(state.getIntent());
-        message.setSentiment(state.getSentiment());
-        message.setIsAiResponse(0);
-        message.setWorkflowExecutionId(state.getExecutionId());
-        message.setSyncStatus(ChatMessageSyncStatusEnum.PENDING.getCode());
-        message.setCreateTime(System.currentTimeMillis());
-        chatMessageMapper.insert(message);
-        return message;
-    }
+    @Autowired
+    private ChatMessageBuild chatMessageBuild;
 
-    @Transactional
+    /**
+     * 批量保存用户消息和AI消息
+     */
     @Override
-    public ChatMessage saveAiMessage(CustomerServiceStateDto state) {
-        if (StrUtil.isBlank(state.getAiResponse())) {
-            log.warn("【售后客服工作流】AI回复为空，跳过保存");
-            return null;
+    public List<ChatMessage> batchSaveMessages(CustomerServiceStateDto state) {
+        List<ChatMessage> messages = new ArrayList<>();
+
+        // 保存用户消息
+        messages.add(chatMessageBuild.buildUserChatMessage(state));
+
+        // 保存AI回复消息
+        if (StrUtil.isNotBlank(state.getAiResponse())) {
+            messages.add(chatMessageBuild.buildAiChatMessage(state));
         }
 
-        ChatMessage message = new ChatMessage();
-        message.setSessionId(state.getSessionId());
-        message.setUserId(state.getUserId());
-        message.setMessageType(ChatMessageTypeEnum.AI.getCode());
-        message.setContent(state.getAiResponse());
-        message.setIsAiResponse(1);
-        message.setWorkflowExecutionId(state.getExecutionId());
-        message.setSyncStatus(ChatMessageSyncStatusEnum.PENDING.getCode());
-        message.setCreateTime(System.currentTimeMillis());
-
-        // 计算响应时间
-        if (state.getStartTime() != null) {
-            long responseTime = System.currentTimeMillis() - state.getStartTime();
-            message.setResponseTime((int) responseTime);
+        // 批量插入
+        if (CollUtil.isNotEmpty(messages)) {
+            chatMessageMapper.batchInsert(messages);
         }
 
-        chatMessageMapper.insert(message);
-        return message;
+        return messages;
     }
 
     /**
      * 清理Mysql中的会话消息
      */
-    @Transactional
     @Override
     public void cleanupOldMessageInMysql(Long userId) {
         int mysqlRetentionMaxCount = Integer.parseInt(mysqlRetentionCount);
         int messageCount = chatMessageMapper.countByUserId(userId);
-
-        if (messageCount > mysqlRetentionMaxCount) {
-            int messagesDelete = messageCount - mysqlRetentionMaxCount;
-            List<Long> messageIdsDelete = chatMessageMapper.selectOldMessageIds(userId, messagesDelete);
-            if (CollUtil.isNotEmpty(messageIdsDelete)) {
-                chatMessageMapper.batchMarkAsDeleted(messageIdsDelete);
-            }
+        int messagesDelete = messageCount - mysqlRetentionMaxCount;
+        if (messagesDelete > 0) {
+            int deletedCount = chatMessageMapper.deleteOldMessages(userId, messagesDelete);
+            log.info("【清理旧消息】userId: {}, 删除了 {} 条消息", userId, deletedCount);
         }
     }
 
-    @Transactional
     @Override
     public void updateMessageSyncStatus(String sessionId) {
         try {
@@ -111,3 +85,4 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
 }
+

@@ -16,20 +16,20 @@ spring:
 
   # mysql配置
   datasource:
-    url: jdbc:mysql://localhost:3316/ai_demo?useUnicode=true&characterEncoding=utf-8&nullCatalogMeansCurrent=true&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3316/ai_demo?useUnicode=true&characterEncoding=utf-8&nullCatalogMeansCurrent=true&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: root
     # Druid 连接池配置
     druid:
       # 初始连接数
-      initial-size: 5
+      initial-size: 10
       # 最小连接池数量
       min-idle: 10
       # 最大连接池数量
-      max-active: 20
+      max-active: 50
       # 获取连接等待超时的时间
-      max-wait: 60000
+      max-wait: 30000
       # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
       time-between-eviction-runs-millis: 60000
       # 配置一个连接在池中最小生存的时间，单位是毫秒
@@ -38,6 +38,13 @@ spring:
       max-evictable-idle-time-millis: 900000
       # 配置检测连接是否有效
       validation-query: SELECT 1
+      # 开启PSCache，并指定每个连接上PSCache的大小
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 20
+      # 配置监控统计拦截的filters
+      filters: stat,wall,slf4j
+      # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+      connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=1000
   # 数据库初始化配置
   jdbc:
     init:
@@ -79,7 +86,7 @@ spring:
         embedding-dimension: 1024 # 通义千问embedding维度
         index-type: IVF_FLAT # 索引类型
         metric-type: COSINE # 相似度计算方式（余弦）
-        consistency-level: BOUNDED # 必填一致性级别
+        consistency-level: EVENTUALLY # 优化：使用最终一致性，提升性能
         # 项目启动时，自动创建，milvus多集合
         auto-create-collection: true
         collections:
@@ -89,9 +96,9 @@ spring:
     # 记忆配置
     memory:
       short-term:
-        max-messages: 10 # 短期记忆窗口大小（最近10条）
+        max-messages: 5 # 优化：减少短期记忆窗口大小（从10条改为5条）
       long-term:
-        similarity-top-k: 5 # 长期记忆召回Top5相关内容
+        similarity-top-k: 3 # 优化：减少长期记忆召回数量（从5条改为3条）
       implementation: lettuce  # 切换到 redisson
       redis:
         key-prefix: spring_ai_long_chat_memory # 长期记忆缓存key前缀
@@ -119,9 +126,21 @@ mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml
   # 实体扫描，多个package用逗号或者分号分隔
   typeAliasesPackage: cn.getech.base.demo.entity
-  # 打印sql日志
+  # 配置
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 优化：开启二级缓存
+    cache-enabled: true
+    # 优化：开启延迟加载
+    lazy-loading-enabled: true
+    # 优化：设置默认执行器为批量执行器
+    default-executor-type: BATCH
+    # 优化：设置JDBC类型为NULL时的默认类型
+    jdbc-type-for-null: NULL
+    # 优化：开启驼峰命名转换
+    map-underscore-to-camel-case: true
+    # 优化：设置超时时间（秒）
+    default-statement-timeout: 30
 
 # Knife4j配置
 springdoc:
