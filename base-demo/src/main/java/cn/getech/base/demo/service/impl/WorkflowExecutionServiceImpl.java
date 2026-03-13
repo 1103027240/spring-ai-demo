@@ -252,30 +252,27 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
      * 查询Milvus用户会话消息
      */
     public List<MessageDocumentVO> queryMilvusByUserId(Long userId, int currentPage, int pageSize) {
-        try {
-            SearchRequest searchRequest = SearchRequest.builder()
-                    .filterExpression("userId == '" + userId + "'")
-                    .build();
+        String expression = String.format("userId == %s", userId);
+        SearchRequest searchRequest = SearchRequest.builder()
+                .topK(currentPage + pageSize) // 获取足够的数据（可以基于滚动分页）
+                .filterExpression(expression)
+                .build();
 
-            // 执行搜索
-            List<Document> documents = customerKnowledgeVectorStore.similaritySearch(searchRequest);
+        // 执行搜索
+        List<Document> documents = customerKnowledgeVectorStore.similaritySearch(searchRequest);
 
-            // 手动排序
-            return documents.stream()
-                    .sorted((d1, d2) -> {
-                        // 按时间倒序排序
-                        LocalDateTime t1 = (LocalDateTime) d1.getMetadata().get(CREATE_TIME);
-                        LocalDateTime t2 = (LocalDateTime) d2.getMetadata().get(CREATE_TIME);
-                        return t2.compareTo(t1);
-                    })
-                    .skip((currentPage - 1) * pageSize)
-                    .limit(pageSize)
-                    .map(e -> workflowExecutionBuild.convertToMessageDocumentVO(e))
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("查询Milvus数据失败", e);
-            return Collections.emptyList();
-        }
+        // 手动排序
+        return documents.stream()
+                .sorted((d1, d2) -> {
+                    // 按时间倒序排序
+                    Double t1 = (Double) d1.getMetadata().get(CREATE_TIME);
+                    Double t2 = (Double) d2.getMetadata().get(CREATE_TIME);
+                    return t2.compareTo(t1);
+                })
+                .skip((currentPage - 1) * pageSize)
+                .limit(pageSize)
+                .map(e -> workflowExecutionBuild.convertToMessageDocumentVO(e))
+                .collect(Collectors.toList());
     }
 
 }

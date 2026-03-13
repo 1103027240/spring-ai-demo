@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -94,12 +95,12 @@ public class WorkflowExecutionBuild {
                         .id(doc.getId())
                         .content(doc.getText())
                         .metadata(metadata)
-                        .messageId((Long) metadata.get(FieldValueConstant.MESSAGE_ID))
-                        .userId((Long) metadata.get(FieldValueConstant.USER_ID))
+                        .messageId((Double) metadata.get(FieldValueConstant.MESSAGE_ID))
+                        .userId((Double) metadata.get(FieldValueConstant.USER_ID))
                         .sessionId((String) metadata.get(FieldValueConstant.SESSION_ID))
-                        .messageType((Integer) metadata.get(FieldValueConstant.MESSAGE_TYPE))
+                        .messageType((Double) metadata.get(FieldValueConstant.MESSAGE_TYPE))
                         .workflowExecutionId((String) metadata.get(FieldValueConstant.WORKFLOW_EXECUTION_ID))
-                        .createTime((LocalDateTime) metadata.get(FieldValueConstant.CREATE_TIME))
+                        .createTime((Double) metadata.get(FieldValueConstant.CREATE_TIME))
                         .build());
     }
 

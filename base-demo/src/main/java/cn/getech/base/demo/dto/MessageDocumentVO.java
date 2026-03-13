@@ -1,7 +1,6 @@
 package cn.getech.base.demo.dto;
 
 import lombok.*;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
@@ -22,12 +21,12 @@ public class MessageDocumentVO {
     /**
      * 用户ID
      */
-    private Long userId;
+    private Double userId;
 
     /**
      * 消息ID（MySQL中的ID）
      */
-    private Long messageId;
+    private Double messageId;
 
     /**
      * 会话ID
@@ -37,7 +36,7 @@ public class MessageDocumentVO {
     /**
      * 消息类型
      */
-    private Integer messageType;
+    private Double messageType;
 
     /**
      * 工作流执行ID
@@ -47,7 +46,7 @@ public class MessageDocumentVO {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Double createTime;
 
     /**
      * 完整元数据

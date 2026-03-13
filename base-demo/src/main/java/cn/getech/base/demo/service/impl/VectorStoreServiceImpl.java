@@ -159,7 +159,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
 
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(query)
-                .topK(100) // 获取足够多的结果用于分页
+                .topK(page + size) // 获取足够的数据（可以基于滚动分页）
                 .similarityThreshold(0.3)
                 .build();
 
@@ -176,6 +176,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
     public List<Document> searchByHash(String query, String hashValue) {
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(query)
+                .topK(1) //默认4
                 .filterExpression("hashValue == '" + hashValue + "'")
                 .build();
         return ragDocumentVectorStore.similaritySearch(searchRequest);

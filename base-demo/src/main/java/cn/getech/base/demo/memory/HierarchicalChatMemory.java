@@ -168,6 +168,7 @@ public class HierarchicalChatMemory implements ChatMemory {
                 .topK(longTermTopK)
                 .filterExpression("conversationId == '" + conversationId + "'")
                 .build();
+
         return vectorStore.similaritySearch(searchRequest).stream()
                 .map(doc -> new UserMessage("【历史相关记忆】：" + doc.getText()))
                 .collect(Collectors.toList());
