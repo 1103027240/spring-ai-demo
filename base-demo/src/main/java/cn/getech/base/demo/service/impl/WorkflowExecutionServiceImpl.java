@@ -102,39 +102,46 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     @Transactional
     @Override
     public Map<String, Object> executeWorkflow(String userInput, Long userId, String userName) {
+        long startTime = System.currentTimeMillis();
         String sessionId = UUID.randomUUID().toString().replace("-", "");
         String executionId = UUID.randomUUID().toString().replace("-", "");
-        long startTime = System.currentTimeMillis();
         WorkflowRequestDto dto = new WorkflowRequestDto(userInput, userId, userName);
+        CustomerServiceStateDto state;
 
-        // 1.执行工作流
-        CustomerServiceStateDto state = executeWorkflowInternal(executionId, sessionId, dto);
+        try {
+            // 1.执行工作流
+            state = executeWorkflowInternal(executionId, sessionId, dto);
 
-        // 2.保存执行记录
-        saveWorkflowExecution(state);
+            // 2.保存执行记录
+            saveWorkflowExecution(state);
 
-        // 3.创建或更新会话
-        chatSessionService.createOrUpdateChatSession(state);
+            // 3.创建或更新会话
+            chatSessionService.createOrUpdateChatSession(state);
 
-        // 4.保存用户消息
-        ChatMessage userMessage = chatMessageService.saveUserMessage(state);
+            // 4.保存用户消息
+            ChatMessage userMessage = chatMessageService.saveUserMessage(state);
 
-        // 5.保存AI回复消息
-        ChatMessage aiMessage = chatMessageService.saveAiMessage(state);
+            // 5.保存AI回复消息
+            ChatMessage aiMessage = chatMessageService.saveAiMessage(state);
 
-        // 6.清理Mysql中的会话消息（Mysql保存最近的N条消息）
-        chatMessageService.cleanupOldMessageInMysql(dto.getUserId());
+            // 6.清理Mysql中的会话消息（Mysql保存最近的N条消息）
+            chatMessageService.cleanupOldMessageInMysql(dto.getUserId());
 
-        // 7.创建同步任务
-        messageSyncTaskService.createSyncTask(state, userMessage, aiMessage);
+            // 7.创建同步任务
+            messageSyncTaskService.createSyncTask(state, userMessage, aiMessage);
 
-        // 8.事务提交之后，异步同步会话消息到Milvus
-        registerPostCommitHook(sessionId);
+            // 8.事务提交之后，异步同步会话消息到Milvus
+            registerPostCommitHook(sessionId);
 
-        long duration = System.currentTimeMillis() - startTime;
-        log.info("【售后客服工作流】执行完成，workflowExecutionId: {}, 耗时: {}ms", executionId, duration);
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("【售后客服工作流】执行完成，workflowExecutionId: {}, 耗时: {}ms", executionId, duration);
 
-        return workflowExecutionBuild.buildSuccessResponse(state, executionId, duration);
+            return workflowExecutionBuild.buildSuccessResponse(state, executionId, duration);
+        } catch (Exception e) {
+            log.error("【售后客服工作流】执行失败", e);
+
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
