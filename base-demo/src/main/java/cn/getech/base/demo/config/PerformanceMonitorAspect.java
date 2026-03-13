@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * 性能监控切面
- * 用于监控方法执行时间，帮助识别性能瓶颈
  * @author 11030
  */
 @Slf4j
@@ -116,4 +115,5 @@ public class PerformanceMonitorAspect {
         // 可以在这里添加报警逻辑，例如发送到监控系统
         // sendAlert(methodName, duration);
     }
+
 }
