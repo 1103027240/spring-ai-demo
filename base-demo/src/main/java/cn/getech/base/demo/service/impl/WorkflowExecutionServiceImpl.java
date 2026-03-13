@@ -12,10 +12,7 @@ import cn.getech.base.demo.entity.WorkflowExecution;
 import cn.getech.base.demo.enums.CustomerServiceNodeEnum;
 import cn.getech.base.demo.enums.WorkflowExecutionStatusEnum;
 import cn.getech.base.demo.mapper.WorkflowExecutionMapper;
-import cn.getech.base.demo.service.ChatMessageService;
-import cn.getech.base.demo.service.ChatSessionService;
-import cn.getech.base.demo.service.MessageSyncTaskService;
-import cn.getech.base.demo.service.WorkflowExecutionService;
+import cn.getech.base.demo.service.*;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
@@ -96,6 +93,9 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     @Resource(name = "customerKnowledgeVectorStore")
     private VectorStore customerKnowledgeVectorStore;
 
+    @Autowired
+    private GraphCheckPointService graphCheckPointService;
+
     /**
      * 生产环境加分布式锁处理
      */
@@ -103,10 +103,10 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     @Override
     public Map<String, Object> executeWorkflow(String userInput, Long userId, String userName) {
         long startTime = System.currentTimeMillis();
-        String sessionId = UUID.randomUUID().toString().replace("-", "");
         String executionId = UUID.randomUUID().toString().replace("-", "");
+        String sessionId = UUID.randomUUID().toString().replace("-", "");
         WorkflowRequestDto dto = new WorkflowRequestDto(userInput, userId, userName);
-        CustomerServiceStateDto state;
+        CustomerServiceStateDto state = null;
 
         try {
             // 1.执行工作流
@@ -140,6 +140,9 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         } catch (Exception e) {
             log.error("【售后客服工作流】执行失败", e);
 
+            // 如果已创建工作流，删除该工作流
+            graphCheckPointService.deleteByThreadId(state);
+
             throw new RuntimeException(e);
         }
     }
@@ -167,9 +170,11 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
             initialState.put(USER_ID, dto.getUserId());
             initialState.put(USER_NAME, dto.getUserName());
             initialState.put(USER_INPUT, dto.getUserInput());
+            initialState.put(THREAD_ID, executionId);  //添加threadId到状态中
 
+            // 在RunnableConfig中设置threadId，用于MysqlSaver保存/恢复状态
             OverAllState overAllState = new OverAllState(initialState);
-            RunnableConfig config = RunnableConfig.builder().build();
+            RunnableConfig config = RunnableConfig.builder().threadId(executionId).build();
 
             Map<String, Object> output = customerServiceGraph.invoke(overAllState, config)
                     .map(OverAllState::data)

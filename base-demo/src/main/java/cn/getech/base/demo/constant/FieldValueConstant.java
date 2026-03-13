@@ -171,4 +171,6 @@ public class FieldValueConstant {
 
     public static final String TAGS = "tags";
 
+    public static final String THREAD_ID = "thread_id";
+
 }
