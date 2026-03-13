@@ -11,9 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static cn.getech.base.demo.constant.FieldValueConstant.*;
 import static cn.getech.base.demo.enums.IntentRecognitionEnum.GENERAL_QUESTION;
 
@@ -65,7 +65,7 @@ public class KnowledgeRetrievalNode implements NodeActionWithConfig {
         StringBuilder queryBuilder = new StringBuilder();
         queryBuilder.append(userInput);
 
-        IntentRecognitionEnum intentRecognitionEnum = IntentRecognitionEnum.valueOf(intent);
+        IntentRecognitionEnum intentRecognitionEnum = IntentRecognitionEnum.valueOf(intent.toUpperCase(Locale.ROOT));
         switch (intentRecognitionEnum) {
             case ORDER_QUERY:
                 queryBuilder.append(" 订单查询 物流状态 发货时间");
@@ -98,7 +98,7 @@ public class KnowledgeRetrievalNode implements NodeActionWithConfig {
      * 获取默认知识
      */
     private String getDefaultKnowledge(String intent) {
-        IntentRecognitionEnum intentRecognitionEnum = IntentRecognitionEnum.valueOf(intent);
+        IntentRecognitionEnum intentRecognitionEnum = IntentRecognitionEnum.valueOf(intent.toUpperCase(Locale.ROOT));
         switch (intentRecognitionEnum) {
             case ORDER_QUERY:
                 return "【订单查询帮助】\n您可以提供订单号，或者登录账户查看订单详情。\n";

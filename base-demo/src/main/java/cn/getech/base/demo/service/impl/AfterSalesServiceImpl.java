@@ -67,6 +67,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
         afterSales.setReason("用户申请退货: " + userInput);
         afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); // 待处理
         afterSales.setCreateTime(LocalDateTime.now());
+        afterSales.setUserId(userId);
         afterSalesMapper.insert(afterSales);
 
         result.put("status", "success");
@@ -106,6 +107,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
         afterSales.setReason("用户申请换货: " + userInput);
         afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); // 待处理
         afterSales.setCreateTime(LocalDateTime.now());
+        afterSales.setUserId(userId);
         afterSalesMapper.insert(afterSales);
 
         result.put("status", "success");
@@ -145,6 +147,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
         afterSales.setReason("用户申请维修: " + userInput);
         afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); //待处理
         afterSales.setCreateTime(LocalDateTime.now());
+        afterSales.setUserId(userId);
         afterSalesMapper.insert(afterSales);
 
         result.put("status", "success");
@@ -185,6 +188,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
         afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); // 待处理
         afterSales.setRefundAmount(BigDecimal.ZERO); // 需要根据订单计算
         afterSales.setCreateTime(LocalDateTime.now());
+        afterSales.setUserId(userId);
         afterSalesMapper.insert(afterSales);
 
         result.put("status", "success");

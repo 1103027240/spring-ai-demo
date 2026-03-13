@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import static cn.getech.base.demo.constant.FieldValueConstant.*;
 
-
 /**
  * @author 11030
  */
@@ -25,7 +24,7 @@ import static cn.getech.base.demo.constant.FieldValueConstant.*;
 public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     @Resource(name = "customerKnowledgeVectorStore")
-    private VectorStore vectorStore;
+    private VectorStore customerKnowledgeVectorStore;
 
     @Value("${app.knowledge.similarity-threshold:0.7}")
     private double similarityThreshold;
@@ -42,7 +41,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     .similarityThreshold(similarityThreshold)
                     .build();
 
-            List<Document> documents = vectorStore.similaritySearch(request);
+            List<Document> documents = customerKnowledgeVectorStore.similaritySearch(request);
             return documents.stream()
                     .map(doc -> {
                         Map<String, Object> result = new HashMap<>(doc.getMetadata());
@@ -65,7 +64,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         document.getMetadata().put(CATEGORY, category);
         document.getMetadata().put(TAGS, String.join(",", tags));
         document.getMetadata().put(CREATE_TIME, System.currentTimeMillis());
-        vectorStore.add(List.of(document));
+        customerKnowledgeVectorStore.add(List.of(document));
     }
 
     /**
@@ -79,7 +78,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     document.getMetadata().putAll(e);
                     return document;
                 }).collect(Collectors.toList());
-        vectorStore.add(docs);
+        customerKnowledgeVectorStore.add(docs);
     }
 
     /**
@@ -88,8 +87,8 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     @Override
     public void clearKnowledgeDocument() {
         try {
-            if (vectorStore instanceof MilvusVectorStore) {
-                vectorStore.delete(List.of());
+            if (customerKnowledgeVectorStore instanceof MilvusVectorStore) {
+                customerKnowledgeVectorStore.delete(List.of());
             }
         } catch (Exception e) {
             throw new RuntimeException("清空知识库失败", e);
