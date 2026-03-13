@@ -85,18 +85,34 @@ public class OrderQueryNode implements NodeActionWithConfig {
     private Map<String, Object> parseExtractionResult(String extractionResult, Long userId) {
         Map<String, Object> result = new HashMap<>();
 
+        // 移除 markdown 代码块标记
+        String cleanedResult = cleanMarkdownCodeBlock(extractionResult);
         ObjectMapper objectMapper = SpringUtil.getBean(ObjectMapper.class);
         try {
-            Map<String, Object> parsedMap = objectMapper.readValue(extractionResult, new TypeReference<>() {});
+            Map<String, Object> parsedMap = objectMapper.readValue(cleanedResult, new TypeReference<>() {});
             result.putAll(parsedMap);
         } catch (Exception jsonException) {
-            log.error("【订单查询节点】Json解析失败，使用简化提取: {}", extractionResult, jsonException);
-            result = parseExtractionResultSimple(extractionResult);
+            log.error("【订单查询节点】Json解析失败，使用简化提取: {}", cleanedResult, jsonException);
+            result = parseExtractionResultSimple(cleanedResult);
         }
 
         result.put(USER_ID, userId);
         log.info("【订单查询节点】解析订单提前结果: {}", result);
         return result;
+    }
+
+    /**
+     * 清理 markdown 代码块标记
+     */
+    private String cleanMarkdownCodeBlock(String text) {
+        if (text == null) {
+            return null;
+        }
+        // 移除 ```json 或 ``` 开头
+        String cleaned = text.replaceAll("^```(?:json|JSON)?\\s*", "");
+        // 移除 ``` 结尾
+        cleaned = cleaned.replaceAll("```\\s*$", "");
+        return cleaned.trim();
     }
 
     /**
