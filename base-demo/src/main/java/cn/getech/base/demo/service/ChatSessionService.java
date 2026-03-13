@@ -1,5 +1,6 @@
 package cn.getech.base.demo.service;
 
+import cn.getech.base.demo.dto.CustomerServiceStateDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
@@ -7,6 +8,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  */
 public interface ChatSessionService {
 
-    void createOrUpdateChatSession(String sessionId, Long userId, String userName) throws JsonProcessingException;
+    void createOrUpdateChatSession(CustomerServiceStateDto state) throws JsonProcessingException;
 
 }

@@ -14,9 +14,9 @@ import java.util.Map;
 @CacheNamespace(flushInterval = 60000, size = 512)
 public interface ChatMessageMapper extends BaseMapper<ChatMessage> {
 
-    @Select("SELECT * FROM chat_message WHERE session_id = #{sessionId} AND is_deleted = 0 ORDER BY create_time DESC LIMIT #{limit}")
+    @Select("SELECT * FROM chat_message WHERE user_id = #{userId} AND is_deleted = 0 ORDER BY create_time DESC LIMIT #{limit}")
     @ResultMap("chatMessageMap")
-    List<ChatMessage> selectBySessionId(@Param("sessionId") String sessionId, @Param("limit") int limit);
+    List<ChatMessage> selectByUserId(@Param("userId") Long userId, @Param("limit") int limit);
 
     @Select("SELECT * FROM chat_message WHERE session_id = #{sessionId} AND sync_status = 0 AND is_deleted = 0 ORDER BY id ASC")
     @ResultMap("chatMessageMap")
@@ -26,8 +26,8 @@ public interface ChatMessageMapper extends BaseMapper<ChatMessage> {
     @ResultMap("chatMessageMap")
     List<ChatMessage> selectAllValidMessages(@Param("sessionId") String sessionId);
 
-    @Select("SELECT id FROM chat_message WHERE session_id = #{sessionId} AND is_deleted = 0 ORDER BY id ASC LIMIT #{limit}")
-    List<Long> selectOldMessageIds(@Param("sessionId") String sessionId, @Param("limit") int limit);
+    @Select("SELECT id FROM chat_message WHERE user_id = #{userId} AND is_deleted = 0 ORDER BY id ASC LIMIT #{limit}")
+    List<Long> selectOldMessageIds(@Param("userId") Long userId, @Param("limit") int limit);
 
     @Select("SELECT * FROM chat_message WHERE workflow_execution_id = #{executionId} AND is_deleted = 0 ORDER BY create_time")
     @ResultMap("chatMessageMap")
@@ -37,8 +37,8 @@ public interface ChatMessageMapper extends BaseMapper<ChatMessage> {
     @ResultMap("chatMessageMap")
     List<ChatMessage> selectBySyncStatus(@Param("syncStatus") Integer syncStatus, @Param("limit") int limit);
 
-    @Select("SELECT COUNT(*) FROM chat_message WHERE session_id = #{sessionId} AND is_deleted = 0")
-    int countBySessionId(@Param("sessionId") String sessionId);
+    @Select("SELECT COUNT(*) FROM chat_message WHERE user_id = #{userId} AND is_deleted = 0")
+    int countByUserId(@Param("userId") Long userId);
 
     @Select("SELECT COUNT(*) FROM chat_message WHERE session_id = #{sessionId} AND message_type = #{messageType} AND is_deleted = 0")
     int countBySessionIdAndType(@Param("sessionId") String sessionId, @Param("messageType") Integer messageType);

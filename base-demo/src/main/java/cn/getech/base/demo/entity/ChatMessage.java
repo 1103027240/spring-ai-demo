@@ -29,6 +29,9 @@ public class ChatMessage {
     @TableField("session_id")
     private String sessionId;
 
+    @TableField("user_id")
+    private Long userId;
+
     @TableField("message_type")
     private Integer messageType;
 
@@ -111,6 +114,7 @@ public class ChatMessage {
         Map<String, Object> map = new HashMap<>();
         map.put("id", id);
         map.put("sessionId", sessionId);
+        map.put("userId", userId);
         map.put("messageType", messageType);
         map.put("messageTypeText", ChatMessageTypeEnum.getDescription(messageType));
         map.put("content", content);

@@ -6,11 +6,11 @@ import java.util.List;
 
 public interface ChatMessageService {
 
-    ChatMessage saveUserMessage(String sessionId, String userInput, CustomerServiceStateDto state, String executionId);
+    ChatMessage saveUserMessage(CustomerServiceStateDto state);
 
-    ChatMessage saveAiMessage(String sessionId, String aiResponse, CustomerServiceStateDto state, String executionId);
+    ChatMessage saveAiMessage(CustomerServiceStateDto state);
 
-    void cleanupOldMessageInMysql(String sessionId);
+    void cleanupOldMessageInMysql(Long userId);
 
     List<ChatMessage> selectUnsyncedMessages(String sessionId);
 

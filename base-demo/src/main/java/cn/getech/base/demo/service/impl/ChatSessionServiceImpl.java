@@ -1,5 +1,6 @@
 package cn.getech.base.demo.service.impl;
 
+import cn.getech.base.demo.dto.CustomerServiceStateDto;
 import cn.getech.base.demo.entity.ChatSession;
 import cn.getech.base.demo.enums.ChatSessionStatusEnum;
 import cn.getech.base.demo.enums.ChatSessionTypeEnum;
@@ -32,14 +33,14 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     private RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public void createOrUpdateChatSession(String sessionId, Long userId, String userName) throws JsonProcessingException {
+    public void createOrUpdateChatSession(CustomerServiceStateDto state) throws JsonProcessingException {
         // 插入或更新会话
-        ChatSession session = chatSessionMapper.selectBySessionId(sessionId);
+        ChatSession session = chatSessionMapper.selectBySessionId(state.getSessionId());
         if (session == null) {
             session = new ChatSession();
-            session.setSessionId(sessionId);
-            session.setUserId(userId);
-            session.setUserName(userName);
+            session.setSessionId(state.getSessionId());
+            session.setUserId(state.getUserId());
+            session.setUserName(state.getUserName());
             session.setSessionType(ChatSessionTypeEnum.CONSULTATION.getCode());
             session.setStatus(ChatSessionStatusEnum.ACTIVE.getCode());
             session.setStartTime(LocalDateTime.now());
@@ -52,7 +53,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
         }
 
         // 缓存活跃会话
-        cacheActiveSession(sessionId);
+        cacheActiveSession(state.getSessionId());
     }
 
     private void cacheActiveSession(String sessionId) throws JsonProcessingException {
