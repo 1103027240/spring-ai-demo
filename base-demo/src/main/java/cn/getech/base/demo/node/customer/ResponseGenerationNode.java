@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 import static cn.getech.base.demo.enums.IntentRecognitionEnum.GENERAL_QUESTION;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.NEUTRAL;
 
@@ -29,12 +31,12 @@ public class ResponseGenerationNode implements NodeActionWithConfig {
 
         // 从状态中收集所有信息
         ChatClient qwenChatClient = SpringUtil.getBean("qwenChatClient");
-        String userInput = state.value("userInput", String.class).orElse("");
-        String intent = state.value("intent", String.class).orElse(GENERAL_QUESTION.getId());
-        String sentiment = state.value("sentiment", String.class).orElse(NEUTRAL.getId());
-        String knowledgeContext = state.value("knowledgeContext", String.class).orElse("");
-        List<Map<String, Object>> orderResults = state.value("orderResults", List.class).orElse(null);
-        Map<String, Object> afterSalesResult = state.value("afterSalesResult", Map.class).orElse(null);
+        String userInput = state.value(USER_INPUT, String.class).orElse("");
+        String intent = state.value(INTENT, String.class).orElse(GENERAL_QUESTION.getId());
+        String sentiment = state.value(SENTIMENT, String.class).orElse(NEUTRAL.getId());
+        String knowledgeContext = state.value(KNOWLEDGE_CONTEXT, String.class).orElse("");
+        List<Map<String, Object>> orderResults = state.value(ORDER_RESULTS, List.class).orElse(null);
+        Map<String, Object> afterSalesResult = state.value(AFTER_SALES_RESULT, Map.class).orElse(null);
 
         // 构建回复生成提示词
         String responsePrompt = buildResponsePrompt(userInput, intent, sentiment, knowledgeContext, orderResults, afterSalesResult);
@@ -48,8 +50,8 @@ public class ResponseGenerationNode implements NodeActionWithConfig {
         log.info("【回复生成节点】AI生成回复: {}", response);
 
         Map<String, Object> result = new HashMap<>();
-        result.put("aiResponse", response);
-        result.put("responseGenerationTime", System.currentTimeMillis());
+        result.put(AI_RESPONSE, response);
+        result.put(RESPONSE_GENERATION_TIME, System.currentTimeMillis());
         return result;
     }
 

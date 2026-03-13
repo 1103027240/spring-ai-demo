@@ -1,5 +1,6 @@
 package cn.getech.base.demo.build;
 
+import cn.getech.base.demo.constant.FieldValueConstant;
 import cn.getech.base.demo.converter.DocumentConverter;
 import cn.getech.base.demo.dto.CustomerServiceStateDto;
 import cn.getech.base.demo.dto.MessageDocumentVO;
@@ -12,9 +13,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import static cn.getech.base.demo.constant.FieldValueConstant.ERROR_AI_RESPONSE;
-import static cn.getech.base.demo.constant.FieldValueConstant.WORKFLOW_CUSTOMER_SERVICE;
-import static cn.getech.base.demo.constant.MessageSyncConstant.MetadataField.*;
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 
 @Component
 public class WorkflowExecutionBuild {
@@ -42,11 +41,11 @@ public class WorkflowExecutionBuild {
      */
     public String buildInputDataJson(String userInput, Long userId, String userName, String sessionId)  {
         Map<String, Object> inputData = new HashMap<>();
-        inputData.put("userInput", userInput);
-        inputData.put("sessionId", sessionId);
-        inputData.put("userId", userId);
-        inputData.put("userName", userName);
-        inputData.put("timestamp", System.currentTimeMillis());
+        inputData.put(USER_INPUT, userInput);
+        inputData.put(SESSION_ID, sessionId);
+        inputData.put(USER_ID, userId);
+        inputData.put(USER_NAME, userName);
+        inputData.put(TIME_STAMP, System.currentTimeMillis());
         try {
             return objectMapper.writeValueAsString(inputData);
         } catch (JsonProcessingException e) {
@@ -59,11 +58,11 @@ public class WorkflowExecutionBuild {
      */
     public String buildOutputDataJson(CustomerServiceStateDto state) {
         Map<String, Object> outputData = new HashMap<>();
-        outputData.put("aiResponse", state.getAiResponse());
-        outputData.put("intent", state.getIntent());
-        outputData.put("sentiment", state.getSentiment());
-        outputData.put("workflowStatus", state.getStatus());
-        outputData.put("executionPath", state.getExecutionPath());
+        outputData.put(AI_RESPONSE, state.getAiResponse());
+        outputData.put(INTENT, state.getIntent());
+        outputData.put(SENTIMENT, state.getSentiment());
+        outputData.put(WORKFLOW_STATUS, state.getStatus());
+        outputData.put(EXECUTION_PATH, state.getExecutionPath());
         try {
             return objectMapper.writeValueAsString(outputData);
         } catch (JsonProcessingException e) {
@@ -76,26 +75,12 @@ public class WorkflowExecutionBuild {
      */
     public Map<String, Object> buildSuccessResponse(CustomerServiceStateDto state, String executionId, long duration) {
         Map<String, Object> response = new HashMap<>();
-        response.put("executionId", executionId);
-        response.put("status", "success");
-        response.put("aiResponse", state.getAiResponse());
-        response.put("intent", state.getIntent());
-        response.put("sentiment", state.getSentiment());
-        response.put("durationMs", duration);
-        response.put("timestamp", System.currentTimeMillis());
-        return response;
-    }
-
-    /**
-     * 构建失败响应
-     */
-    public Map<String, Object> buildErrorResponse(String executionId, Exception e) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("executionId", executionId);
-        response.put("status", "error");
-        response.put("error", e.getMessage());
-        response.put("aiResponse", ERROR_AI_RESPONSE);
-        response.put("timestamp", System.currentTimeMillis());
+        response.put(WORKFLOW_EXECUTION_ID, executionId);
+        response.put(AI_RESPONSE, state.getAiResponse());
+        response.put(INTENT, state.getIntent());
+        response.put(SENTIMENT, state.getSentiment());
+        response.put(DURATION_MS, duration);
+        response.put(TIME_STAMP, System.currentTimeMillis());
         return response;
     }
 
@@ -108,12 +93,12 @@ public class WorkflowExecutionBuild {
                         .id(doc.getId())
                         .content(doc.getText())
                         .metadata(metadata)
-                        .messageId((Long) metadata.get(MESSAGE_ID))
-                        .userId((Long) metadata.get(USER_ID))
-                        .sessionId((String) metadata.get(SESSION_ID))
-                        .messageType((Integer) metadata.get(MESSAGE_TYPE))
-                        .workflowExecutionId((String) metadata.get(WORKFLOW_EXECUTION_ID))
-                        .createTime((LocalDateTime) metadata.get(CREATE_TIME))
+                        .messageId((Long) metadata.get(FieldValueConstant.MESSAGE_ID))
+                        .userId((Long) metadata.get(FieldValueConstant.USER_ID))
+                        .sessionId((String) metadata.get(FieldValueConstant.SESSION_ID))
+                        .messageType((Integer) metadata.get(FieldValueConstant.MESSAGE_TYPE))
+                        .workflowExecutionId((String) metadata.get(FieldValueConstant.WORKFLOW_EXECUTION_ID))
+                        .createTime((LocalDateTime) metadata.get(FieldValueConstant.CREATE_TIME))
                         .build());
     }
 

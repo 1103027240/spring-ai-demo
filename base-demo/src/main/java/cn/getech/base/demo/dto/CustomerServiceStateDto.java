@@ -4,6 +4,9 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static cn.getech.base.demo.constant.FieldValueConstant.RESULT;
+import static cn.getech.base.demo.constant.FieldValueConstant.RESULTS;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.NEGATIVE;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.URGENT;
 
@@ -127,6 +130,14 @@ public class CustomerServiceStateDto {
     public void recordNodeResult(String nodeName, Map<String, Object> result) {
         nodeResults.put(nodeName, result);
         executionPath.add(nodeName);
+
+        if(result.containsKey(RESULTS)){
+            this.orderResults = (List<Map<String, Object>>) result.get(RESULTS);
+        }
+
+        if(result.containsKey(RESULT)){
+            this.afterSalesResult = (Map<String, Object>) result.get(RESULT);
+        }
     }
 
     /**

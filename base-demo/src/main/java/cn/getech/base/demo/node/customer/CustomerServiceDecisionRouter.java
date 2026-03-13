@@ -5,6 +5,9 @@ import com.alibaba.cloud.ai.graph.action.EdgeAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.Arrays;
+
+import static cn.getech.base.demo.constant.FieldValueConstant.INTENT;
+import static cn.getech.base.demo.constant.FieldValueConstant.SENTIMENT;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.*;
 import static cn.getech.base.demo.enums.IntentRecognitionEnum.GENERAL_QUESTION;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.*;
@@ -21,8 +24,8 @@ public class CustomerServiceDecisionRouter implements EdgeAction {
     public String apply(OverAllState state) {
         log.info("【售后客服路由决策】开始执行");
 
-        String intent = state.value("intent", String.class).orElse(GENERAL_QUESTION.getId());
-        String sentiment = state.value("sentiment", String.class).orElse(NEUTRAL.getId());
+        String intent = state.value(INTENT, String.class).orElse(GENERAL_QUESTION.getId());
+        String sentiment = state.value(SENTIMENT, String.class).orElse(NEUTRAL.getId());
 
         // 根据意图和情感决定路由决策
         String conditionalValue = determineRouteDecision(intent, sentiment);

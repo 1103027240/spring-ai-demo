@@ -154,6 +154,11 @@ management:
     health:
       show-details: always
 
+sync:
+  mysql:
+    retention:
+      count: 4
+
 # 文本分割配置（用于 RAG 文档处理）
 rag:
   text-splitting:

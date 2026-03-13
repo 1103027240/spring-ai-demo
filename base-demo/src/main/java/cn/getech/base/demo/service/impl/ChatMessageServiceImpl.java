@@ -19,8 +19,8 @@ import java.util.List;
 @Service
 public class ChatMessageServiceImpl implements ChatMessageService {
 
-    @Value("${app.sync.mysql.retention-count:20}")
-    private int mysqlRetentionCount;
+    @Value("${sync.mysql.retention:count:20}")
+    private String mysqlRetentionCount;
 
     @Autowired
     private ChatMessageMapper chatMessageMapper;
@@ -74,9 +74,11 @@ public class ChatMessageServiceImpl implements ChatMessageService {
      */
     @Override
     public void cleanupOldMessageInMysql(Long userId) {
+        int mysqlRetentionMaxCount = Integer.parseInt(mysqlRetentionCount);
         int messageCount = chatMessageMapper.countByUserId(userId);
-        if (messageCount > mysqlRetentionCount) {
-            int messagesDelete = messageCount - mysqlRetentionCount;
+
+        if (messageCount > mysqlRetentionMaxCount) {
+            int messagesDelete = messageCount - mysqlRetentionMaxCount;
             List<Long> messageIdsDelete = chatMessageMapper.selectOldMessageIds(userId, messagesDelete);
             if (CollUtil.isNotEmpty(messageIdsDelete)) {
                 chatMessageMapper.batchMarkAsDeleted(messageIdsDelete);

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 import static cn.getech.base.demo.enums.IntentRecognitionEnum.*;
 
 /**
@@ -26,14 +27,14 @@ public class IntentRecognitionNode implements NodeActionWithConfig {
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
         log.info("【意图识别节点】开始执行");
 
-        String userInput = state.value("userInput", String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
+        String userInput = state.value(USER_INPUT, String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
 
         // 调用大模型进行意图识别
         String intent = getIntentRecognition(userInput);
 
         Map<String, Object> result = new HashMap<>();
-        result.put("intent", intent);
-        result.put("intentRecognitionTime", System.currentTimeMillis());
+        result.put(INTENT, intent);
+        result.put(INTENT_RECOGNITION_TIME, System.currentTimeMillis());
         return result;
     }
 

@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.fasterxml.jackson.core.type.TypeReference;
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 
 /**
  * 订单查询节点
@@ -26,25 +27,25 @@ public class OrderQueryNode implements NodeActionWithConfig {
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
         log.info("【订单查询节点】开始执行");
 
-        OrderService orderService = SpringUtil.getBean("orderService");
-        String userInput = state.value("userInput", String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
-        Long userId = state.value("userId", Long.class).orElse(null);
+        OrderService orderService = SpringUtil.getBean(OrderService.class);
+        String userInput = state.value(USER_INPUT, String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
+        Long userId = state.value(USER_ID, Long.class).orElse(null);
 
         // 1.调用大模型提取订单信息
         String extractionResult = extractOrderInfo(userInput);
 
         // 解析提取订单结果（解析JSON字符串）
         Map<String, Object> orderInfo = parseExtractionResult(extractionResult);
-        orderInfo.put("userId", userId);
+        orderInfo.put(USER_ID, userId);
 
         // 2.查询订单信息
         List<Map<String, Object>> orders = orderService.queryOrders(orderInfo);
         log.info("【订单查询节点】查询完成，找到[{}]条数据", orders.size());
 
         Map<String, Object> result = new HashMap<>();
-        result.put("orderExtraction", orderInfo);
-        result.put("orderResults", orders);
-        result.put("orderQueryTime", System.currentTimeMillis());
+        result.put(ORDER_EXTRACTION, orderInfo);
+        result.put(ORDER_RESULTS, orders);
+        result.put(ORDER_QUERY_TIME, System.currentTimeMillis());
         return result;
     }
 
@@ -83,7 +84,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
      */
     private Map<String, Object> parseExtractionResult(String extractionResult) {
         Map<String, Object> result = new HashMap<>();
-        ObjectMapper objectMapper = SpringUtil.getBean("objectMapper");
+        ObjectMapper objectMapper = SpringUtil.getBean(ObjectMapper.class);
         try {
             // 尝试解析为JSON
             Map<String, Object> parsed = objectMapper.readValue(extractionResult, new TypeReference<>() {});
@@ -103,30 +104,30 @@ public class OrderQueryNode implements NodeActionWithConfig {
 
         // 1. 从order_number字段提取
         if (text.contains("\"orderNumber\"")) {
-            String orderNumber = extractValue(text, "orderNumber");
+            String orderNumber = extractValue(text, ORDER_NUMBER);
             if (orderNumber != null && !orderNumber.equals("null")) {
-                result.put("orderNumber", orderNumber);
+                result.put(ORDER_NUMBER, orderNumber);
             }
         }
 
         // 2. 从user_info字段提取
         if (text.contains("\"userInfo\"")) {
-            String userInfo = extractValue(text, "userInfo");
+            String userInfo = extractValue(text, USER_INFO);
             if (userInfo != null && !userInfo.equals("null")) {
-                result.put("userInfo", userInfo);
+                result.put(USER_INFO, userInfo);
             }
         }
 
         // 3. 从query_type字段提取
         if (text.contains("\"queryType\"")) {
-            String queryType = extractValue(text, "queryType");
+            String queryType = extractValue(text, QUERY_TYPE);
             if (queryType != null && !queryType.equals("null")) {
-                result.put("queryType", queryType);
+                result.put(QUERY_TYPE, queryType);
             } else {
-                result.put("queryType", "other");
+                result.put(QUERY_TYPE, "other");
             }
         } else {
-            result.put("queryType", "other");
+            result.put(QUERY_TYPE, "other");
         }
 
         return result;

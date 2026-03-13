@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import static cn.getech.base.demo.constant.MessageSyncConstant.SYNC_TASK_CACHE_EXPIRE_SECONDS;
+import static cn.getech.base.demo.constant.FieldValueConstant.SYNC_TASK_CACHE_EXPIRE_SECONDS;
 import static cn.getech.base.demo.constant.RedisKeyConstant.SYNC_TASKS;
 import static cn.getech.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
 

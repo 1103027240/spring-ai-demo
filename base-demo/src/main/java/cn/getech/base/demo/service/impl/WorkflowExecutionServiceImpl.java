@@ -42,7 +42,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import static cn.getech.base.demo.constant.FieldValueConstant.*;
-import static cn.getech.base.demo.constant.MessageSyncConstant.MetadataField.CREATE_TIME;
+import static cn.getech.base.demo.constant.FieldValueConstant.CREATE_TIME;
 import static cn.getech.base.demo.constant.RedisKeyConstant.*;
 import static cn.getech.base.demo.constant.WorkflowConstant.*;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.AFTER_SALES;
@@ -127,40 +127,34 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         String executionId = UUID.randomUUID().toString().replace("-", "");
         long startTime = System.currentTimeMillis();
 
-        try {
-            // 1.执行工作流
-            CustomerServiceStateDto state = executeWorkflowInternal(executionId, sessionId, dto);
+        // 1.执行工作流
+        CustomerServiceStateDto state = executeWorkflowInternal(executionId, sessionId, dto);
 
-            // 2.保存执行记录
-            saveWorkflowExecution(state);
+        // 2.保存执行记录
+        saveWorkflowExecution(state);
 
-            // 3.创建或更新会话
-            chatSessionService.createOrUpdateChatSession(state);
+        // 3.创建或更新会话
+        chatSessionService.createOrUpdateChatSession(state);
 
-            // 4.保存用户消息
-            ChatMessage userMessage = chatMessageService.saveUserMessage(state);
+        // 4.保存用户消息
+        ChatMessage userMessage = chatMessageService.saveUserMessage(state);
 
-            // 5.保存AI回复消息
-            ChatMessage aiMessage = chatMessageService.saveAiMessage(state);
+        // 5.保存AI回复消息
+        ChatMessage aiMessage = chatMessageService.saveAiMessage(state);
 
-            // 6.清理Mysql中的会话消息（Mysql保存最近的N条消息）
-            chatMessageService.cleanupOldMessageInMysql(dto.getUserId());
+        // 6.清理Mysql中的会话消息（Mysql保存最近的N条消息）
+        chatMessageService.cleanupOldMessageInMysql(dto.getUserId());
 
-            // 7.创建同步任务
-            messageSyncTaskService.createSyncTask(state, userMessage, aiMessage);
+        // 7.创建同步任务
+        messageSyncTaskService.createSyncTask(state, userMessage, aiMessage);
 
-            // 8.事务提交之后，异步同步会话消息到Milvus
-            registerPostCommitHook(sessionId);
+        // 8.事务提交之后，异步同步会话消息到Milvus
+        registerPostCommitHook(sessionId);
 
-            long duration = System.currentTimeMillis() - startTime;
-            log.info("【售后客服工作流】执行完成，executionId: {}, 耗时: {}ms", executionId, duration);
+        long duration = System.currentTimeMillis() - startTime;
+        log.info("【售后客服工作流】执行完成，workflowExecutionId: {}, 耗时: {}ms", executionId, duration);
 
-            return workflowExecutionBuild.buildSuccessResponse(state, executionId, duration);
-        } catch (Exception e) {
-            log.error("【售后客服工作流】执行失败，executionId: {}", executionId, e);
-            saveFailureRecord(executionId, sessionId, dto, e);
-            return workflowExecutionBuild.buildErrorResponse(executionId, e);
-        }
+        return workflowExecutionBuild.buildSuccessResponse(state, executionId, duration);
     }
 
     /**
@@ -169,11 +163,11 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     private CustomerServiceStateDto executeWorkflowInternal(String executionId, String sessionId, WorkflowRequestDto dto) {
         try {
             Map<String, Object> initialState = new HashMap<>();
-            initialState.put("executionId", executionId);
-            initialState.put("sessionId", sessionId);
-            initialState.put("userId", dto.getUserId());
-            initialState.put("userName", dto.getUserName());
-            initialState.put("userInput", dto.getUserInput());
+            initialState.put(WORKFLOW_EXECUTION_ID, executionId);
+            initialState.put(SESSION_ID, sessionId);
+            initialState.put(USER_ID, dto.getUserId());
+            initialState.put(USER_NAME, dto.getUserName());
+            initialState.put(USER_INPUT, dto.getUserInput());
 
             OverAllState overAllState = new OverAllState(initialState);
             RunnableConfig config = RunnableConfig.builder().build();

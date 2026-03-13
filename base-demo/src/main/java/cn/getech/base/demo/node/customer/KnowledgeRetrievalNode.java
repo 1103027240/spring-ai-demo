@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 import static cn.getech.base.demo.enums.IntentRecognitionEnum.GENERAL_QUESTION;
 
 /**
@@ -27,9 +29,9 @@ public class KnowledgeRetrievalNode implements NodeActionWithConfig {
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
         log.info("【知识库检索节点】开始执行");
 
-        KnowledgeBaseService knowledgeBaseService = SpringUtil.getBean("knowledgeBaseService");
-        String userInput = state.value("userInput", String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
-        String intent = state.value("intent", String.class).orElse(GENERAL_QUESTION.getId());
+        KnowledgeBaseService knowledgeBaseService = SpringUtil.getBean(KnowledgeBaseService.class);
+        String userInput = state.value(USER_INPUT, String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
+        String intent = state.value(INTENT, String.class).orElse(GENERAL_QUESTION.getId());
         String query = buildKnowledgeQuery(userInput, intent);
 
         // 从知识库检索相关信息
@@ -49,9 +51,9 @@ public class KnowledgeRetrievalNode implements NodeActionWithConfig {
         }
 
         Map<String, Object> result = new HashMap<>();
-        result.put("knowledgeResults", knowledgeResults);
-        result.put("knowledgeContext", knowledgeContext.toString());
-        result.put("knowledgeRetrievalTime", System.currentTimeMillis());
+        result.put(KNOWLEDGE_RESULTS, knowledgeResults);
+        result.put(KNOWLEDGE_CONTEXT, knowledgeContext.toString());
+        result.put(KNOWLEDGE_RETRIEVAL_TIME, System.currentTimeMillis());
         return result;
     }
 

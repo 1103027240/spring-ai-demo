@@ -27,12 +27,12 @@ public class CustomerServiceStateBuild {
 
         if (output.containsKey(ORDER_RESULTS)) {
             List<Map<String, Object>> orderResults = (List<Map<String, Object>>) output.get(ORDER_RESULTS);
-            state.recordNodeResult(ORDER_QUERY.getId(), Map.of("results", orderResults));
+            state.recordNodeResult(ORDER_QUERY.getId(), Map.of(RESULTS, orderResults));
         }
 
         if (output.containsKey(AFTER_SALES_RESULT)) {
             Map<String, Object> afterSalesResult = (Map<String, Object>) output.get(AFTER_SALES_RESULT);
-            state.recordNodeResult(AFTER_SALES.getId(), Map.of("result", afterSalesResult));
+            state.recordNodeResult(AFTER_SALES.getId(), Map.of(RESULT, afterSalesResult));
         }
 
         String aiResponse = extractAiResponse(output);

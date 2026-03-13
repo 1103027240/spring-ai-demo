@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 
 /**
  * @author 11030
@@ -26,9 +27,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderMapper orderMapper;
-
-    // 订单号正则表达式
-    private Pattern ORDER_NUMBER_PATTERN = Pattern.compile("([A-Z]{3,6}\\d{6,12})|(\\d{6,12})");
 
     /**
      * 查询订单
@@ -47,8 +45,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 如果没有指定订单号，查询用户最近的订单
-        if (CollUtil.isEmpty(results) && queryParams.containsKey("userId")) {
-            Long userId = (Long) queryParams.get("userId");
+        if (CollUtil.isEmpty(results) && queryParams.containsKey(USER_ID)) {
+            Long userId = (Long) queryParams.get(USER_ID);
             List<Order> orders = orderMapper.selectRecentOrdersByUserId(userId, 5);
             results.addAll(orders.stream()
                     .map(this::convertOrderToMap)
@@ -90,16 +88,16 @@ public class OrderServiceImpl implements OrderService {
      */
     private String extractOrderNumber(Map<String, Object> queryParams) {
         // 1. 从orderNumber字段提取
-        if (queryParams.containsKey("orderNumber")) {
-            Object orderNumberObj = queryParams.get("orderNumber");
+        if (queryParams.containsKey(ORDER_NUMBER)) {
+            Object orderNumberObj = queryParams.get(ORDER_NUMBER);
             if (orderNumberObj != null && StrUtil.isNotBlank(orderNumberObj.toString())) {
                 return orderNumberObj.toString().trim();
             }
         }
 
         // 2. 从userInput字段正则匹配
-        if (queryParams.containsKey("userInput")) {
-            String userInput = (String) queryParams.get("userInput");
+        if (queryParams.containsKey(USER_INPUT)) {
+            String userInput = (String) queryParams.get(USER_INPUT);
             Matcher matcher = ORDER_NUMBER_PATTERN.matcher(userInput);
             if (matcher.find()) {
                 return matcher.group();
@@ -114,18 +112,18 @@ public class OrderServiceImpl implements OrderService {
      */
     private Map<String, Object> convertOrderToMap(Order order) {
         Map<String, Object> result = new HashMap<>();
-        result.put("orderId", order.getId());
-        result.put("orderNumber", order.getOrderNumber());
-        result.put("userId", order.getUserId());
-        result.put("userName", order.getUserName());
-        result.put("totalAmount", order.getTotalAmount());
-        result.put("status", OrderStatusEnum.getDescription(order.getStatus()));
-        result.put("statusCode", order.getStatus());
-        result.put("paymentMethod", order.getPaymentMethod());
-        result.put("shippingAddress", order.getShippingAddress());
-        result.put("contactPhone", order.getContactPhone());
-        result.put("createTime", order.getCreateTime());
-        result.put("statusDescription", OrderStatusEnum.getDetailDescription(order.getStatus()));
+        result.put(ORDER_ID, order.getId());
+        result.put(ORDER_NUMBER, order.getOrderNumber());
+        result.put(USER_ID, order.getUserId());
+        result.put(USER_NAME, order.getUserName());
+        result.put(STATUS, order.getStatus());
+        result.put(STATUS_DESCRIPTION, OrderStatusEnum.getDescription(order.getStatus()));
+        result.put(STATUS_DETAIL_DESCRIPTION, OrderStatusEnum.getDetailDescription(order.getStatus()));
+        result.put(PAYMENT_METHOD, order.getPaymentMethod());
+        result.put(TOTAL_AMOUNT, order.getTotalAmount());
+        result.put(SHIPPING_ADDRESS, order.getShippingAddress());
+        result.put(CONTACT_PHONE, order.getContactPhone());
+        result.put(CREATE_TIME, order.getCreateTime());
         return result;
     }
 

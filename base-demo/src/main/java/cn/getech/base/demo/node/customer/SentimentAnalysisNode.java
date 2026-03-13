@@ -11,6 +11,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
+
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.*;
 
 /**
@@ -25,7 +27,7 @@ public class SentimentAnalysisNode implements NodeActionWithConfig {
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
         log.info("【情感分析节点】开始执行");
 
-        String userInput = state.value("userInput", String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
+        String userInput = state.value(USER_INPUT, String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
 
         // 调用大模型进行情感分析
         String sentiment = getSentimentAnalysis(userInput);
@@ -35,9 +37,9 @@ public class SentimentAnalysisNode implements NodeActionWithConfig {
         log.info("【情感分析节点】情感强度：{}", sentimentIntensity);
 
         Map<String, Object> result = new HashMap<>();
-        result.put("sentiment", sentiment);
-        result.put("sentimentIntensity", sentimentIntensity);
-        result.put("sentimentAnalysisTime", System.currentTimeMillis());
+        result.put(SENTIMENT, sentiment);
+        result.put(SENTIMENT_INTENSITY, sentimentIntensity);
+        result.put(SENTIMENT_ANALYSIS_TIME, System.currentTimeMillis());
         return result;
     }
 

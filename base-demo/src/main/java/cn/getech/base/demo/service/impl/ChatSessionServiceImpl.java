@@ -6,7 +6,6 @@ import cn.getech.base.demo.enums.ChatSessionStatusEnum;
 import cn.getech.base.demo.enums.ChatSessionTypeEnum;
 import cn.getech.base.demo.mapper.ChatSessionMapper;
 import cn.getech.base.demo.service.ChatSessionService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,7 +26,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     private ChatSessionMapper chatSessionMapper;
 
     @Override
-    public void createOrUpdateChatSession(CustomerServiceStateDto state) throws JsonProcessingException {
+    public void createOrUpdateChatSession(CustomerServiceStateDto state) {
         // 插入或更新会话
         ChatSession session = chatSessionMapper.selectBySessionId(state.getSessionId());
         if (session == null) {

@@ -1,6 +1,6 @@
 package cn.getech.base.demo.build;
 
-import cn.getech.base.demo.constant.MessageSyncConstant;
+import cn.getech.base.demo.constant.FieldValueConstant;
 import cn.getech.base.demo.dto.CustomerServiceStateDto;
 import cn.getech.base.demo.entity.ChatMessage;
 import cn.getech.base.demo.entity.MessageSyncTask;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static cn.getech.base.demo.constant.MessageSyncConstant.SOURCE_MYSQL_SYNC;
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 import static cn.getech.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
 
 @Slf4j
@@ -76,17 +76,17 @@ public class MessageSyncTaskBuild {
      */
     private String buildDocumentContent(ChatMessage message) {
         StringBuilder content = new StringBuilder();
-        content.append(MessageSyncConstant.ContentPrefix.MESSAGE_TYPE)
+        content.append(CUSTOMER_SERVICE_MESSAGE_TYPE)
                 .append(ChatMessageTypeEnum.getDescription(message.getMessageType()))
-                .append(MessageSyncConstant.ContentPrefix.CONTENT)
+                .append(CUSTOMER_SERVICE_CONTENT)
                 .append(message.getContent());
 
         if (StrUtil.isNotBlank(message.getIntent())) {
-            content.append(MessageSyncConstant.ContentPrefix.INTENT).append(message.getIntent());
+            content.append(CUSTOMER_SERVICE_INTENT).append(message.getIntent());
         }
 
         if (StrUtil.isNotBlank(message.getSentiment())) {
-            content.append(MessageSyncConstant.ContentPrefix.SENTIMENT).append(message.getSentiment());
+            content.append(CUSTOMER_SERVICE_SENTIMENT).append(message.getSentiment());
         }
 
         return content.toString();
@@ -97,26 +97,26 @@ public class MessageSyncTaskBuild {
      */
     private Map<String, Object> buildDocumentMetadata(ChatMessage message) {
         Map<String, Object> metadata = new HashMap<>();
-        metadata.put(MessageSyncConstant.MetadataField.MESSAGE_ID, message.getId());
-        metadata.put(MessageSyncConstant.MetadataField.USER_ID, message.getUserId());
-        metadata.put(MessageSyncConstant.MetadataField.SESSION_ID, message.getSessionId());
-        metadata.put(MessageSyncConstant.MetadataField.MESSAGE_TYPE, message.getMessageType());
-        metadata.put(MessageSyncConstant.MetadataField.IS_AI, message.getIsAiResponse());
-        metadata.put(MessageSyncConstant.MetadataField.WORKFLOW_EXECUTION_ID, message.getWorkflowExecutionId());
-        metadata.put(MessageSyncConstant.MetadataField.CREATE_TIME, message.getCreateTime());
-        metadata.put(MessageSyncConstant.MetadataField.SYNC_TIME, LocalDateTime.now());
-        metadata.put(MessageSyncConstant.MetadataField.SOURCE, SOURCE_MYSQL_SYNC);
+        metadata.put(FieldValueConstant.MESSAGE_ID, message.getId());
+        metadata.put(FieldValueConstant.USER_ID, message.getUserId());
+        metadata.put(FieldValueConstant.SESSION_ID, message.getSessionId());
+        metadata.put(FieldValueConstant.MESSAGE_TYPE, message.getMessageType());
+        metadata.put(FieldValueConstant.IS_AI, message.getIsAiResponse());
+        metadata.put(FieldValueConstant.WORKFLOW_EXECUTION_ID, message.getWorkflowExecutionId());
+        metadata.put(FieldValueConstant.CREATE_TIME, message.getCreateTime());
+        metadata.put(FieldValueConstant.SYNC_TIME, LocalDateTime.now());
+        metadata.put(FieldValueConstant.SOURCE, SOURCE_MYSQL_SYNC);
 
         if (StrUtil.isNotBlank(message.getIntent())) {
-            metadata.put(MessageSyncConstant.MetadataField.INTENT, message.getIntent());
+            metadata.put(FieldValueConstant.INTENT, message.getIntent());
         }
 
         if (StrUtil.isNotBlank(message.getSentiment())) {
-            metadata.put(MessageSyncConstant.MetadataField.SENTIMENT, message.getSentiment());
+            metadata.put(FieldValueConstant.SENTIMENT, message.getSentiment());
         }
 
         if (message.getResponseTime() != null) {
-            metadata.put(MessageSyncConstant.MetadataField.RESPONSE_TIME_MS, message.getResponseTime());
+            metadata.put(FieldValueConstant.RESPONSE_TIME_MS, message.getResponseTime());
         }
 
         return metadata;

@@ -13,7 +13,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
-import static cn.getech.base.demo.constant.FieldValueConstant.SERVICE_NUMBER_PATTERN;
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
+import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.SENTIMENT_ANALYSIS;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.*;
 
 /**
@@ -28,17 +29,17 @@ public class AfterSalesNode implements NodeActionWithConfig {
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
         log.info("【售后处理节点】开始执行");
 
-        AfterSalesService afterSalesService = SpringUtil.getBean("afterSalesService");
-        String userInput = state.value("userInput", String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
-        Long userId = state.value("userId", Long.class).orElse(null);
-        String sentiment = state.value("sentiment", String.class).orElse(NEUTRAL.getId());
+        AfterSalesService afterSalesService = SpringUtil.getBean(AfterSalesService.class);
+        String userInput = state.value(USER_INPUT, String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
+        Long userId = state.value(USER_ID, Long.class).orElse(null);
+        String sentiment = state.value(SENTIMENT, String.class).orElse(NEUTRAL.getId());
 
         // 1.调用大模型分析售后类型
         Map<String, String> analysisAfterSalesMap = getAnalysisAfterSales(userInput);
 
         // 2.根据售后类型进行对应处理
         Map<String, Object> processResult = new HashMap<>();
-        switch (analysisAfterSalesMap.get("afterSalesType")) {
+        switch (analysisAfterSalesMap.get(AFTER_SALES_TYPE)) {
             case "return_request":
                 processResult = afterSalesService.processReturnRequest(userInput, userId);
                 break;
@@ -60,20 +61,20 @@ public class AfterSalesNode implements NodeActionWithConfig {
                     processResult = afterSalesService.queryAfterSalesProgress(serviceNumber);
                     break;
                 }
-                processResult.put("status", "error");
-                processResult.put("message", "请提供服务单号以便查询进度");
+                processResult.put(STATUS, "error");
+                processResult.put(MESSAGE, "请提供服务单号以便查询进度");
                 break;
             default:
-                processResult.put("afterSalesType", analysisAfterSalesMap.get("afterSalesType"));
-                processResult.put("message", "已记录您的售后请求，客服将尽快处理");
+                processResult.put(AFTER_SALES_TYPE, analysisAfterSalesMap.get(AFTER_SALES_TYPE));
+                processResult.put(MESSAGE, "已记录您的售后请求，客服将尽快处理");
                 break;
         }
 
         Map<String, Object> result = new HashMap<>();
-        result.put("afterSalesType", analysisAfterSalesMap.get("afterSalesType"));
-        result.put("afterSalesAnalysis", analysisAfterSalesMap.get("afterSalesAnalysis"));
-        result.put("afterSalesResult", processResult);
-        result.put("afterSalesTime", System.currentTimeMillis());
+        result.put(AFTER_SALES_TYPE, analysisAfterSalesMap.get(AFTER_SALES_TYPE));
+        result.put(AFTER_SALES_ANALYSIS, analysisAfterSalesMap.get(AFTER_SALES_ANALYSIS));
+        result.put(AFTER_SALES_RESULT, processResult);
+        result.put(AFTER_SALES_TIME, System.currentTimeMillis());
         setPriority(result, sentiment);
         return result;
     }
@@ -109,7 +110,7 @@ public class AfterSalesNode implements NodeActionWithConfig {
         String afterSalesAnalysis = parts.length > 1 ? parts[1].trim() : "";
 
         log.info("【售后处理节点】，售后类型分析: {} - {}", afterSalesType, afterSalesAnalysis);
-        return Map.of("afterSalesType", afterSalesType, "afterSalesAnalysis", afterSalesAnalysis);
+        return Map.of(AFTER_SALES_TYPE, afterSalesType, AFTER_SALES_ANALYSIS, afterSalesAnalysis);
     }
 
     /**
@@ -117,13 +118,13 @@ public class AfterSalesNode implements NodeActionWithConfig {
      */
     private Map<String, Object> processComplaintRequest(String userInput, String sentiment, Long userId) {
         Map<String, Object> result = new HashMap<>();
-        result.put("status", "recorded");
-        result.put("message", "已收到您的投诉，我们将尽快处理");
-        result.put("complaintId", "CP" + System.currentTimeMillis());
-        result.put("userId", userId);
-        result.put("content", userInput);
-        result.put("sentimentAnalysis", sentiment);
-        result.put("createTime", System.currentTimeMillis());
+        result.put(STATUS, "recorded");
+        result.put(MESSAGE, "已收到您的投诉，我们将尽快处理");
+        result.put(COMPLAINT_ID, "CP" + System.currentTimeMillis());
+        result.put(USER_ID, userId);
+        result.put(CONTENT, userInput);
+        result.put(SENTIMENT, sentiment);
+        result.put(CREATE_TIME, System.currentTimeMillis());
         setPriority(result, sentiment);
         return result;
     }
@@ -133,9 +134,9 @@ public class AfterSalesNode implements NodeActionWithConfig {
      */
     private void setPriority(Map<String, Object> result, String sentiment){
         if (Arrays.asList(URGENT.getId(), NEGATIVE.getId()).contains(sentiment)) {
-            result.put("priority", "high");
+            result.put(PRIORITY, "high");
         } else {
-            result.put("priority", "normal");
+            result.put(PRIORITY, "normal");
         }
     }
 
