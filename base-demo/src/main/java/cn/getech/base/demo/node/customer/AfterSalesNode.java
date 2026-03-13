@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import static cn.getech.base.demo.constant.FieldValueConstant.*;
-import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.SENTIMENT_ANALYSIS;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.*;
 
 /**
