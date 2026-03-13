@@ -1,13 +1,11 @@
 package cn.getech.base.demo.entity;
 
-import cn.getech.base.demo.enums.WorkflowExecutionStatusEnum;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import static cn.getech.base.demo.enums.WorkflowExecutionStatusEnum.*;
 
 /**
@@ -60,6 +58,10 @@ public class WorkflowExecution {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
+    @TableField(fill = FieldFill.UPDATE)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updateTime;
+
     /**
      * 计算执行时长
      */
@@ -68,7 +70,7 @@ public class WorkflowExecution {
             return 0L;
         }
         LocalDateTime end = endTime != null ? endTime : LocalDateTime.now();
-        return java.time.Duration.between(startTime, end).toMillis();
+        return Duration.between(startTime, end).toMillis();
     }
 
     /**
@@ -90,26 +92,6 @@ public class WorkflowExecution {
      */
     public boolean isCompleted() {
         return isSuccess() || isFailed() || CANCELLED.equals(status);
-    }
-
-    /**
-     * 转换为Map格式
-     */
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", id);
-        map.put("executionId", executionId);
-        map.put("workflowName", workflowName);
-        map.put("sessionId", sessionId);
-        map.put("userId", userId);
-        map.put("status", status);
-        map.put("statusText", WorkflowExecutionStatusEnum.getDescription(status));
-        map.put("errorMessage", errorMessage);
-        map.put("startTime", startTime);
-        map.put("endTime", endTime);
-        map.put("durationMs", durationMs != null ? durationMs : calculateDuration());
-        map.put("createTime", createTime);
-        return map;
     }
 
 }

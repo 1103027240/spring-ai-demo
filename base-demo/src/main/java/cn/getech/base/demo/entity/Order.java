@@ -27,6 +27,7 @@ public class Order {
     @TableField("total_amount")
     private BigDecimal totalAmount;
 
+    @TableField("status")
     private Integer status;
 
     @TableField("payment_method")

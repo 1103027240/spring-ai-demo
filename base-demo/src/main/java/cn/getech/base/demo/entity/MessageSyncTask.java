@@ -1,15 +1,11 @@
 package cn.getech.base.demo.entity;
 
-import cn.getech.base.demo.enums.MessageTaskStatusEnum;
-import cn.getech.base.demo.enums.MessageTaskSyncTypeEnum;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 import static cn.getech.base.demo.enums.MessageTaskStatusEnum.*;
 
 /**
@@ -32,6 +28,7 @@ public class MessageSyncTask {
     @TableField("last_message_id")
     private Long lastMessageId;
 
+    @TableField("status")
     private Integer status = 0;
 
     @TableField("retry_count")
@@ -43,6 +40,7 @@ public class MessageSyncTask {
     @TableField("error_message")
     private String errorMessage;
 
+    @TableField("progress")
     private Integer progress = 0;
 
     @TableField("total_messages")
@@ -146,41 +144,6 @@ public class MessageSyncTask {
      */
     public boolean isPending() {
         return PENDING.equals(status);
-    }
-
-    /**
-     * 转换为Map格式
-     */
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", id);
-        map.put("sessionId", sessionId);
-        map.put("syncType", syncType);
-        map.put("syncTypeText", MessageTaskSyncTypeEnum.getDescription(syncType));
-        map.put("lastMessageId", lastMessageId);
-        map.put("status", status);
-        map.put("statusText", MessageTaskStatusEnum.getDescription(status));
-        map.put("retryCount", retryCount);
-        map.put("maxRetries", maxRetries);
-        map.put("errorMessage", errorMessage);
-        map.put("progress", progress);
-        map.put("progressPercentage", getProgressPercentage());
-        map.put("totalMessages", totalMessages);
-        map.put("processedMessages", processedMessages);
-        map.put("startTime", startTime);
-        map.put("endTime", endTime);
-        map.put("durationMs", getDurationMs());
-        map.put("durationSeconds", getDurationSeconds());
-        map.put("createdTime", createdTime);
-        map.put("updatedTime", updatedTime);
-        map.put("needRetry", needRetry());
-        map.put("canRetry", canRetry());
-        map.put("isExpired", isExpired());
-        map.put("isCompleted", isCompleted());
-        map.put("isFailed", isFailed());
-        map.put("isProcessing", isProcessing());
-        map.put("isPending", isPending());
-        return map;
     }
 
 }

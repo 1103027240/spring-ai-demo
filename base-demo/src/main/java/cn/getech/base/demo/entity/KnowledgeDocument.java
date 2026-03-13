@@ -1,13 +1,11 @@
 package cn.getech.base.demo.entity;
 
-import cn.getech.base.demo.enums.KnowledgeDocumentStatusEnum;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+
 import static cn.getech.base.demo.enums.KnowledgeDocumentStatusEnum.ENABLED;
 
 /**
@@ -21,18 +19,25 @@ public class KnowledgeDocument {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    @TableField("title")
     private String title;
 
+    @TableField("content")
     private String content;
 
+    @TableField("summary")
     private String summary;
 
+    @TableField("category")
     private String category;
 
+    @TableField("tags")
     private String tags;
 
+    @TableField("source")
     private String source;
 
+    @TableField("priority")
     private Integer priority = 0;
 
     /**
@@ -41,11 +46,13 @@ public class KnowledgeDocument {
     @TableField("is_vectorized")
     private Integer isVectorized = 0;
 
-    @TableField("vector_id")
+    @TableField("vectorId")
     private String vectorId;
 
+    @TableField("version")
     private Integer version = 1;
 
+    @TableField("status")
     private Integer status = 1;
 
     @TableField(fill = FieldFill.INSERT)
@@ -79,32 +86,6 @@ public class KnowledgeDocument {
         }
         int length = Math.min(content.length(), 100);
         return content.substring(0, length) + (content.length() > 100 ? "..." : "");
-    }
-
-    /**
-     * 转换为Map格式
-     */
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", id);
-        map.put("title", title);
-        map.put("contentLength", content != null ? content.length() : 0);
-        map.put("contentSummary", getContentSummary());
-        map.put("summary", summary);
-        map.put("category", category);
-        map.put("tags", tags);
-        map.put("source", source);
-        map.put("priority", priority);
-        map.put("isVectorized", isVectorized);
-        map.put("isVectorized_bool", isVectorized());
-        map.put("vectorId", vectorId);
-        map.put("version", version);
-        map.put("status", status);
-        map.put("statusText", KnowledgeDocumentStatusEnum.getDescription(status));
-        map.put("isEnabled", isEnabled());
-        map.put("createTime", createTime);
-        map.put("updateTime", updateTime);
-        return map;
     }
 
 }

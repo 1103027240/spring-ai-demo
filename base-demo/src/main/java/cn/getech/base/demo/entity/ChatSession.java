@@ -1,15 +1,11 @@
 package cn.getech.base.demo.entity;
 
-import cn.getech.base.demo.enums.ChatSessionStatusEnum;
-import cn.getech.base.demo.enums.ChatSessionTypeEnum;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 import static cn.getech.base.demo.enums.ChatSessionStatusEnum.*;
 
 /**
@@ -94,32 +90,6 @@ public class ChatSession {
      */
     public boolean isEnded() {
         return ENDED.equals(status);
-    }
-
-    /**
-     * 转换为Map格式
-     */
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", id);
-        map.put("sessionId", sessionId);
-        map.put("userId", userId);
-        map.put("userName", userName);
-        map.put("sessionType", sessionType);
-        map.put("sessionTypeText", ChatSessionTypeEnum.getDescription(sessionType));
-        map.put("status", status);
-        map.put("statusText", ChatSessionStatusEnum.getDescription(status));
-        map.put("startTime", startTime);
-        map.put("endTime", endTime);
-        map.put("messageCount", messageCount);
-        map.put("lastMessageTime", lastMessageTime);
-        map.put("durationSeconds", getDurationSeconds());
-        map.put("durationMinutes", getDurationMinutes());
-        map.put("createTime", createTime);
-        map.put("updateTime", updateTime);
-        map.put("isActive", isActive());
-        map.put("isEnded", isEnded());
-        return map;
     }
 
 }
