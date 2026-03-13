@@ -35,7 +35,7 @@ public class KnowledgeRetrievalNode implements NodeActionWithConfig {
         String query = buildKnowledgeQuery(userInput, intent);
 
         // 从知识库检索相关信息
-        List<Map<String, Object>> knowledgeResults = knowledgeBaseService.searchKnowledge(query, 5);
+        List<Map<String, Object>> knowledgeResults = knowledgeBaseService.searchKnowledge(query, 1000);
         log.info("【知识库检索节点】检索完成，找到[{}]条结果", knowledgeResults.size());
 
         StringBuilder knowledgeContext = new StringBuilder();
