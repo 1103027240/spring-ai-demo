@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 public interface MessageSyncTaskMapper extends BaseMapper<MessageSyncTask> {
 
     @Select("SELECT * FROM message_sync_task WHERE session_id = #{sessionId} AND status = 0 ORDER BY created_time ASC LIMIT 1")
-    @ResultMap("messageSyncTaskMap")
     MessageSyncTask selectLatestPendingTask(@Param("sessionId") String sessionId);
 
 }

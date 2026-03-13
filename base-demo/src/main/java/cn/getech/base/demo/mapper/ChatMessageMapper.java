@@ -12,11 +12,9 @@ import java.util.List;
 public interface ChatMessageMapper extends BaseMapper<ChatMessage> {
 
     @Select("SELECT * FROM chat_message WHERE session_id = #{sessionId} AND sync_status = 0 AND is_deleted = 0 ORDER BY id ASC")
-    @ResultMap("chatMessageMap")
     List<ChatMessage> selectUnsyncedMessages(@Param("sessionId") String sessionId);
 
     @Select("SELECT * FROM chat_message WHERE session_id = #{sessionId} AND is_deleted = 0 ORDER BY id ASC")
-    @ResultMap("chatMessageMap")
     List<ChatMessage> selectAllValidMessages(@Param("sessionId") String sessionId);
 
     @Select("SELECT COUNT(*) FROM chat_message WHERE user_id = #{userId} AND is_deleted = 0")
@@ -39,19 +37,5 @@ public interface ChatMessageMapper extends BaseMapper<ChatMessage> {
             )
     """)
     int deleteOldMessages(@Param("userId") Long userId, @Param("limit") int limit);
-
-    @Insert("""
-            INSERT INTO chat_message 
-            (session_id, message_type, content, intent, sentiment, is_ai_response, 
-             workflow_execution_id, sync_status, response_time, metadata) 
-            VALUES 
-            <foreach collection="list" item="item" separator=",">
-                (#{item.sessionId}, #{item.messageType}, #{item.content}, #{item.intent}, 
-                 #{item.sentiment}, #{item.isAiResponse}, #{item.workflowExecutionId}, 
-                 #{item.syncStatus}, #{item.responseTime}, #{item.metadata})
-            </foreach>
-    """)
-    @Options(useGeneratedKeys = true, keyProperty = "id")
-    int batchInsert(@Param("list") List<ChatMessage> messages);
 
 }

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 public interface ChatSessionMapper extends BaseMapper<ChatSession> {
 
     @Select("SELECT * FROM chat_session WHERE session_id = #{sessionId}")
-    @ResultMap("chatSessionMap")
     ChatSession selectBySessionId(@Param("sessionId") String sessionId);
 
 }
