@@ -1,11 +1,9 @@
 package cn.getech.base.demo.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import java.time.LocalDateTime;
 
 /**
  * @author 11030
@@ -50,8 +48,7 @@ public class ChatMessage {
     private Integer syncStatus = 0;
 
     @TableField("sync_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime syncTime;
+    private Long syncTime;
 
     @TableField("response_time")
     private Integer responseTime;
@@ -65,9 +62,8 @@ public class ChatMessage {
     @TableField("metadata")
     private String metadata;
 
-    @TableField(fill = FieldFill.INSERT)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createTime;
+    @TableField("create_time")
+    private Long createTime;
 
     /**
      * 获取消息摘要（前50个字符）

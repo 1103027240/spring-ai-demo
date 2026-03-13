@@ -84,15 +84,15 @@ CREATE TABLE `chat_message` (
   `is_ai_response` tinyint(4) DEFAULT '0' COMMENT '是否为AI回复(0:否,1:是)',
   `workflow_execution_id` varchar(100) DEFAULT NULL COMMENT '工作流执行ID',
   `sync_status` tinyint(4) DEFAULT '0' COMMENT '同步状态(0:未同步,1:同步中,2:已同步,3:同步失败,4:跳过同步)',
-  `sync_time` datetime DEFAULT NULL COMMENT '同步时间',
+  `sync_time` bigint(64) COMMENT '同步时间',
   `response_time` int(11) DEFAULT NULL COMMENT '响应时间（毫秒）',
   `is_deleted` tinyint(4) DEFAULT '0' COMMENT '是否已删除(0:否,1:是)',
   `metadata` json DEFAULT NULL COMMENT '元数据（JSON格式）',
   `vector_id` varchar(100) DEFAULT NULL COMMENT '向量ID（Milvus）',
   `embedding_status` tinyint(4) DEFAULT '0' COMMENT '向量化状态(0:未向量化,1:已向量化,2:向量化失败)',
-  `embedding_time` datetime DEFAULT NULL COMMENT '向量化时间',
+  `embedding_time` bigint(64) COMMENT '向量化时间',
   `similarity_score` double DEFAULT NULL COMMENT '相似度分数（用于检索）',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `create_time` bigint(64) COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `idx_session_id` (`session_id`) USING BTREE,
   KEY `idx_sync_status` (`sync_status`,`is_deleted`) USING BTREE,
@@ -641,58 +641,6 @@ INSERT INTO `after_sales` (`service_number`, `order_id`, `user_id`, `type`, `rea
 ('AS202603080003', 3, 10003, 5, '不想要了', 0, NULL, '待处理', '2026-03-08 09:20:00'),
 ('AS202603080004', 5, 10005, 3, '商品有故障', 1, NULL, '维修处理中', '2026-03-09 11:30:00'),
 ('AS202603080005', 7, 10002, 1, '尺寸不合适', 0, NULL, '待审核', '2026-03-13 10:45:00');
-
--- 5.7 初始化会话数据
-INSERT INTO `chat_session` (`session_id`, `user_id`, `user_name`, `session_type`, `status`, `start_time`, `last_message_time`, `message_count`, `avg_response_time`) VALUES
-('sess_202603080001', 10001, '张明', 1, 0, '2026-03-08 09:00:00', '2026-03-08 09:00:05', 2, 3500),
-('sess_202603080002', 10002, '李娜', 2, 1, '2026-03-08 10:00:00', '2026-03-08 10:00:08', 2, 2800),
-('sess_202603080003', 10003, '王强', 3, 0, '2026-03-08 11:00:00', '2026-03-08 11:00:10', 3, 4200),
-('sess_202603080004', 10004, '李华', 1, 1, '2026-03-08 13:00:00', '2026-03-08 13:00:15', 4, 3100),
-('sess_202603080005', 10005, '赵伟', 2, 0, '2026-03-08 15:00:00', '2026-03-08 15:00:20', 2, 3900),
-('sess_202603080006', 10001, '张明', 1, 1, '2026-03-09 10:00:00', '2026-03-09 10:00:10', 3, 3200),
-('sess_202603080007', 10002, '李娜', 2, 0, '2026-03-10 14:00:00', '2026-03-10 14:00:15', 2, 3800);
-
--- 5.8 初始化消息数据
-INSERT INTO `chat_message` (`session_id`, `user_id`, `message_type`, `content`, `intent`, `sentiment`, `is_ai_response`, `workflow_execution_id`, `sync_status`, `response_time`, `create_time`) VALUES
--- 会话1的消息
-('sess_202603080001', 10001, 1, '我的订单状态如何？', 'order_query', 'neutral', 0, 'wf_202603080001', 2, NULL, '2026-03-08 09:00:00'),
-('sess_202603080001', 10001, 2, '您的订单已发货，预计明天送达。', NULL, 'positive', 1, 'wf_202603080001', 2, 3500, '2026-03-08 09:00:05'),
-
--- 会话2的消息
-('sess_202603080002', 10002, 1, '我想退货', 'after_sales', 'neutral', 0, 'wf_202603080002', 2, NULL, '2026-03-08 10:00:00'),
-('sess_202603080002', 10002, 2, '请提供订单号，我将为您处理退货申请。', NULL, 'positive', 1, 'wf_202603080002', 2, 2800, '2026-03-08 10:00:08'),
-
--- 会话3的消息
-('sess_202603080003', 10003, 1, '商品质量有问题，我要投诉！', 'complaint', 'negative', 0, 'wf_202603080003', 2, NULL, '2026-03-08 11:00:00'),
-('sess_202603080003', 10003, 2, '非常抱歉给您带来不好的体验，请问具体是什么问题？', NULL, 'positive', 1, 'wf_202603080003', 2, 4200, '2026-03-08 11:00:10'),
-('sess_202603080003', 10003, 1, '手机开不了机', 'complaint', 'urgent', 0, 'wf_202603080003', 2, NULL, '2026-03-08 11:00:12'),
-('sess_202603080003', 10003, 2, '请提供订单号，我为您安排售后处理。', NULL, 'positive', 1, 'wf_202603080003', 2, 1800, '2026-03-08 11:00:14'),
-
--- 会话4的消息
-('sess_202603080004', 10004, 1, '请问发货时间是多久？', 'logistics_query', 'neutral', 0, 'wf_202603080004', 2, NULL, '2026-03-08 13:00:00'),
-('sess_202603080004', 10004, 2, '工作日16:00前下单当天发货。', NULL, 'positive', 1, 'wf_202603080004', 2, 3100, '2026-03-08 13:00:05'),
-('sess_202603080004', 10004, 1, '可以修改收货地址吗？', 'logistics_query', 'neutral', 0, 'wf_202603080004', 2, NULL, '2026-03-08 13:00:10'),
-('sess_202603080004', 10004, 2, '如果订单未发货可以修改，请提供订单号。', NULL, 'positive', 1, 'wf_202603080004', 2, 2000, '2026-03-08 13:00:15'),
-
--- 会话5的消息
-('sess_202603080005', 10005, 1, '我想查询我的会员等级', 'member_query', 'neutral', 0, 'wf_202603080005', 2, NULL, '2026-03-08 15:00:00'),
-('sess_202603080005', 10005, 2, '您目前是金卡会员，享有额外9.5折优惠。', NULL, 'positive', 1, 'wf_202603080005', 2, 3900, '2026-03-08 15:00:20');
-
--- 5.9 初始化工作流执行记录
-INSERT INTO `workflow_execution` (`execution_id`, `workflow_name`, `session_id`, `user_id`, `status`, `start_time`, `end_time`, `duration_ms`) VALUES
-('wf_202603080001', 'customer_service', 'sess_202603080001', 10001, 'SUCCESS', '2026-03-08 09:00:00', '2026-03-08 09:00:05', 5000),
-('wf_202603080002', 'customer_service', 'sess_202603080002', 10002, 'SUCCESS', '2026-03-08 10:00:00', '2026-03-08 10:00:08', 8000),
-('wf_202603080003', 'customer_service', 'sess_202603080003', 10003, 'SUCCESS', '2026-03-08 11:00:00', '2026-03-08 11:00:14', 14000),
-('wf_202603080004', 'customer_service', 'sess_202603080004', 10004, 'SUCCESS', '2026-03-08 13:00:00', '2026-03-08 13:00:15', 15000),
-('wf_202603080005', 'customer_service', 'sess_202603080005', 10005, 'SUCCESS', '2026-03-08 15:00:00', '2026-03-08 15:00:20', 20000);
-
--- 5.10 初始化同步任务
-INSERT INTO `message_sync_task` (`session_id`, `sync_type`, `status`, `retry_count`, `created_time`) VALUES
-('sess_202603080001', 1, 2, 0, '2026-03-08 09:00:00'),
-('sess_202603080002', 1, 2, 0, '2026-03-08 10:00:00'),
-('sess_202603080003', 1, 2, 0, '2026-03-08 11:00:00'),
-('sess_202603080004', 1, 2, 0, '2026-03-08 13:00:00'),
-('sess_202603080005', 1, 2, 0, '2026-03-08 15:00:00');
 
 -- 5.11 初始化意图统计
 INSERT INTO `chat_intent_stat` (`intent`, `stat_date`, `count`, `success_count`, `avg_response_time`) VALUES

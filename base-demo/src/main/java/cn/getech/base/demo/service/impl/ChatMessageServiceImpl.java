@@ -13,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -40,7 +38,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         message.setIsAiResponse(0);
         message.setWorkflowExecutionId(state.getExecutionId());
         message.setSyncStatus(ChatMessageSyncStatusEnum.PENDING.getCode());
-        message.setCreateTime(LocalDateTime.now());
+        message.setCreateTime(System.currentTimeMillis());
         chatMessageMapper.insert(message);
         return message;
     }
@@ -61,7 +59,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         message.setIsAiResponse(1);
         message.setWorkflowExecutionId(state.getExecutionId());
         message.setSyncStatus(ChatMessageSyncStatusEnum.PENDING.getCode());
-        message.setCreateTime(LocalDateTime.now());
+        message.setCreateTime(System.currentTimeMillis());
 
         // 计算响应时间
         if (state.getStartTime() != null) {

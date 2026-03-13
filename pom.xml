@@ -29,6 +29,7 @@
         <mybatis.version>3.5.15</mybatis.version>
         <knife4j.version>4.5.0</knife4j.version>
         <jackson.version>2.15.2</jackson.version>
+        <gson.version>2.10.1</gson.version>
         <lombok.version>1.18.30</lombok.version>
         <hutool.version>5.8.40</hutool.version>
     </properties>

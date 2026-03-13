@@ -104,7 +104,7 @@ public class MessageSyncTaskBuild {
         metadata.put(FieldValueConstant.IS_AI, message.getIsAiResponse());
         metadata.put(FieldValueConstant.WORKFLOW_EXECUTION_ID, message.getWorkflowExecutionId());
         metadata.put(FieldValueConstant.CREATE_TIME, message.getCreateTime());
-        metadata.put(FieldValueConstant.SYNC_TIME, LocalDateTime.now());
+        metadata.put(FieldValueConstant.SYNC_TIME, System.currentTimeMillis());
         metadata.put(FieldValueConstant.SOURCE, SOURCE_MYSQL_SYNC);
 
         if (StrUtil.isNotBlank(message.getIntent())) {
