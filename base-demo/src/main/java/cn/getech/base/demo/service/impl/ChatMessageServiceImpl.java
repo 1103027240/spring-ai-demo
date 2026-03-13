@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,6 +27,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     @Autowired
     private ChatMessageMapper chatMessageMapper;
 
+    @Transactional
     @Override
     public ChatMessage saveUserMessage(CustomerServiceStateDto state) {
         ChatMessage message = new ChatMessage();
@@ -42,6 +45,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return message;
     }
 
+    @Transactional
     @Override
     public ChatMessage saveAiMessage(CustomerServiceStateDto state) {
         if (StrUtil.isBlank(state.getAiResponse())) {
@@ -72,6 +76,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     /**
      * 清理Mysql中的会话消息
      */
+    @Transactional
     @Override
     public void cleanupOldMessageInMysql(Long userId) {
         int mysqlRetentionMaxCount = Integer.parseInt(mysqlRetentionCount);
@@ -86,6 +91,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         }
     }
 
+    @Transactional
     @Override
     public void updateMessageSyncStatus(String sessionId) {
         try {

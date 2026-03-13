@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
+
 
 /**
  * @author 11030
@@ -43,15 +45,13 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             List<Document> documents = vectorStore.similaritySearch(request);
             return documents.stream()
                     .map(doc -> {
-                        Map<String, Object> metadata = doc.getMetadata();
-                        Map<String, Object> result = new HashMap<>(metadata);
-                        result.put("content", doc.getText());
-                        result.put("score", metadata.get("similarity"));
+                        Map<String, Object> result = new HashMap<>(doc.getMetadata());
+                        result.put(CONTENT, doc.getText());
                         return result;
                     }).collect(Collectors.toList());
         } catch (Exception e) {
             log.error("向量搜索失败，尝试文本搜索", e);
-            return searchByText(query, limit);
+            return searchByText(query);
         }
     }
 
@@ -61,10 +61,10 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     @Override
     public void addKnowledgeDocument(String content, String title, String category, List<String> tags) {
         Document document = new Document(content);
-        document.getMetadata().put("title", title);
-        document.getMetadata().put("category", category);
-        document.getMetadata().put("tags", String.join(",", tags));
-        document.getMetadata().put("create_time", System.currentTimeMillis());
+        document.getMetadata().put(TITLE, title);
+        document.getMetadata().put(CATEGORY, category);
+        document.getMetadata().put(TAGS, String.join(",", tags));
+        document.getMetadata().put(CREATE_TIME, System.currentTimeMillis());
         vectorStore.add(List.of(document));
     }
 
@@ -74,9 +74,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     @Override
     public void batchAddKnowledgeDocuments(List<Map<String, Object>> documents) {
         List<Document> docs = documents.stream()
-                .map(doc -> {
-                    Document document = new Document((String) doc.get("content"));
-                    document.getMetadata().putAll(doc);
+                .map(e -> {
+                    Document document = new Document((String) e.get(CONTENT));
+                    document.getMetadata().putAll(e);
                     return document;
                 }).collect(Collectors.toList());
         vectorStore.add(docs);
@@ -99,7 +99,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     /**
      * 文本搜索（回退方案）
      */
-    private List<Map<String, Object>> searchByText(String query, int limit) {
+    private List<Map<String, Object>> searchByText(String query) {
         // 实现简单的文本匹配，这里可以扩展为数据库全文搜索
         List<Map<String, Object>> results = new ArrayList<>();
 
@@ -121,9 +121,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     private Map<String, Object> createKnowledgeResult(String title, String content) {
         Map<String, Object> result = new HashMap<>();
-        result.put("title", title);
-        result.put("content", content);
-        result.put("score", 0.9);
+        result.put(TITLE, title);
+        result.put(CONTENT, content);
+        result.put(SCORE, 0.9);
         return result;
     }
 

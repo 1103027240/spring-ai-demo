@@ -163,5 +163,12 @@ public class FieldValueConstant {
 
     public static final String CONTACT_PHONE = "contactPhone";
 
+    public static final String TITLE = "title";
+
+    public static final String SCORE = "score";
+
+    public static final String CATEGORY = "category";
+
+    public static final String TAGS = "tags";
 
 }

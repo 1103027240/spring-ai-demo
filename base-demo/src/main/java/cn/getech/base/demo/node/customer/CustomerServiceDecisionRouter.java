@@ -29,7 +29,7 @@ public class CustomerServiceDecisionRouter implements EdgeAction {
 
         // 根据意图和情感决定路由决策
         String conditionalValue = determineRouteDecision(intent, sentiment);
-        log.info("售【售后客服路由决策】: intent = {}, sentiment = {}, conditionalValue = {}", intent, sentiment, conditionalValue);
+        log.info("【售后客服路由决策】: intent = {}, sentiment = {}, conditionalValue = {}", intent, sentiment, conditionalValue);
         return conditionalValue;
     }
 

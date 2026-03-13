@@ -102,30 +102,10 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     @Transactional
     @Override
     public Map<String, Object> executeWorkflow(String userInput, Long userId, String userName) {
-        WorkflowRequestDto dto = new WorkflowRequestDto(userInput, userId, userName);
-        return executeWorkflow(dto);
-    }
-
-    @Override
-    public Page<MessageDocumentVO> pageChatHistory(Long userId, String currentPage, String pageSize) {
-        int page = Integer.parseInt(currentPage);
-        int size = Integer.parseInt(pageSize);
-
-        List<MessageDocumentVO> messages = queryMilvusByUserId(userId, page, size);
-        Page<MessageDocumentVO> resultPage = new Page<>(page, size);
-        resultPage.setRecords(messages);
-        resultPage.setTotal(messages.size());
-        return resultPage;
-    }
-
-    /**
-     * 执行工作流
-     */
-    @Transactional
-    public Map<String, Object> executeWorkflow(WorkflowRequestDto dto) {
         String sessionId = UUID.randomUUID().toString().replace("-", "");
         String executionId = UUID.randomUUID().toString().replace("-", "");
         long startTime = System.currentTimeMillis();
+        WorkflowRequestDto dto = new WorkflowRequestDto(userInput, userId, userName);
 
         // 1.执行工作流
         CustomerServiceStateDto state = executeWorkflowInternal(executionId, sessionId, dto);
@@ -157,10 +137,22 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         return workflowExecutionBuild.buildSuccessResponse(state, executionId, duration);
     }
 
+    @Override
+    public Page<MessageDocumentVO> pageChatHistory(Long userId, String currentPage, String pageSize) {
+        int page = Integer.parseInt(currentPage);
+        int size = Integer.parseInt(pageSize);
+
+        List<MessageDocumentVO> messages = queryMilvusByUserId(userId, page, size);
+        Page<MessageDocumentVO> resultPage = new Page<>(page, size);
+        resultPage.setRecords(messages);
+        resultPage.setTotal(messages.size());
+        return resultPage;
+    }
+
     /**
      * 执行工作流逻辑
      */
-    private CustomerServiceStateDto executeWorkflowInternal(String executionId, String sessionId, WorkflowRequestDto dto) {
+    public CustomerServiceStateDto executeWorkflowInternal(String executionId, String sessionId, WorkflowRequestDto dto) {
         try {
             Map<String, Object> initialState = new HashMap<>();
             initialState.put(WORKFLOW_EXECUTION_ID, executionId);
@@ -186,7 +178,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     /**
      * 保存成功执行记录
      */
-    private void saveWorkflowExecution(CustomerServiceStateDto state) {
+    public void saveWorkflowExecution(CustomerServiceStateDto state) {
         WorkflowExecution execution = workflowExecutionBuild.createBaseWorkflowExecution(state.getExecutionId(), state.getSessionId(), state.getUserId(), SUCCESS.getId());
         execution.setDurationMs(state.getDuration());
         execution.setInputData(workflowExecutionBuild.buildInputDataJson(state.getUserInput(), state.getUserId(), state.getUserName(), state.getSessionId()));
@@ -197,7 +189,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     /**
      * 保存失败执行记录
      */
-    private void saveFailureRecord(String executionId, String sessionId, WorkflowRequestDto dto, Exception e) {
+    public void saveFailureRecord(String executionId, String sessionId, WorkflowRequestDto dto, Exception e) {
         WorkflowExecution execution = workflowExecutionBuild.createBaseWorkflowExecution(executionId, sessionId, dto.getUserId(), WorkflowExecutionStatusEnum.FAILED.getId());
         execution.setInputData(workflowExecutionBuild.buildInputDataJson(dto.getUserInput(), dto.getUserId(), dto.getUserName(), sessionId));
         execution.setErrorMessage(e.getMessage());
@@ -207,7 +199,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     /**
      * 注册事务后钩子
      */
-    private void registerPostCommitHook(String sessionId) {
+    public void registerPostCommitHook(String sessionId) {
         TransactionSynchronizationManager.registerSynchronization(
                 new TransactionSynchronization() {
                     @Override
@@ -223,7 +215,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
      * 异步处理同步任务
      */
     @Async("workflowExecutor")
-    private void asyncProcessSyncTask(String sessionId) {
+    public void asyncProcessSyncTask(String sessionId) {
         try {
             Thread.sleep(TRANSACTION_COMMIT_DELAY_MS);
             messageSyncTaskService.processSyncTask(sessionId);
@@ -238,7 +230,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     /**
      * 查询Milvus用户会话消息
      */
-    private List<MessageDocumentVO> queryMilvusByUserId(Long userId, int currentPage, int pageSize) {
+    public List<MessageDocumentVO> queryMilvusByUserId(Long userId, int currentPage, int pageSize) {
         try {
             SearchRequest searchRequest = SearchRequest.builder()
                     .filterExpression("userId == '" + userId + "'")

@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +27,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     @Autowired
     private ChatSessionMapper chatSessionMapper;
 
+    @Transactional
     @Override
     public void createOrUpdateChatSession(CustomerServiceStateDto state) {
         // 插入或更新会话

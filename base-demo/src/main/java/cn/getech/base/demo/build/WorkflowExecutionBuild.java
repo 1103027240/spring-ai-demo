@@ -31,6 +31,7 @@ public class WorkflowExecutionBuild {
         execution.setSessionId(sessionId);
         execution.setUserId(userId);
         execution.setStatus(status);
+        execution.setCreateTime(LocalDateTime.now());
         execution.setStartTime(LocalDateTime.now());
         execution.setEndTime(LocalDateTime.now());
         return execution;

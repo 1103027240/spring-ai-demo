@@ -76,6 +76,7 @@ CREATE TABLE `chat_session` (
 CREATE TABLE `chat_message` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '消息ID',
   `session_id` varchar(100) NOT NULL COMMENT '会话ID',
+  `user_id` bigint(20) DEFAULT NULL COMMENT '用户ID',
   `message_type` tinyint(4) NOT NULL COMMENT '消息类型(1:用户,2:AI回复,3:系统,4:客服)',
   `content` text NOT NULL COMMENT '消息内容',
   `intent` varchar(50) DEFAULT NULL COMMENT '意图',
@@ -652,30 +653,30 @@ INSERT INTO `chat_session` (`session_id`, `user_id`, `user_name`, `session_type`
 ('sess_202603080007', 10002, '李娜', 2, 0, '2026-03-10 14:00:00', '2026-03-10 14:00:15', 2, 3800);
 
 -- 5.8 初始化消息数据
-INSERT INTO `chat_message` (`session_id`, `message_type`, `content`, `intent`, `sentiment`, `is_ai_response`, `workflow_execution_id`, `sync_status`, `response_time`, `create_time`) VALUES
+INSERT INTO `chat_message` (`session_id`, `user_id`, `message_type`, `content`, `intent`, `sentiment`, `is_ai_response`, `workflow_execution_id`, `sync_status`, `response_time`, `create_time`) VALUES
 -- 会话1的消息
-('sess_202603080001', 1, '我的订单状态如何？', 'order_query', 'neutral', 0, 'wf_202603080001', 2, NULL, '2026-03-08 09:00:00'),
-('sess_202603080001', 2, '您的订单已发货，预计明天送达。', NULL, 'positive', 1, 'wf_202603080001', 2, 3500, '2026-03-08 09:00:05'),
+('sess_202603080001', 10001, 1, '我的订单状态如何？', 'order_query', 'neutral', 0, 'wf_202603080001', 2, NULL, '2026-03-08 09:00:00'),
+('sess_202603080001', 10001, 2, '您的订单已发货，预计明天送达。', NULL, 'positive', 1, 'wf_202603080001', 2, 3500, '2026-03-08 09:00:05'),
 
 -- 会话2的消息
-('sess_202603080002', 1, '我想退货', 'after_sales', 'neutral', 0, 'wf_202603080002', 2, NULL, '2026-03-08 10:00:00'),
-('sess_202603080002', 2, '请提供订单号，我将为您处理退货申请。', NULL, 'positive', 1, 'wf_202603080002', 2, 2800, '2026-03-08 10:00:08'),
+('sess_202603080002', 10002, 1, '我想退货', 'after_sales', 'neutral', 0, 'wf_202603080002', 2, NULL, '2026-03-08 10:00:00'),
+('sess_202603080002', 10002, 2, '请提供订单号，我将为您处理退货申请。', NULL, 'positive', 1, 'wf_202603080002', 2, 2800, '2026-03-08 10:00:08'),
 
 -- 会话3的消息
-('sess_202603080003', 1, '商品质量有问题，我要投诉！', 'complaint', 'negative', 0, 'wf_202603080003', 2, NULL, '2026-03-08 11:00:00'),
-('sess_202603080003', 2, '非常抱歉给您带来不好的体验，请问具体是什么问题？', NULL, 'positive', 1, 'wf_202603080003', 2, 4200, '2026-03-08 11:00:10'),
-('sess_202603080003', 1, '手机开不了机', 'complaint', 'urgent', 0, 'wf_202603080003', 2, NULL, '2026-03-08 11:00:12'),
-('sess_202603080003', 2, '请提供订单号，我为您安排售后处理。', NULL, 'positive', 1, 'wf_202603080003', 2, 1800, '2026-03-08 11:00:14'),
+('sess_202603080003', 10003, 1, '商品质量有问题，我要投诉！', 'complaint', 'negative', 0, 'wf_202603080003', 2, NULL, '2026-03-08 11:00:00'),
+('sess_202603080003', 10003, 2, '非常抱歉给您带来不好的体验，请问具体是什么问题？', NULL, 'positive', 1, 'wf_202603080003', 2, 4200, '2026-03-08 11:00:10'),
+('sess_202603080003', 10003, 1, '手机开不了机', 'complaint', 'urgent', 0, 'wf_202603080003', 2, NULL, '2026-03-08 11:00:12'),
+('sess_202603080003', 10003, 2, '请提供订单号，我为您安排售后处理。', NULL, 'positive', 1, 'wf_202603080003', 2, 1800, '2026-03-08 11:00:14'),
 
 -- 会话4的消息
-('sess_202603080004', 1, '请问发货时间是多久？', 'logistics_query', 'neutral', 0, 'wf_202603080004', 2, NULL, '2026-03-08 13:00:00'),
-('sess_202603080004', 2, '工作日16:00前下单当天发货。', NULL, 'positive', 1, 'wf_202603080004', 2, 3100, '2026-03-08 13:00:05'),
-('sess_202603080004', 1, '可以修改收货地址吗？', 'logistics_query', 'neutral', 0, 'wf_202603080004', 2, NULL, '2026-03-08 13:00:10'),
-('sess_202603080004', 2, '如果订单未发货可以修改，请提供订单号。', NULL, 'positive', 1, 'wf_202603080004', 2, 2000, '2026-03-08 13:00:15'),
+('sess_202603080004', 10004, 1, '请问发货时间是多久？', 'logistics_query', 'neutral', 0, 'wf_202603080004', 2, NULL, '2026-03-08 13:00:00'),
+('sess_202603080004', 10004, 2, '工作日16:00前下单当天发货。', NULL, 'positive', 1, 'wf_202603080004', 2, 3100, '2026-03-08 13:00:05'),
+('sess_202603080004', 10004, 1, '可以修改收货地址吗？', 'logistics_query', 'neutral', 0, 'wf_202603080004', 2, NULL, '2026-03-08 13:00:10'),
+('sess_202603080004', 10004, 2, '如果订单未发货可以修改，请提供订单号。', NULL, 'positive', 1, 'wf_202603080004', 2, 2000, '2026-03-08 13:00:15'),
 
 -- 会话5的消息
-('sess_202603080005', 1, '我想查询我的会员等级', 'member_query', 'neutral', 0, 'wf_202603080005', 2, NULL, '2026-03-08 15:00:00'),
-('sess_202603080005', 2, '您目前是金卡会员，享有额外9.5折优惠。', NULL, 'positive', 1, 'wf_202603080005', 2, 3900, '2026-03-08 15:00:20');
+('sess_202603080005', 10005, 1, '我想查询我的会员等级', 'member_query', 'neutral', 0, 'wf_202603080005', 2, NULL, '2026-03-08 15:00:00'),
+('sess_202603080005', 10005, 2, '您目前是金卡会员，享有额外9.5折优惠。', NULL, 'positive', 1, 'wf_202603080005', 2, 3900, '2026-03-08 15:00:20');
 
 -- 5.9 初始化工作流执行记录
 INSERT INTO `workflow_execution` (`execution_id`, `workflow_name`, `session_id`, `user_id`, `status`, `start_time`, `end_time`, `duration_ms`) VALUES
@@ -712,7 +713,7 @@ INSERT INTO `chat_sentiment_stat` (`sentiment`, `stat_date`, `count`) VALUES
 -- ============================================
 
 -- 6.1 为chat_message表添加联合索引
-ALTER TABLE `chat_message` ADD INDEX `idx_session_time` (`session_id`, `create_time`);
+ALTER TABLE `chat_message` ADD INDEX `idx_session_time` (`user_id`, `session_id`, `create_time`);
 ALTER TABLE `chat_message` ADD INDEX `idx_user_sync` (`sync_status`, `embedding_status`);
 
 -- 6.2 为chat_session表添加联合索引

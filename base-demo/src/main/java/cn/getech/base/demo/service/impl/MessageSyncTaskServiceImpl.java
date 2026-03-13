@@ -20,6 +20,8 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +56,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     @Autowired
     private MessageSyncTaskBuild messageSyncTaskBuild;
 
+    @Transactional
     @Override
     public void createSyncTask(CustomerServiceStateDto state, ChatMessage userMessage, ChatMessage aiMessage) {
         MessageSyncTask task = messageSyncTaskBuild.buildSyncTask(state, userMessage, aiMessage);
@@ -68,6 +71,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     /**
      * 异步同步处理（增加消息保存在mysql，全量消息保存在Milvus）
      */
+    @Transactional
     @Override
     public void processSyncTask(String sessionId) {
         // 1.首先从Redis获取缓存同步任务，如果获取不到，再从数据库获取
@@ -105,7 +109,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     /**
      * 加载同步任务
      */
-    private MessageSyncTask loadSyncTask(String sessionId) {
+    public MessageSyncTask loadSyncTask(String sessionId) {
         MessageSyncTask task = getCachedSyncTask(sessionId);
         if (task == null) {
             task = messageSyncTaskMapper.selectLatestPendingTask(sessionId);
@@ -116,7 +120,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     /**
      * 更新任务状态
      */
-    private void updateTaskStatus(MessageSyncTask task, Integer status) {
+    public void updateTaskStatus(MessageSyncTask task, Integer status) {
         task.setStatus(status);
         task.setUpdatedTime(LocalDateTime.now());
         messageSyncTaskMapper.updateById(task);
@@ -125,7 +129,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     /**
      * 处理同步失败
      */
-    private void handleSyncFailure(MessageSyncTask task, String sessionId, Exception e) {
+    public void handleSyncFailure(MessageSyncTask task, String sessionId, Exception e) {
         log.error("【异步同步】处理同步任务失败，sessionId: {}", sessionId, e);
         if (task != null) {
             task.setStatus(MessageTaskStatusEnum.FAILED.getCode());
@@ -140,7 +144,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     /**
      * 同步消息到Milvus
      */
-    private boolean syncMessagesToMilvus(String sessionId, Integer syncType) {
+    public boolean syncMessagesToMilvus(String sessionId, Integer syncType) {
         try {
             List<ChatMessage> chatMessages = selectMessagesBySyncType(sessionId, syncType);
             log.info("【异步同步】同步类型: {}, sessionId: {}, 消息数量: {}", MessageTaskSyncTypeEnum.getDescription(syncType), sessionId, chatMessages.size());
@@ -166,7 +170,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     /**
      * 根据同步类型选择消息
      */
-    private List<ChatMessage> selectMessagesBySyncType(String sessionId, Integer syncType) {
+    public List<ChatMessage> selectMessagesBySyncType(String sessionId, Integer syncType) {
         if (INCREMENTAL.getCode().equals(syncType)) {
             return chatMessageService.selectUnsyncedMessages(sessionId);
         }
@@ -176,7 +180,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     /**
      * 获取缓存同步任务
      */
-    private MessageSyncTask getCachedSyncTask(String sessionId) {
+    public MessageSyncTask getCachedSyncTask(String sessionId) {
         String taskKey = SYNC_TASKS + ":" + sessionId;
         try {
             String taskJson = (String) redisTemplate.opsForValue().get(taskKey);
@@ -192,7 +196,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     /**
      * 清理缓存同步任务
      */
-    private void clearCachedSyncTask(String sessionId) {
+    public void clearCachedSyncTask(String sessionId) {
         String taskKey = SYNC_TASKS + ":" + sessionId;
         try {
             redisTemplate.delete(taskKey);

@@ -45,8 +45,8 @@ public class KnowledgeRetrievalNode implements NodeActionWithConfig {
             AtomicInteger i = new AtomicInteger(1);
             knowledgeResults.forEach(e -> {
                 knowledgeContext.append(String.format("【相关知识点%d】\n", i.getAndIncrement()));
-                knowledgeContext.append(String.format("标题：%s\n", e.get("title")));
-                knowledgeContext.append(String.format("内容：%s\n", e.get("content")));
+                knowledgeContext.append(String.format("标题：%s\n", e.get(TITLE)));
+                knowledgeContext.append(String.format("内容：%s\n", e.get(CONTENT)));
             });
         }
 

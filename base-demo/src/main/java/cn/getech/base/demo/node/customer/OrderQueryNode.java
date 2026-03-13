@@ -5,6 +5,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.alibaba.cloud.ai.graph.action.NodeActionWithConfig;
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -34,11 +35,10 @@ public class OrderQueryNode implements NodeActionWithConfig {
         // 1.调用大模型提取订单信息
         String extractionResult = extractOrderInfo(userInput);
 
-        // 解析提取订单结果（解析JSON字符串）
-        Map<String, Object> orderInfo = parseExtractionResult(extractionResult);
-        orderInfo.put(USER_ID, userId);
+        // 2、解析提取订单结果（解析JSON字符串）
+        Map<String, Object> orderInfo = parseExtractionResult(extractionResult, userId);
 
-        // 2.查询订单信息
+        // 3.查询订单信息
         List<Map<String, Object>> orders = orderService.queryOrders(orderInfo);
         log.info("【订单查询节点】查询完成，找到[{}]条数据", orders.size());
 
@@ -82,17 +82,20 @@ public class OrderQueryNode implements NodeActionWithConfig {
     /**
      * 解析提取结果
      */
-    private Map<String, Object> parseExtractionResult(String extractionResult) {
+    private Map<String, Object> parseExtractionResult(String extractionResult, Long userId) {
         Map<String, Object> result = new HashMap<>();
+
         ObjectMapper objectMapper = SpringUtil.getBean(ObjectMapper.class);
         try {
-            // 尝试解析为JSON
-            Map<String, Object> parsed = objectMapper.readValue(extractionResult, new TypeReference<>() {});
-            result.putAll(parsed);
+            Map<String, Object> parsedMap = objectMapper.readValue(extractionResult, new TypeReference<>() {});
+            result.putAll(parsedMap);
         } catch (Exception jsonException) {
-            log.warn("【订单查询节点】JSON解析失败，使用简化提取: {}", extractionResult, jsonException);
+            log.error("【订单查询节点】Json解析失败，使用简化提取: {}", extractionResult, jsonException);
             result = parseExtractionResultSimple(extractionResult);
         }
+
+        result.put(USER_ID, userId);
+        log.info("【订单查询节点】解析订单提前结果: {}", JSONObject.toJSONString(result));
         return result;
     }
 
@@ -102,7 +105,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
     private Map<String, Object> parseExtractionResultSimple(String text) {
         Map<String, Object> result = new HashMap<>();
 
-        // 1. 从order_number字段提取
+        // 1. 从orderNumber字段提取
         if (text.contains("\"orderNumber\"")) {
             String orderNumber = extractValue(text, ORDER_NUMBER);
             if (orderNumber != null && !orderNumber.equals("null")) {
@@ -110,7 +113,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
             }
         }
 
-        // 2. 从user_info字段提取
+        // 2. 从userInfo字段提取
         if (text.contains("\"userInfo\"")) {
             String userInfo = extractValue(text, USER_INFO);
             if (userInfo != null && !userInfo.equals("null")) {
@@ -118,7 +121,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
             }
         }
 
-        // 3. 从query_type字段提取
+        // 3. 从queryType字段提取
         if (text.contains("\"queryType\"")) {
             String queryType = extractValue(text, QUERY_TYPE);
             if (queryType != null && !queryType.equals("null")) {
