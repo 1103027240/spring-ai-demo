@@ -26,6 +26,6 @@ public enum OrderQueryTypeEnum {
 
     ;
 
-    private String description;
+    private String text;
 
 }

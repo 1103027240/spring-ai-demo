@@ -28,13 +28,13 @@ public enum ChatSessionTypeEnum {
 
     private Integer code;
 
-    private String description;
+    private String text;
 
-    public static String getDescription(Integer code) {
+    public static String getText(Integer code) {
         return Arrays.asList(ChatSessionTypeEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(ChatSessionTypeEnum::getDescription)
+                .map(ChatSessionTypeEnum::getText)
                 .orElse("未知");
     }
 

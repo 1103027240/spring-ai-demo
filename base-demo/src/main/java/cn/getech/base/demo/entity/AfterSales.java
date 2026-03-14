@@ -55,12 +55,12 @@ public class AfterSales implements Serializable {
 
     // 售后类型文本
     public String getTypeText() {
-        return AfterSalesTypeEnum.getDetailDescription(type);
+        return AfterSalesTypeEnum.getDetailText(type);
     }
 
     // 售后状态文本
     public String getStatusText() {
-        return AfterSalesStatusEnum.getDescription(status);
+        return AfterSalesStatusEnum.getText(status);
     }
 
 }

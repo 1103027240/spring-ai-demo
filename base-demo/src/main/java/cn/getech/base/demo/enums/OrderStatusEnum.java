@@ -32,23 +32,23 @@ public enum OrderStatusEnum {
 
     private Integer code;
 
-    private String description;
+    private String text;
 
-    private String detailDescription;
+    private String detailText;
 
-    public static String getDescription(Integer code) {
+    public static String getText(Integer code) {
         return Arrays.asList(OrderStatusEnum.values())
                 .stream().filter(e -> Objects.equals(e.code, code))
                 .findFirst()
-                .map(OrderStatusEnum::getDescription)
+                .map(OrderStatusEnum::getText)
                 .orElse("未知状态");
     }
 
-    public static String getDetailDescription(Integer code) {
+    public static String getDetailText(Integer code) {
         return Arrays.asList(OrderStatusEnum.values())
                 .stream().filter(e -> Objects.equals(e.code, code))
                 .findFirst()
-                .map(OrderStatusEnum::getDetailDescription)
+                .map(OrderStatusEnum::getDetailText)
                 .orElse("");
     }
 

@@ -23,6 +23,6 @@ public enum ApprovalStatusEnum {
 
     private String id;
 
-    private String description;
+    private String text;
 
 }

@@ -32,7 +32,7 @@ public class CustomerKnowledgeBuild {
     public boolean syncMessagesToMilvus(String sessionId, Integer syncType) {
         try {
             List<ChatMessage> chatMessages = selectMessagesBySyncType(sessionId, syncType);
-            log.info("【异步同步】同步类型: {}, sessionId: {}, 消息数量: {}", MessageTaskSyncTypeEnum.getDescription(syncType), sessionId, chatMessages.size());
+            log.info("【异步同步】同步类型: {}, sessionId: {}, 消息数量: {}", MessageTaskSyncTypeEnum.getText(syncType), sessionId, chatMessages.size());
 
             if (CollUtil.isEmpty(chatMessages)) {
                 log.info("【异步同步】没有需要同步的消息，sessionId: {}", sessionId);

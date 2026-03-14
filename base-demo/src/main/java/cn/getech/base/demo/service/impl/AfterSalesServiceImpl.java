@@ -9,17 +9,14 @@ import cn.getech.base.demo.service.AfterSalesService;
 import cn.getech.base.demo.service.OrderService;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
-
 import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.constant.PatternConstant.ORDER_NUMBER_PATTERN;
 import static cn.getech.base.demo.enums.AfterSalesTypeEnum.*;
@@ -32,52 +29,39 @@ import static cn.hutool.core.date.DatePattern.PURE_DATE_PATTERN;
 @Service
 public class AfterSalesServiceImpl implements AfterSalesService {
 
+    // 常量定义
+    private static final String STATUS_SUCCESS = "success";
+    private static final String STATUS_ERROR = "error";
+    private static final String MESSAGE_ORDER_NOT_FOUND = "未找到订单号，请提供订单号以便处理%s";
+    private static final String MESSAGE_ORDER_INVALID = "订单不存在[%s]，请检查订单号是否正确";
+    private static final String MESSAGE_APPLICATION_SUBMITTED = "%s申请已提交，服务单号: %s，%s";
+    private static final int RANDOM_NUMBER_BOUND = 99999999;
+    private static final int RANDOM_NUMBER_FORMAT_LENGTH = 8;
+
     @Autowired
     private AfterSalesMapper afterSalesMapper;
 
     @Autowired
     private OrderService orderService;
 
+    private Random random = new Random();
+
     /**
      * 处理退货申请
      */
     @Override
     public Map<String, Object> processReturnRequest(String userInput, Long userId) {
-        Map<String, Object> result = new HashMap<>();
+        log.debug("【售后申请】开始处理退货申请，用户ID: {}, 输入: {}", userId, userInput);
 
-        // 提取订单号
-        String orderNumber = extractOrderNumber(userInput);
-        if (StrUtil.isBlank(orderNumber)) {
-            result.put(STATUS, "error");
-            result.put(MESSAGE, "未找到订单号，请提供订单号以便处理退货");
-            return result;
-        }
-
-        Order order = orderService.getByOrderNumber(orderNumber);
-        if (order == null) {
-            result.put(STATUS, "error");
-            result.put(MESSAGE, String.format("退货申请未找到该订单[%s]，请检查订单号是否正确", orderNumber));
-            return result;
-        }
-
-        // 创建售后记录
-        AfterSales afterSales = new AfterSales();
-        String serviceNumber = generateServiceNumber("RS");
-        afterSales.setServiceNumber(serviceNumber);
-        afterSales.setOrderId(order.getId());
-        afterSales.setType(RETURN_REQUEST.getCode()); // 退货申请
-        afterSales.setReason("用户申请退货: " + userInput);
-        afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); // 待处理
-        afterSales.setCreateTime(LocalDateTime.now());
-        afterSales.setUserId(userId);
-        afterSalesMapper.insert(afterSales);
-
-        result.put(STATUS, "success");
-        result.put(MESSAGE, "退货申请已提交，服务单号: " + serviceNumber + "，客服将在24小时内处理");
-        result.put(SERVICE_NUMBER, serviceNumber);
-        result.put(NEXT_STEPS, Arrays.asList("1. 保持商品完好", "2. 等待客服联系", "3. 按指导寄回商品"));
-        result.put(CREATE_TIME, LocalDateTime.now());
-        return result;
+        return processAfterSalesRequest(
+                userInput,
+                userId,
+                RETURN_REQUEST,
+                "RS",
+                "退货",
+                "客服将在24小时内处理",
+                Arrays.asList("1. 保持商品完好", "2. 等待客服联系", "3. 按指导寄回商品")
+        );
     }
 
     /**
@@ -85,39 +69,17 @@ public class AfterSalesServiceImpl implements AfterSalesService {
      */
     @Override
     public Map<String, Object> processExchangeRequest(String userInput, Long userId) {
-        Map<String, Object> result = new HashMap<>();
+        log.debug("【售后申请】开始处理换货申请，用户ID: {}, 输入: {}", userId, userInput);
 
-        String orderNumber = extractOrderNumber(userInput);
-        if (StrUtil.isBlank(orderNumber)) {
-            result.put(STATUS, "error");
-            result.put(MESSAGE, "未找到订单号，请提供订单号以便处理换货");
-            return result;
-        }
-
-        Order order = orderService.getByOrderNumber(orderNumber);
-        if (order == null) {
-            result.put(STATUS, "error");
-            result.put(MESSAGE, String.format("退货申请未找到该订单[%s]，请检查订单号是否正确", orderNumber));
-            return result;
-        }
-
-        AfterSales afterSales = new AfterSales();
-        String serviceNumber = generateServiceNumber("ES");
-        afterSales.setServiceNumber(serviceNumber);
-        afterSales.setOrderId(order.getId());
-        afterSales.setType(EXCHANGE_REQUEST.getCode()); // 换货申请
-        afterSales.setReason("用户申请换货: " + userInput);
-        afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); // 待处理
-        afterSales.setCreateTime(LocalDateTime.now());
-        afterSales.setUserId(userId);
-        afterSalesMapper.insert(afterSales);
-
-        result.put(STATUS, "success");
-        result.put(MESSAGE, "换货申请已提交，服务单号: " + serviceNumber + "，客服将尽快处理");
-        result.put(SERVICE_NUMBER, serviceNumber);
-        result.put(NEXT_STEPS, Arrays.asList("1. 保持商品完好", "2. 等待客服联系", "3. 确认换货商品"));
-        result.put(CREATE_TIME, LocalDateTime.now());
-        return result;
+        return processAfterSalesRequest(
+                userInput,
+                userId,
+                EXCHANGE_REQUEST,
+                "ES",
+                "换货",
+                "客服将尽快处理",
+                Arrays.asList("1. 保持商品完好", "2. 等待客服联系", "3. 确认换货商品")
+        );
     }
 
     /**
@@ -125,39 +87,17 @@ public class AfterSalesServiceImpl implements AfterSalesService {
      */
     @Override
     public Map<String, Object> processRepairRequest(String userInput, Long userId) {
-        Map<String, Object> result = new HashMap<>();
+        log.debug("【售后申请】开始处理维修申请，用户ID: {}, 输入: {}", userId, userInput);
 
-        String orderNumber = extractOrderNumber(userInput);
-        if (StrUtil.isBlank(orderNumber)) {
-            result.put(STATUS, "error");
-            result.put(MESSAGE, "未找到订单号，请提供订单号以便处理维修");
-            return result;
-        }
-
-        Order order = orderService.getByOrderNumber(orderNumber);
-        if (order == null) {
-            result.put(STATUS, "error");
-            result.put(MESSAGE, String.format("维修申请未找到该订单[%s]，请检查订单号是否正确", orderNumber));
-            return result;
-        }
-
-        AfterSales afterSales = new AfterSales();
-        String serviceNumber = generateServiceNumber("RP");
-        afterSales.setServiceNumber(serviceNumber);
-        afterSales.setOrderId(order.getId());
-        afterSales.setType(REPAIR_REQUEST.getCode()); // 维修申请
-        afterSales.setReason("用户申请维修: " + userInput);
-        afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); //待处理
-        afterSales.setCreateTime(LocalDateTime.now());
-        afterSales.setUserId(userId);
-        afterSalesMapper.insert(afterSales);
-
-        result.put(STATUS, "success");
-        result.put(MESSAGE, "维修申请已提交，服务单号: " + serviceNumber + "，维修中心将尽快联系您");
-        result.put(SERVICE_NUMBER, serviceNumber);
-        result.put(NEXT_STEPS, Arrays.asList("1. 描述具体故障现象", "2. 等待维修中心联系", "3. 确认维修方案"));
-        result.put(CREATE_TIME, LocalDateTime.now());
-        return result;
+        return processAfterSalesRequest(
+                userInput,
+                userId,
+                REPAIR_REQUEST,
+                "RP",
+                "维修",
+                "维修中心将尽快联系您",
+                Arrays.asList("1. 描述具体故障现象", "2. 等待维修中心联系", "3. 确认维修方案")
+        );
     }
 
     /**
@@ -165,38 +105,26 @@ public class AfterSalesServiceImpl implements AfterSalesService {
      */
     @Override
     public Map<String, Object> processRefundRequest(String userInput, Long userId) {
-        Map<String, Object> result = new HashMap<>();
+        log.debug("【售后申请】开始处理退款申请，用户ID: {}, 输入: {}", userId, userInput);
 
         String orderNumber = extractOrderNumber(userInput);
         if (StrUtil.isBlank(orderNumber)) {
-            result.put(STATUS, "error");
-            result.put(MESSAGE, "未找到订单号，请提供订单号以便处理退款");
-            return result;
+            return buildErrorResult(String.format(MESSAGE_ORDER_NOT_FOUND, "退款"));
         }
 
         Order order = orderService.getByOrderNumber(orderNumber);
         if (order == null) {
-            result.put(STATUS, "error");
-            result.put(MESSAGE, String.format("退款申请未找到该订单[%s]，请检查订单号是否正确", orderNumber));
-            return result;
+            return buildErrorResult(String.format(MESSAGE_ORDER_INVALID, orderNumber));
         }
 
-        AfterSales afterSales = new AfterSales();
+        // 创建售后记录
         String serviceNumber = generateServiceNumber("RF");
-        afterSales.setServiceNumber(serviceNumber);
-        afterSales.setOrderId(order.getId());
-        afterSales.setType(AfterSalesTypeEnum.REFUND_REQUEST.getCode()); // 退款申请
-        afterSales.setReason("用户申请退款: " + userInput);
-        afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); // 待处理
+        AfterSales afterSales = createAfterSalesRecord(order.getId(), userId, REFUND_REQUEST.getCode(), serviceNumber, "用户申请退款: " + userInput);
         afterSales.setRefundAmount(BigDecimal.ZERO); // 需要根据订单计算
-        afterSales.setCreateTime(LocalDateTime.now());
-        afterSales.setUserId(userId);
         afterSalesMapper.insert(afterSales);
 
-        result.put(STATUS, "success");
-        result.put(MESSAGE, "退款申请已提交，服务单号: " + serviceNumber);
-        result.put(SERVICE_NUMBER, serviceNumber);
-        result.put("estimatedTime", "退款将在审核通过后3-5个工作日到账");
+        Map<String, Object> result = buildSuccessResult(String.format(MESSAGE_APPLICATION_SUBMITTED, "退款", serviceNumber, "退款将在审核通过后3-5个工作日到账"), serviceNumber);
+        result.put(ESTIMATED_TIME, "退款将在审核通过后3-5个工作日到账");
         result.put(CREATE_TIME, LocalDateTime.now());
         return result;
     }
@@ -206,27 +134,32 @@ public class AfterSalesServiceImpl implements AfterSalesService {
      */
     @Override
     public Map<String, Object> queryAfterSalesProgress(String serviceNumber) {
-        Map<String, Object> result = new HashMap<>();
+        log.debug("【售后查询】开始查询售后进度，服务单号: {}", serviceNumber);
+        if (StrUtil.isBlank(serviceNumber)) {
+            return buildErrorResult("服务单号不能为空");
+        }
 
         AfterSales afterSales = afterSalesMapper.selectByServiceNumber(serviceNumber);
         if (afterSales == null) {
-            result.put(STATUS, "error");
-            result.put(MESSAGE, "售后进度查询，未找到该服务单号: " + serviceNumber);
-            return result;
+            log.warn("【售后查询】服务单号不存在: {}", serviceNumber);
+            return buildErrorResult("售后进度查询，未找到该服务单号: " + serviceNumber);
         }
 
-        result.put(STATUS, "success");
+        Map<String, Object> result = new HashMap<>();
+        result.put(STATUS, STATUS_SUCCESS);
         result.put(SERVICE_NUMBER, afterSales.getServiceNumber());
-        result.put("typeCode", afterSales.getType());
-        result.put("typeText", AfterSalesTypeEnum.getDetailDescription(afterSales.getType()));
-        result.put("statusCode", afterSales.getStatus());
-        result.put("statusText", AfterSalesStatusEnum.getDescription(afterSales.getStatus()));
-        result.put("progressText", AfterSalesStatusEnum.getDetailDescription(afterSales.getStatus()));
+        result.put(TYPE, afterSales.getType());
+        result.put(TYPE_TEXT, AfterSalesTypeEnum.getDetailText(afterSales.getType()));
+        result.put(STATUS, afterSales.getStatus());
+        result.put(STATUS_TEXT, AfterSalesStatusEnum.getText(afterSales.getStatus()));
+        result.put(PROGRESS_TEXT, AfterSalesStatusEnum.getDetailText(afterSales.getStatus()));
         result.put(CREATE_TIME, afterSales.getCreateTime());
         result.put(UPDATE_TIME, afterSales.getUpdateTime());
-        result.put("reason", afterSales.getReason());
-        result.put("refundAmount", afterSales.getRefundAmount());
-        result.put("solution", afterSales.getSolution());
+        result.put(REASON, afterSales.getReason());
+        result.put(REFUND_AMOUNT, afterSales.getRefundAmount());
+        result.put(SOLUTION, afterSales.getSolution());
+
+        log.debug("【售后查询】售后进度查询成功，服务单号: {}, 状态: {}", serviceNumber, afterSales.getStatus());
         return result;
     }
 
@@ -251,8 +184,72 @@ public class AfterSalesServiceImpl implements AfterSalesService {
      */
     private String generateServiceNumber(String prefix) {
         String dateStr = DateUtil.format(LocalDateTime.now(), PURE_DATE_PATTERN);
-        String randomNum = String.format("%08d", new Random().nextInt(99999999));
+        String randomNum = String.format("%0" + RANDOM_NUMBER_FORMAT_LENGTH + "d", random.nextInt(RANDOM_NUMBER_BOUND));
         return prefix + dateStr + randomNum;
+    }
+
+    /**
+     * 处理售后申请
+     */
+    private Map<String, Object> processAfterSalesRequest(String userInput, Long userId, AfterSalesTypeEnum type, String prefix,
+                                                         String typeName, String processTime, List<String> nextSteps) {
+        String orderNumber = extractOrderNumber(userInput);
+        if (StrUtil.isBlank(orderNumber)) {
+            return buildErrorResult(String.format(MESSAGE_ORDER_NOT_FOUND, typeName));
+        }
+
+        Order order = orderService.getByOrderNumber(orderNumber);
+        if (order == null) {
+            return buildErrorResult(String.format(MESSAGE_ORDER_INVALID, orderNumber));
+        }
+
+        // 创建售后记录
+        String serviceNumber = generateServiceNumber(prefix);
+        AfterSales afterSales = createAfterSalesRecord(order.getId(), userId, type.getCode(), serviceNumber, String.format("用户申请%s: %s", typeName, userInput));
+        afterSalesMapper.insert(afterSales);
+        log.info("【售后申请】{}申请提交成功，用户ID: {}, 订单号: {}, 服务单号: {}", typeName, userId, orderNumber, serviceNumber);
+
+        Map<String, Object> result = buildSuccessResult(String.format(MESSAGE_APPLICATION_SUBMITTED, typeName, serviceNumber, processTime), serviceNumber);
+        result.put(NEXT_STEPS, nextSteps);
+        result.put(CREATE_TIME, LocalDateTime.now());
+        return result;
+    }
+
+    /**
+     * 创建售后记录
+     */
+    private AfterSales createAfterSalesRecord(Long orderId, Long userId, Integer typeCode, String serviceNumber, String reason) {
+        AfterSales afterSales = new AfterSales();
+        afterSales.setServiceNumber(serviceNumber);
+        afterSales.setOrderId(orderId);
+        afterSales.setType(typeCode);
+        afterSales.setReason(reason);
+        afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode());
+        afterSales.setCreateTime(LocalDateTime.now());
+        afterSales.setUserId(userId);
+        return afterSales;
+    }
+
+    /**
+     * 构建成功结果
+     */
+    private Map<String, Object> buildSuccessResult(String message, String serviceNumber) {
+        Map<String, Object> result = new HashMap<>();
+        result.put(STATUS, STATUS_SUCCESS);
+        result.put(MESSAGE, message);
+        result.put(SERVICE_NUMBER, serviceNumber);
+        return result;
+    }
+
+    /**
+     * 构建错误结果
+     */
+    private Map<String, Object> buildErrorResult(String message) {
+        Map<String, Object> result = new HashMap<>();
+        result.put(STATUS, STATUS_ERROR);
+        result.put(MESSAGE, message);
+        log.warn("【售后服务】错误: {}", message);
+        return result;
     }
 
 }

@@ -77,7 +77,7 @@ public class MessageSyncTaskBuild {
     private String buildDocumentContent(ChatMessage message) {
         StringBuilder content = new StringBuilder();
         content.append(CUSTOMER_SERVICE_MESSAGE_TYPE)
-                .append(ChatMessageTypeEnum.getDescription(message.getMessageType()))
+                .append(ChatMessageTypeEnum.getText(message.getMessageType()))
                 .append(CUSTOMER_SERVICE_CONTENT)
                 .append(message.getContent());
 

@@ -28,23 +28,23 @@ public enum AfterSalesStatusEnum {
 
     private Integer code;
 
-    private String description;
+    private String text;
 
-    private String detailDescription;
+    private String detailText;
 
-    public static String getDescription(Integer code) {
+    public static String getText(Integer code) {
         return Arrays.asList(AfterSalesStatusEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(AfterSalesStatusEnum::getDescription)
+                .map(AfterSalesStatusEnum::getText)
                 .orElse("未知");
     }
 
-    public static String getDetailDescription(Integer code) {
+    public static String getDetailText(Integer code) {
         return Arrays.asList(AfterSalesStatusEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(AfterSalesStatusEnum::getDetailDescription)
+                .map(AfterSalesStatusEnum::getDetailText)
                 .orElse("处理中");
     }
 

@@ -340,8 +340,8 @@ public class OrderServiceImpl implements OrderService {
         result.put(USER_ID, order.getUserId());
         result.put(USER_NAME, order.getUserName());
         result.put(STATUS, order.getStatus());
-        result.put(STATUS_DESCRIPTION, OrderStatusEnum.getDescription(order.getStatus()));
-        result.put(STATUS_DETAIL_DESCRIPTION, OrderStatusEnum.getDetailDescription(order.getStatus()));
+        result.put(STATUS_TEXT, OrderStatusEnum.getText(order.getStatus()));
+        result.put(STATUS_DETAIL_Text, OrderStatusEnum.getDetailText(order.getStatus()));
         result.put(PAYMENT_METHOD, order.getPaymentMethod());
         result.put(TOTAL_AMOUNT, order.getTotalAmount());
         result.put(SHIPPING_ADDRESS, order.getShippingAddress());

@@ -337,7 +337,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
     private void appendOrderItem(StringBuilder summary, int index, Map<String, Object> order) {
         String orderNumber = (String) order.get(ORDER_NUMBER);
         Integer status = (Integer) order.get(STATUS);
-        summary.append(String.format(ORDER_ITEM_TEMPLATE, index, orderNumber, OrderStatusEnum.getDescription(status)));
+        summary.append(String.format(ORDER_ITEM_TEMPLATE, index, orderNumber, OrderStatusEnum.getText(status)));
     }
 
     /**

@@ -41,7 +41,7 @@ public enum SplitterTypeEnum {
 
     private String name;
 
-    private String description;
+    private String text;
 
     private String recommendedUseCases;
 

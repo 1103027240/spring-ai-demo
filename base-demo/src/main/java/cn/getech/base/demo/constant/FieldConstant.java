@@ -91,9 +91,7 @@ public class FieldConstant {
 
     public static final String ORDER_EXTRACTION = "orderExtraction";
 
-    public static final String STATUS_DESCRIPTION = "statusDescription";
-
-    public static final String STATUS_DETAIL_DESCRIPTION = "statusDetailDescription";
+    public static final String STATUS_DETAIL_Text = "statusDetailText";
 
     public static final String PAYMENT_METHOD = "paymentMethod";
 
@@ -139,6 +137,20 @@ public class FieldConstant {
 
     public static final String UPDATE_TIME = "updateTime";
 
+    public static final String ESTIMATED_TIME = "estimatedTime";
 
+    public static final String TYPE = "type";
+
+    public static final String TYPE_TEXT = "typeText";
+
+    public static final String STATUS_TEXT = "statusText";
+
+    public static final String PROGRESS_TEXT = "progressText";
+
+    public static final String REASON = "reason";
+
+    public static final String REFUND_AMOUNT = "refundAmount";
+
+    public static final String SOLUTION = "solution";
 
 }

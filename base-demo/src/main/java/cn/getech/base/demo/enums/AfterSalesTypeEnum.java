@@ -32,21 +32,21 @@ public enum AfterSalesTypeEnum {
 
     private Integer code;
 
-    private String description;
+    private String text;
 
-    private String detailDescription;
+    private String detailText;
 
-    public static String getDetailDescription(Integer code) {
+    public static String getDetailText(Integer code) {
         return Arrays.asList(AfterSalesTypeEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(AfterSalesTypeEnum::getDetailDescription)
+                .map(AfterSalesTypeEnum::getDetailText)
                 .orElse("未知");
     }
 
     public static String getName(String description){
         return Arrays.asList(AfterSalesTypeEnum.values())
-                .stream().filter(e -> Objects.equals(e.getDescription(), description))
+                .stream().filter(e -> Objects.equals(e.getText(), description))
                 .findFirst()
                 .map(AfterSalesTypeEnum::name)
                 .orElse("");

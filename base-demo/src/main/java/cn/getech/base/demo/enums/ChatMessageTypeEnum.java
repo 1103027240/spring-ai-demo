@@ -26,13 +26,13 @@ public enum ChatMessageTypeEnum {
 
     private Integer code;
 
-    private String description;
+    private String text;
 
-    public static String getDescription(Integer code) {
+    public static String getText(Integer code) {
         return Arrays.asList(ChatMessageTypeEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(ChatMessageTypeEnum::getDescription)
+                .map(ChatMessageTypeEnum::getText)
                 .orElse("未知");
     }
 

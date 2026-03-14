@@ -26,13 +26,13 @@ public enum KnowledgeDocumentStatusEnum {
 
     private Integer code;
 
-    private String description;
+    private String text;
 
-    public static String getDescription(Integer code) {
+    public static String getText(Integer code) {
         return Arrays.asList(KnowledgeDocumentStatusEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(KnowledgeDocumentStatusEnum::getDescription)
+                .map(KnowledgeDocumentStatusEnum::getText)
                 .orElse("未知");
     }
 

@@ -26,15 +26,15 @@ public enum SentimentAnalysisEnum {
 
     private String id;
 
-    private String description;
+    private String text;
 
-    private String detailDescription;
+    private String detailText;
 
-    public static String getDescription(String id) {
+    public static String getText(String id) {
         return Arrays.asList(SentimentAnalysisEnum.values())
                 .stream().filter(e -> Objects.equals(e.getId(), id))
                 .findFirst()
-                .map(SentimentAnalysisEnum::getDescription)
+                .map(SentimentAnalysisEnum::getText)
                 .orElse("未知");
     }
 

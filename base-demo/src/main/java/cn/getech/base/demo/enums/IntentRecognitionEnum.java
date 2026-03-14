@@ -32,8 +32,8 @@ public enum IntentRecognitionEnum {
 
     private String id;
 
-    private String description;
+    private String text;
 
-    private String detailDescription;
+    private String detailText;
 
 }

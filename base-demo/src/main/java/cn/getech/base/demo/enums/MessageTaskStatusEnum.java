@@ -28,13 +28,13 @@ public enum MessageTaskStatusEnum {
 
     private Integer code;
 
-    private String description;
+    private String text;
 
-    public static String getDescription(Integer code) {
+    public static String getText(Integer code) {
         return Arrays.asList(MessageTaskStatusEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(MessageTaskStatusEnum::getDescription)
+                .map(MessageTaskStatusEnum::getText)
                 .orElse("未知");
     }
 

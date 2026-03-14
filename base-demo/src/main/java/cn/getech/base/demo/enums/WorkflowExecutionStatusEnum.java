@@ -29,13 +29,13 @@ public enum WorkflowExecutionStatusEnum {
 
     private String id;
 
-    private String description;
+    private String text;
 
-    public static String getDescription(String id) {
+    public static String getText(String id) {
         return Arrays.asList(WorkflowExecutionStatusEnum.values())
                 .stream().filter(e -> Objects.equals(e.getId(), id))
                 .findFirst()
-                .map(WorkflowExecutionStatusEnum::getDescription)
+                .map(WorkflowExecutionStatusEnum::getText)
                 .orElse("未知");
     }
 

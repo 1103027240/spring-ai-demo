@@ -27,13 +27,13 @@ public enum ChatSessionStatusEnum {
 
     private Integer code;
 
-    private String description;
+    private String text;
 
     public static String getDescription(Integer code) {
         return Arrays.asList(ChatSessionStatusEnum.values())
                 .stream().filter(e -> Objects.equals(e.getCode(), code))
                 .findFirst()
-                .map(ChatSessionStatusEnum::getDescription)
+                .map(ChatSessionStatusEnum::getText)
                 .orElse("未知");
     }
 

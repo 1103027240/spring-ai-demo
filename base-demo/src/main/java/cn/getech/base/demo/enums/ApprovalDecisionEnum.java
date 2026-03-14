@@ -25,6 +25,6 @@ public enum ApprovalDecisionEnum {
 
     private String id;
 
-    private String description;
+    private String text;
 
 }
