@@ -5,6 +5,7 @@ import cn.getech.base.demo.enums.OrderQueryTypeEnum;
 import cn.getech.base.demo.enums.OrderStatusEnum;
 import cn.getech.base.demo.mapper.OrderMapper;
 import cn.getech.base.demo.service.OrderService;
+import cn.getech.base.demo.tools.ParamUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Map<String, Object>> queryOrders(Map<String, Object> queryParams) {
         log.info("【订单查询】开始查询，请求参数: {}", queryParams);
-        String queryType = getQueryParam(queryParams, QUERY_TYPE, String.class);
+        String queryType = ParamUtils.getQueryParam(queryParams, QUERY_TYPE, String.class);
 
         try {
             return executeQueryByType(queryType, queryParams);
@@ -105,7 +106,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 复制相关参数
         String[] paramKeys = {USER_ID, STATUS, ORDER_BY, ORDER_DESC, LIMIT};
-        copyValidParams(queryParams, params, paramKeys);
+        ParamUtils.copyValidParams(queryParams, params, paramKeys);
 
         // 处理时间范围
         //setDefaultTimeRange(params, queryParams, DEFAULT_QUERY_DAYS);
@@ -124,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 复制相关参数
         String[] paramKeys = {USER_ID, START_TIME, END_TIME, ORDER_BY, ORDER_DESC, LIMIT};
-        copyValidParams(queryParams, params, paramKeys);
+        ParamUtils.copyValidParams(queryParams, params, paramKeys);
 
         // 处理时间范围
         setDefaultTimeRange(params, queryParams, DEFAULT_QUERY_DAYS);
@@ -140,7 +141,7 @@ public class OrderServiceImpl implements OrderService {
      */
     public List<Map<String, Object>> queryByProduct(Map<String, Object> queryParams) {
         // 商品关键词（必需）
-        String productKeyword = getQueryParam(queryParams, PRODUCT_KEYWORD, String.class);
+        String productKeyword = ParamUtils.getQueryParam(queryParams, PRODUCT_KEYWORD, String.class);
         if (StrUtil.isBlank(productKeyword)) {
             log.warn("【按商品查询】商品关键词为空");
             return Collections.emptyList();
@@ -149,7 +150,7 @@ public class OrderServiceImpl implements OrderService {
         // 复制相关参数
         Map<String, Object> params = new HashMap<>();
         String[] paramKeys = {USER_ID, PRODUCT_KEYWORD, ORDER_BY, ORDER_DESC, LIMIT};
-        copyValidParams(queryParams, params, paramKeys);
+        ParamUtils.copyValidParams(queryParams, params, paramKeys);
 
         // 设置时间范围
         //setDefaultTimeRange(params, queryParams, DEFAULT_PRODUCT_QUERY_DAYS);
@@ -168,7 +169,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 复制相关参数
         String[] paramKeys = {USER_ID, ORDER_NUMBER, STATUS, PRODUCT_KEYWORD, START_TIME, END_TIME, ORDER_BY, ORDER_DESC, LIMIT};
-        copyValidParams(queryParams, params, paramKeys);
+        ParamUtils.copyValidParams(queryParams, params, paramKeys);
 
         // 设置时间范围
         //setDefaultTimeRange(params, params, DEFAULT_QUERY_DAYS);
@@ -183,7 +184,7 @@ public class OrderServiceImpl implements OrderService {
      * 查询用户最近订单
      */
     public List<Map<String, Object>> queryUserRecentOrders(Map<String, Object> queryParams) {
-        Long userId = getQueryParam(queryParams, USER_ID, Long.class);
+        Long userId = ParamUtils.getQueryParam(queryParams, USER_ID, Long.class);
         if (userId == null) {
             log.warn("【按用户最近订单查询】用户ID为空");
             return Collections.emptyList();
@@ -205,7 +206,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 2. 检查用户ID
-        Long userId = getQueryParam(queryParams, USER_ID, Long.class);
+        Long userId = ParamUtils.getQueryParam(queryParams, USER_ID, Long.class);
         if (userId == null) {
             log.warn("【智能查询】用户ID为空，无法查询");
             return Collections.emptyList();
@@ -226,7 +227,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 复制相关参数
         String[] paramKeys = {USER_ID, STATUS, PRODUCT_KEYWORD, START_TIME, END_TIME, ORDER_BY, ORDER_DESC, LIMIT};
-        copyValidParams(queryParams, condition, paramKeys);
+        ParamUtils.copyValidParams(queryParams, condition, paramKeys);
 
         // 设置时间范围
         //setDefaultTimeRange(params, params, DEFAULT_QUERY_DAYS);
@@ -272,7 +273,7 @@ public class OrderServiceImpl implements OrderService {
      * 检查订单访问权限
      */
     private boolean hasOrderAccessPermission(Order order, Map<String, Object> queryParams) {
-        Long userId = getQueryParam(queryParams, USER_ID, Long.class);
+        Long userId = ParamUtils.getQueryParam(queryParams, USER_ID, Long.class);
         if (userId != null && !userId.equals(order.getUserId())) {
             log.warn("【订单权限验证】订单不属于当前用户，订单用户ID: {}，当前用户ID: {}", order.getUserId(), userId);
             return false;
@@ -331,63 +332,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 复制有效参数
-     */
-    private void copyValidParams(Map<String, Object> source, Map<String, Object> target, String[] keys) {
-        for (String key : keys) {
-            if (source.containsKey(key) && source.get(key) != null) {
-                target.put(key, source.get(key));
-            }
-        }
-    }
-
-    /**
-     * 安全获取查询参数（指定类型）
-     */
-    private <T> T getQueryParam(Map<String, Object> params, String key, Class<T> type) {
-        Object value = params.get(key);
-        if (value == null) {
-            return null;
-        }
-
-        try {
-            if (type.isInstance(value)) {
-                return (T) value;
-            }
-
-            // 特殊处理：String 到基本类型的转换
-            if (type == Integer.class || type == int.class) {
-                return (T) Integer.valueOf(value.toString());
-            }
-            if (type == Long.class || type == long.class) {
-                return (T) Long.valueOf(value.toString());
-            }
-            if (type == Double.class || type == double.class) {
-                return (T) Double.valueOf(value.toString());
-            }
-            log.debug("【参数获取】类型不匹配，期望: {}, 实际: {}, 值: {}", type, value.getClass(), value);
-            return null;
-        } catch (Exception e) {
-            log.warn("【参数获取】参数转换失败，键: {}, 值: {}, 目标类型: {}", key, value, type);
-            return null;
-        }
-    }
-
-    /**
      * 安全获取查询参数并转为整数
      */
     private int getQueryParamAsInt(Map<String, Object> params, String key, int defaultValue) {
-        Integer value = getQueryParam(params, key, Integer.class);
+        Integer value = ParamUtils.getQueryParam(params, key, Integer.class);
         return value != null ? value : defaultValue;
-    }
-
-    /**
-     * 如果参数存在且不为空，则放入目标Map
-     */
-    private void putParamIfPresent(Map<String, Object> target, Map<String, Object> source, String key) {
-        if (source.containsKey(key) && source.get(key) != null) {
-            target.put(key, source.get(key));
-        }
     }
 
     /**

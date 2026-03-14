@@ -3,6 +3,7 @@ package cn.getech.base.demo.node.customer;
 import cn.getech.base.demo.converter.OrderStatusConverter;
 import cn.getech.base.demo.enums.OrderStatusEnum;
 import cn.getech.base.demo.service.OrderService;
+import cn.getech.base.demo.tools.ParamUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
@@ -207,10 +208,10 @@ public class OrderQueryNode implements NodeActionWithConfig {
         }
 
         // 订单号
-        putIfValid(queryParams, extractedInfo, ORDER_NUMBER);
+        ParamUtils.putIfValid(queryParams, extractedInfo, ORDER_NUMBER);
 
         // 订单状态
-        putIfValid(queryParams, extractedInfo, ORDER_STATUS);
+        ParamUtils.putIfValid(queryParams, extractedInfo, ORDER_STATUS);
 
         // 商品信息
         if (extractedInfo.containsKey(PRODUCT_INFO) && extractedInfo.get(PRODUCT_INFO) != null) {
@@ -241,15 +242,6 @@ public class OrderQueryNode implements NodeActionWithConfig {
             if (StrUtil.isNotBlank(value) && !"null".equalsIgnoreCase(value)) {
                 result.put(key, value);
             }
-        }
-    }
-
-    /**
-     * 将有效值放入Map
-     */
-    private void putIfValid(Map<String, Object> target, Map<String, Object> source, String key) {
-        if (source.containsKey(key) && source.get(key) != null) {
-            target.put(key, source.get(key));
         }
     }
 
