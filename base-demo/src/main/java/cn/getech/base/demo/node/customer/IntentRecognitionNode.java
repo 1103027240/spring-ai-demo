@@ -94,7 +94,7 @@ public class IntentRecognitionNode implements NodeActionWithConfig {
         if (normalized.contains("order") || normalized.contains("订单")) {
             return ORDER_QUERY.getId();
         } else if (normalized.contains("product") || normalized.contains("商品") || normalized.contains("产品")) {
-            return PRODUCT_INFO.getId();
+            return IntentRecognitionEnum.PRODUCT_INFO.getId();
         } else if (normalized.contains("after_sales") || normalized.contains("售后") || normalized.contains("退货") || normalized.contains("换货") || normalized.contains("退款")) {
             return AFTER_SALES.getId();
         } else if (normalized.contains("payment") || normalized.contains("支付") || normalized.contains("付款")) {

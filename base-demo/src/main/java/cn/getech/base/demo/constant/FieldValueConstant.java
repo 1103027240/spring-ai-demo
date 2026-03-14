@@ -173,4 +173,34 @@ public class FieldValueConstant {
 
     public static final String THREAD_ID = "thread_id";
 
+    public static final String ORDER_STATUS = "orderStatus";
+
+    public static final String PRODUCT_INFO = "productInfo";
+
+    public static final String PRODUCT_KEYWORD = "productKeyword";
+
+    public static final String START_TIME = "startTime";
+
+    public static final String END_TIME = "endTime";
+
+    public static final String TIME_RANGE = "timeRange";
+
+    public static final String EXTRACTED_KEYWORDS = "extractedKeywords";
+
+    public static final String USER_INTENT_DESCRIPTION = "userIntentDescription";
+
+    public static final String USER_INTENT = "userIntent";
+
+    public static final String LIMIT = "limit";
+
+    public static final String ORDER_COUNT = "orderCount";
+
+    public static final String HAS_RESULTS = "hasResults";
+
+    public static final String QUERY_SUMMARY = "querySummary";
+
+    public static final String ORDER_BY = "orderBy";
+
+    public static final String ORDER_DESC = "orderDesc";
+
 }

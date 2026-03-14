@@ -11,8 +11,6 @@ public interface OrderService {
 
     List<Map<String, Object>> queryOrders(Map<String, Object> queryParams);
 
-    Map<String, Object> getUserOrderStats(Long userId);
-
     Order getByOrderId(String orderNumber);
 
 }
