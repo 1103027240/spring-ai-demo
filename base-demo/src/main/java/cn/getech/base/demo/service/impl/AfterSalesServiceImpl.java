@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.regex.Matcher;
-import static cn.getech.base.demo.constant.FieldValueConstant.ORDER_NUMBER_PATTERN;
+import static cn.getech.base.demo.constant.PatternConstant.ORDER_NUMBER_PATTERN;
 import static cn.getech.base.demo.enums.AfterSalesTypeEnum.*;
 import static cn.hutool.core.date.DatePattern.PURE_DATE_PATTERN;
 
@@ -51,7 +51,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
             return result;
         }
 
-        Order order = orderService.getByOrderId(orderNumber);
+        Order order = orderService.getByOrderNumber(orderNumber);
         if (order == null) {
             result.put("status", "error");
             result.put("message", String.format("退货申请未找到该订单[%s]，请检查订单号是否正确", orderNumber));
@@ -92,7 +92,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
             return result;
         }
 
-        Order order = orderService.getByOrderId(orderNumber);
+        Order order = orderService.getByOrderNumber(orderNumber);
         if (order == null) {
             result.put("status", "error");
             result.put("message", String.format("退货申请未找到该订单[%s]，请检查订单号是否正确", orderNumber));
@@ -132,7 +132,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
             return result;
         }
 
-        Order order = orderService.getByOrderId(orderNumber);
+        Order order = orderService.getByOrderNumber(orderNumber);
         if (order == null) {
             result.put("status", "error");
             result.put("message", String.format("维修申请未找到该订单[%s]，请检查订单号是否正确", orderNumber));
@@ -172,7 +172,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
             return result;
         }
 
-        Order order = orderService.getByOrderId(orderNumber);
+        Order order = orderService.getByOrderNumber(orderNumber);
         if (order == null) {
             result.put("status", "error");
             result.put("message", String.format("退款申请未找到该订单[%s]，请检查订单号是否正确", orderNumber));

@@ -8,6 +8,7 @@ import java.util.Map;
 import static cn.getech.base.demo.constant.FieldValueConstant.*;
 import static cn.getech.base.demo.constant.FieldValueConstant.AFTER_SALES_RESULT;
 import static cn.getech.base.demo.constant.FieldValueConstant.ORDER_RESULTS;
+import static cn.getech.base.demo.constant.PatternConstant.AI_RESPONSE_KEYS;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.AFTER_SALES;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.ORDER_QUERY;
 import static cn.getech.base.demo.enums.WorkflowExecutionStatusEnum.SUCCESS;
