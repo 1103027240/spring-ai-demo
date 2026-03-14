@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import static cn.getech.base.demo.constant.FieldConstant.*;
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 import static cn.getech.base.demo.constant.PatternConstant.ORDER_NUMBER_PATTERN;
 import static cn.hutool.core.date.DatePattern.NORM_DATETIME_FORMATTER;
 
@@ -40,41 +41,36 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Map<String, Object>> queryOrders(Map<String, Object> queryParams) {
         log.info("【订单查询】开始查询，请求参数: {}", queryParams);
-        List<Map<String, Object>> results = new ArrayList<>();
+        String queryType = getQueryParam(queryParams, QUERY_TYPE, String.class);
 
         try {
-            String queryType = (String) queryParams.get(QUERY_TYPE);
-            OrderQueryTypeEnum orderQueryTypeEnum = OrderQueryTypeEnum.valueOf(queryType);
-            if (StrUtil.isNotBlank(queryType)) {
-                switch (orderQueryTypeEnum) {
-                    case BY_ORDER_NUMBER:
-                        results = queryByOrderNumber(queryParams);
-                        break;
-                    case BY_STATUS:
-                        results = queryByStatus(queryParams);
-                        break;
-                    case BY_TIME_RANGE:
-                        results = queryByTimeRange(queryParams);
-                        break;
-                    case BY_PRODUCT:
-                        results = queryByProduct(queryParams);
-                        break;
-                    case COMPLEX_QUERY:
-                        results = queryByComplexConditions(queryParams);
-                        break;
-                    case BY_USER_RECENT:
-                    default:
-                        results = queryUserRecentOrders(queryParams);
-                        break;
-                }
-            } else {  // 如果没有指定查询类型，使用智能路由
-                results = queryOrdersIntelligent(queryParams);
-            }
-            log.info("【订单查询】查询完成，查询类型: {}, 结果数量: {}", queryType, results.size());
+            return executeQueryByType(queryType, queryParams);
+        } catch (IllegalArgumentException e) {
+            log.warn("【订单查询】查询类型参数无效: {}, 使用智能路由", queryType);
+            return queryOrdersIntelligent(queryParams);
         } catch (Exception e) {
-            log.error("【订单查询】查询失败，参数: {}", queryParams, e);
+            log.error("【订单查询】查询失败，参数: {}, 耗时: {}ms", queryParams, e);
+            return Collections.emptyList();
         }
-        return results;
+    }
+
+    /**
+     * 根据查询类型执行查询
+     */
+    private List<Map<String, Object>> executeQueryByType(String queryType, Map<String, Object> queryParams) {
+        if (StrUtil.isBlank(queryType)) {
+            return queryOrdersIntelligent(queryParams);
+        }
+
+        OrderQueryTypeEnum orderQueryTypeEnum = parseQueryType(queryType);
+        return switch (orderQueryTypeEnum) {
+            case BY_ORDER_NUMBER -> queryByOrderNumber(queryParams);
+            case BY_STATUS -> queryByStatus(queryParams);
+            case BY_TIME_RANGE -> queryByTimeRange(queryParams);
+            case BY_PRODUCT -> queryByProduct(queryParams);
+            case COMPLEX_QUERY -> queryByComplexConditions(queryParams);
+            default -> queryUserRecentOrders(queryParams);
+        };
     }
 
     @Override
@@ -86,67 +82,38 @@ public class OrderServiceImpl implements OrderService {
      * 按订单号查询
      */
     public List<Map<String, Object>> queryByOrderNumber(Map<String, Object> queryParams) {
-        List<Map<String, Object>> results = new ArrayList<>();
-
         String orderNumber = extractOrderNumber(queryParams);
         if (StrUtil.isBlank(orderNumber)) {
             log.warn("【按订单号查询】订单号为空");
-            return results;
+            return Collections.emptyList();
         }
 
-        Order order = orderMapper.getByOrderNumber(orderNumber);
-        if (order != null) {
-            // 验证用户权限
-            Long userId = (Long) queryParams.get(USER_ID);
-            if (userId != null && !userId.equals(order.getUserId())) {
-                log.warn("【按订单号查询】订单不属于当前用户，订单用户ID: {}，当前用户ID: {}", order.getUserId(), userId);
-                return results;
-            }
-            results.add(convertOrderToMap(order));
-        }
-
-        return results;
+        return Optional.ofNullable(orderMapper.getByOrderNumber(orderNumber))
+                .filter(order -> hasOrderAccessPermission(order, queryParams))
+                .map(order -> Collections.singletonList(convertOrderToMap(order)))
+                .orElseGet(() -> {
+                    log.debug("【按订单号查询】订单不存在: {}", orderNumber);
+                    return Collections.emptyList();
+                });
     }
 
     /**
      * 按状态查询
      */
     public List<Map<String, Object>> queryByStatus(Map<String, Object> queryParams) {
-        // 构建查询参数
         Map<String, Object> params = new HashMap<>();
-        params.put(USER_ID, queryParams.get(USER_ID));
-        params.put(STATUS, queryParams.get(STATUS));
 
-        // 设置时间范围
-        LocalDateTime endTime = LocalDateTime.now();
-        LocalDateTime startTime = endTime.minusDays(30);
+        // 复制相关参数
+        String[] paramKeys = {USER_ID, STATUS, ORDER_BY, ORDER_DESC, LIMIT};
+        copyValidParams(queryParams, params, paramKeys);
 
-        if (queryParams.containsKey(START_TIME)) {
-            Object startTimeObj = queryParams.get(START_TIME);
-            if (startTimeObj instanceof String) {
-                startTime = LocalDateTime.parse((String) startTimeObj, NORM_DATETIME_FORMATTER);
-            } else if (startTimeObj instanceof LocalDateTime) {
-                startTime = (LocalDateTime) startTimeObj;
-            }
-        }
+        // 处理时间范围
+        //setDefaultTimeRange(params, queryParams, DEFAULT_QUERY_DAYS);
 
-        if (queryParams.containsKey(END_TIME)) {
-            Object endTimeObj = queryParams.get(END_TIME);
-            if (endTimeObj instanceof String) {
-                endTime = LocalDateTime.parse((String) endTimeObj, NORM_DATETIME_FORMATTER);
-            } else if (endTimeObj instanceof LocalDateTime) {
-                endTime = (LocalDateTime) endTimeObj;
-            }
-        }
+        // 设置分页
+        params.put(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
 
-        params.put(START_TIME, startTime);
-        params.put(END_TIME, endTime);
-        params.put(LIMIT, queryParams.getOrDefault(LIMIT, 20));
-
-        List<Order> orders = orderMapper.selectByStatusAndTimeRange(params);
-        return orders.stream()
-                .map(this::convertOrderToMap)
-                .collect(Collectors.toList());
+        return convertOrders(orderMapper.selectByStatusAndTimeRange(params));
     }
 
     /**
@@ -155,59 +122,42 @@ public class OrderServiceImpl implements OrderService {
     public List<Map<String, Object>> queryByTimeRange(Map<String, Object> queryParams) {
         Map<String, Object> params = new HashMap<>();
 
-        if (queryParams.containsKey(USER_ID)) {
-            params.put(USER_ID, queryParams.get(USER_ID));
-        }
+        // 复制相关参数
+        String[] paramKeys = {USER_ID, START_TIME, END_TIME, ORDER_BY, ORDER_DESC, LIMIT};
+        copyValidParams(queryParams, params, paramKeys);
 
         // 处理时间范围
-        if (queryParams.containsKey(START_TIME)) {
-            params.put(START_TIME, queryParams.get(START_TIME));
-        } else {
-            params.put(START_TIME, LocalDateTime.now().minusDays(30));
-        }
+        setDefaultTimeRange(params, queryParams, DEFAULT_QUERY_DAYS);
 
-        if (queryParams.containsKey(END_TIME)) {
-            params.put(END_TIME, queryParams.get(END_TIME));
-        } else {
-            params.put(END_TIME, LocalDateTime.now());
-        }
+        // 设置分页
+        params.put(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
 
-        params.put(LIMIT, queryParams.getOrDefault(LIMIT, 20));
-
-        List<Order> orders = orderMapper.selectByTimeRange(params);
-        return orders.stream()
-                .map(this::convertOrderToMap)
-                .collect(Collectors.toList());
+        return convertOrders(orderMapper.selectByTimeRange(params));
     }
 
     /**
      * 按商品查询
      */
     public List<Map<String, Object>> queryByProduct(Map<String, Object> queryParams) {
+        // 商品关键词（必需）
+        String productKeyword = getQueryParam(queryParams, PRODUCT_KEYWORD, String.class);
+        if (StrUtil.isBlank(productKeyword)) {
+            log.warn("【按商品查询】商品关键词为空");
+            return Collections.emptyList();
+        }
+
+        // 复制相关参数
         Map<String, Object> params = new HashMap<>();
-
-        if (queryParams.containsKey(USER_ID)) {
-            params.put(USER_ID, queryParams.get(USER_ID));
-        }
-
-        if (queryParams.containsKey(PRODUCT_KEYWORD)) {
-            params.put(PRODUCT_KEYWORD, queryParams.get(PRODUCT_KEYWORD));
-        }
+        String[] paramKeys = {USER_ID, PRODUCT_KEYWORD, ORDER_BY, ORDER_DESC, LIMIT};
+        copyValidParams(queryParams, params, paramKeys);
 
         // 设置时间范围
-        if (!params.containsKey(START_TIME)) {
-            params.put(START_TIME, LocalDateTime.now().minusDays(90)); // 商品查询范围更大
-        }
-        if (!params.containsKey(END_TIME)) {
-            params.put(END_TIME, LocalDateTime.now());
-        }
+        //setDefaultTimeRange(params, queryParams, DEFAULT_PRODUCT_QUERY_DAYS);
 
-        params.put(LIMIT, queryParams.getOrDefault(LIMIT, 20));
+        // 设置分页
+        params.put(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
 
-        List<Order> orders = orderMapper.selectByProductKeyword(params);
-        return orders.stream()
-                .map(this::convertOrderToMap)
-                .collect(Collectors.toList());
+        return convertOrders(orderMapper.selectByProductKeyword(params));
     }
 
     /**
@@ -217,49 +167,30 @@ public class OrderServiceImpl implements OrderService {
         Map<String, Object> params = new HashMap<>();
 
         // 复制相关参数
-        String[] paramKeys = {USER_ID, ORDER_NUMBER, STATUS, PRODUCT_KEYWORD, START_TIME, END_TIME, LIMIT};
+        String[] paramKeys = {USER_ID, ORDER_NUMBER, STATUS, PRODUCT_KEYWORD, START_TIME, END_TIME, ORDER_BY, ORDER_DESC, LIMIT};
+        copyValidParams(queryParams, params, paramKeys);
 
-        for (String key : paramKeys) {
-            if (queryParams.containsKey(key) && queryParams.get(key) != null) {
-                params.put(key, queryParams.get(key));
-            }
-        }
+        // 设置时间范围
+        //setDefaultTimeRange(params, params, DEFAULT_QUERY_DAYS);
 
-        // 设置默认值
-        if (!params.containsKey(LIMIT)) {
-            params.put(LIMIT, 20);
-        }
+        // 设置分页
+        params.putIfAbsent(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
 
-        if (!params.containsKey(START_TIME)) {
-            params.put(START_TIME, LocalDateTime.now().minusDays(30));
-        }
-
-        if (!params.containsKey(END_TIME)) {
-            params.put(END_TIME, LocalDateTime.now());
-        }
-
-        List<Order> orders = orderMapper.selectByCondition(params);
-        return orders.stream()
-                .map(this::convertOrderToMap)
-                .collect(Collectors.toList());
+        return convertOrders(orderMapper.selectByCondition(params));
     }
 
     /**
      * 查询用户最近订单
      */
     public List<Map<String, Object>> queryUserRecentOrders(Map<String, Object> queryParams) {
-        Long userId = (Long) queryParams.get(USER_ID);
+        Long userId = getQueryParam(queryParams, USER_ID, Long.class);
         if (userId == null) {
             log.warn("【按用户最近订单查询】用户ID为空");
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
-        int limit = (int) queryParams.getOrDefault(LIMIT, 5);
-
-        List<Order> orders = orderMapper.selectRecentOrdersByUserId(userId, limit);
-        return orders.stream()
-                .map(this::convertOrderToMap)
-                .collect(Collectors.toList());
+        int limit = getQueryParamAsInt(queryParams, LIMIT, DEFAULT_USER_RECENT_LIMIT);
+        return convertOrders(orderMapper.selectRecentOrdersByUserId(userId, limit));
     }
 
     /**
@@ -274,44 +205,37 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 2. 检查用户ID
-        Long userId = (Long) queryParams.get(USER_ID);
+        Long userId = getQueryParam(queryParams, USER_ID, Long.class);
         if (userId == null) {
             log.warn("【智能查询】用户ID为空，无法查询");
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         // 3. 构建查询条件
+        Map<String, Object> condition = buildIntelligentQueryCondition(queryParams);
+
+        // 4. 执行查询
+        return convertOrders(orderMapper.selectByCondition(condition));
+    }
+
+    /**
+     * 构建智能查询条件
+     */
+    private Map<String, Object> buildIntelligentQueryCondition(Map<String, Object> queryParams) {
         Map<String, Object> condition = new HashMap<>();
-        condition.put(USER_ID, userId);
 
-        // 4. 检查状态条件
-        if (queryParams.containsKey(STATUS) && queryParams.get(STATUS) != null) {
-            condition.put(STATUS, queryParams.get(STATUS));
-        }
+        // 复制相关参数
+        String[] paramKeys = {USER_ID, STATUS, PRODUCT_KEYWORD, START_TIME, END_TIME, ORDER_BY, ORDER_DESC, LIMIT};
+        copyValidParams(queryParams, condition, paramKeys);
 
-        // 5. 检查时间范围
-        if (queryParams.containsKey(START_TIME) && queryParams.get(START_TIME) != null) {
-            condition.put(START_TIME, queryParams.get(START_TIME));
-        }
-        if (queryParams.containsKey(END_TIME) && queryParams.get(END_TIME) != null) {
-            condition.put(END_TIME, queryParams.get(END_TIME));
-        }
+        // 设置时间范围
+        //setDefaultTimeRange(params, params, DEFAULT_QUERY_DAYS);
 
-        // 6. 检查商品关键词
-        if (queryParams.containsKey(PRODUCT_KEYWORD) && StrUtil.isNotBlank(queryParams.get(PRODUCT_KEYWORD).toString())) {
-            condition.put(PRODUCT_KEYWORD, queryParams.get(PRODUCT_KEYWORD));
-        }
+        // 设置默认分页
+        condition.putIfAbsent(LIMIT, DEFAULT_LIMIT);
 
-        // 7. 设置默认分页
-        if (!condition.containsKey(LIMIT)) {
-            condition.put(LIMIT, 20);
-        }
-
-        // 8. 执行查询
-        List<Order> orders = orderMapper.selectByCondition(condition);
-        return orders.stream()
-                .map(this::convertOrderToMap)
-                .collect(Collectors.toList());
+        log.debug("【智能查询】构建查询条件: {}", condition);
+        return condition;
     }
 
     /**
@@ -342,6 +266,140 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return null;
+    }
+
+    /**
+     * 检查订单访问权限
+     */
+    private boolean hasOrderAccessPermission(Order order, Map<String, Object> queryParams) {
+        Long userId = getQueryParam(queryParams, USER_ID, Long.class);
+        if (userId != null && !userId.equals(order.getUserId())) {
+            log.warn("【订单权限验证】订单不属于当前用户，订单用户ID: {}，当前用户ID: {}", order.getUserId(), userId);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 转换订单列表为Map列表
+     */
+    private List<Map<String, Object>> convertOrders(List<Order> orders) {
+        if (CollUtil.isEmpty(orders)) {
+            return Collections.emptyList();
+        }
+        return orders.stream()
+                .map(this::convertOrderToMap)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 设置默认时间范围
+     */
+    private void setDefaultTimeRange(Map<String, Object> targetParams, Map<String, Object> sourceParams, int defaultDays) {
+        LocalDateTime now = LocalDateTime.now();
+
+        // 处理开始时间
+        if (sourceParams.containsKey(START_TIME) && sourceParams.get(START_TIME) != null) {
+            targetParams.put(START_TIME, parseTimeField(sourceParams.get(START_TIME)));
+        } else {
+            targetParams.put(START_TIME, now.minusDays(defaultDays));
+        }
+
+        // 处理结束时间
+        if (sourceParams.containsKey(END_TIME) && sourceParams.get(END_TIME) != null) {
+            targetParams.put(END_TIME, parseTimeField(sourceParams.get(END_TIME)));
+        } else {
+            targetParams.put(END_TIME, now);
+        }
+    }
+
+    /**
+     * 解析时间字段（支持String和LocalDateTime）
+     */
+    private LocalDateTime parseTimeField(Object timeObj) {
+        if (timeObj instanceof LocalDateTime) {
+            return (LocalDateTime) timeObj;
+        } else if (timeObj instanceof String) {
+            try {
+                return LocalDateTime.parse((String) timeObj, NORM_DATETIME_FORMATTER);
+            } catch (Exception e) {
+                log.warn("【订单查询】时间格式解析失败: {}", timeObj);
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 复制有效参数
+     */
+    private void copyValidParams(Map<String, Object> source, Map<String, Object> target, String[] keys) {
+        for (String key : keys) {
+            if (source.containsKey(key) && source.get(key) != null) {
+                target.put(key, source.get(key));
+            }
+        }
+    }
+
+    /**
+     * 安全获取查询参数（指定类型）
+     */
+    private <T> T getQueryParam(Map<String, Object> params, String key, Class<T> type) {
+        Object value = params.get(key);
+        if (value == null) {
+            return null;
+        }
+
+        try {
+            if (type.isInstance(value)) {
+                return (T) value;
+            }
+
+            // 特殊处理：String 到基本类型的转换
+            if (type == Integer.class || type == int.class) {
+                return (T) Integer.valueOf(value.toString());
+            }
+            if (type == Long.class || type == long.class) {
+                return (T) Long.valueOf(value.toString());
+            }
+            if (type == Double.class || type == double.class) {
+                return (T) Double.valueOf(value.toString());
+            }
+            log.debug("【参数获取】类型不匹配，期望: {}, 实际: {}, 值: {}", type, value.getClass(), value);
+            return null;
+        } catch (Exception e) {
+            log.warn("【参数获取】参数转换失败，键: {}, 值: {}, 目标类型: {}", key, value, type);
+            return null;
+        }
+    }
+
+    /**
+     * 安全获取查询参数并转为整数
+     */
+    private int getQueryParamAsInt(Map<String, Object> params, String key, int defaultValue) {
+        Integer value = getQueryParam(params, key, Integer.class);
+        return value != null ? value : defaultValue;
+    }
+
+    /**
+     * 如果参数存在且不为空，则放入目标Map
+     */
+    private void putParamIfPresent(Map<String, Object> target, Map<String, Object> source, String key) {
+        if (source.containsKey(key) && source.get(key) != null) {
+            target.put(key, source.get(key));
+        }
+    }
+
+    /**
+     * 解析查询类型枚举
+     */
+    private OrderQueryTypeEnum parseQueryType(String queryType) {
+        try {
+            return OrderQueryTypeEnum.valueOf(queryType);
+        } catch (IllegalArgumentException e) {
+            log.debug("【订单查询】未知查询类型: {}", queryType);
+            return null;
+        }
     }
 
     /**

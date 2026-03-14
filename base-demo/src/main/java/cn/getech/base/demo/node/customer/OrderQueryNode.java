@@ -15,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;

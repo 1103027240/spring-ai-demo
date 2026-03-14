@@ -218,8 +218,8 @@
                 <version>3.13.0</version>
                 <configuration>
                     <!-- 指定 JDK 版本编译 -->
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
+                    <source>21</source>
+                    <target>21</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <annotationProcessorPaths>
                         <path>
