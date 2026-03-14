@@ -3,7 +3,7 @@ package cn.getech.base.demo.node.customer;
 import cn.getech.base.demo.converter.OrderStatusConverter;
 import cn.getech.base.demo.enums.OrderStatusEnum;
 import cn.getech.base.demo.service.OrderService;
-import cn.getech.base.demo.tools.ParamUtils;
+import cn.getech.base.demo.utils.ParamUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
@@ -137,9 +137,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
         Map<String, Object> extractedInfo = parseAIResponse(aiResponse);
 
         // 处理用户ID
-        if (userId != null) {
-            extractedInfo.put(USER_ID, userId);
-        }
+        extractedInfo.put(USER_ID, userId);
 
         // 处理queryType
         String queryType = (String) extractedInfo.get(QUERY_TYPE);
@@ -199,27 +197,14 @@ public class OrderQueryNode implements NodeActionWithConfig {
     private Map<String, Object> buildQueryParams(Map<String, Object> extractedInfo) {
         Map<String, Object> queryParams = new HashMap<>();
 
-        // 用户ID
-        queryParams.put(USER_ID, extractedInfo.get(USER_ID));
-
-        // 查询类型
-        if (extractedInfo.containsKey(QUERY_TYPE)) {
-            queryParams.put(QUERY_TYPE, extractedInfo.get(QUERY_TYPE));
-        }
-
-        // 订单号
-        ParamUtils.putIfValid(queryParams, extractedInfo, ORDER_NUMBER);
-
-        // 订单状态
-        ParamUtils.putIfValid(queryParams, extractedInfo, ORDER_STATUS);
+        // 复制相关参数
+        String[] paramKeys = {USER_ID, QUERY_TYPE, ORDER_NUMBER, STATUS, START_TIME, END_TIME};
+        ParamUtils.copyValidParams(extractedInfo, queryParams, paramKeys);
 
         // 商品信息
         if (extractedInfo.containsKey(PRODUCT_INFO) && extractedInfo.get(PRODUCT_INFO) != null) {
             queryParams.put(PRODUCT_KEYWORD, extractedInfo.get(PRODUCT_INFO));
         }
-
-        // 时间范围
-        processTimeRangeParams(queryParams, extractedInfo);
 
         // 设置默认排序
         queryParams.put(ORDER_BY, CREATE_TIME);
@@ -246,17 +231,19 @@ public class OrderQueryNode implements NodeActionWithConfig {
     }
 
     /**
-     * 处理时间范围参数
+     * 处理订单状态映射
      */
-    private void processTimeRangeParams(Map<String, Object> queryParams, Map<String, Object> extractedInfo) {
-        Object startTime = extractedInfo.get(START_TIME);
-        Object endTime = extractedInfo.get(END_TIME);
-
-        if (startTime != null) {
-            queryParams.put(START_TIME, startTime);
-        }
-        if (endTime != null) {
-            queryParams.put(END_TIME, endTime);
+    private void processOrderStatus(Map<String, Object> extractedInfo) {
+        if (extractedInfo.containsKey(ORDER_STATUS) && extractedInfo.get(ORDER_STATUS) != null) {
+            String statusStr = extractedInfo.get(ORDER_STATUS).toString();
+            Integer status = OrderStatusConverter.convertToStatusCode(statusStr);
+            if (status != null) {
+                extractedInfo.put(STATUS, status);
+            } else {
+                extractedInfo.put(STATUS, null);
+            }
+        } else {
+            extractedInfo.put(STATUS, null);
         }
     }
 
@@ -282,8 +269,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
      * 解析并放入时间字段
      */
     private void parseAndPutTimeField(Map<String, Object> timeRange, String fieldName, Map<String, Object> orderInfo) {
-        if (timeRange.containsKey(fieldName) && timeRange.get(fieldName) instanceof String) {
-            String timeStr = (String) timeRange.get(fieldName);
+        if (timeRange.containsKey(fieldName) && timeRange.get(fieldName) instanceof String timeStr) {
             if (StrUtil.isNotBlank(timeStr) && !"null".equalsIgnoreCase(timeStr)) {
                 orderInfo.put(fieldName, LocalDateTime.parse(timeStr, NORM_DATETIME_FORMATTER));
             }
@@ -300,21 +286,6 @@ public class OrderQueryNode implements NodeActionWithConfig {
         }
         if (!orderInfo.containsKey(END_TIME) || orderInfo.get(END_TIME) == null) {
             orderInfo.put(END_TIME, now);
-        }
-    }
-
-    /**
-     * 处理订单状态映射
-     */
-    private void processOrderStatus(Map<String, Object> extractedInfo) {
-        if (extractedInfo.containsKey(ORDER_STATUS) && extractedInfo.get(ORDER_STATUS) != null) {
-            String statusStr = extractedInfo.get(ORDER_STATUS).toString();
-            Integer status = OrderStatusConverter.convertToStatusCode(statusStr);
-            if (status != null) {
-                extractedInfo.put(ORDER_STATUS, status);
-            } else {
-                extractedInfo.put(ORDER_STATUS, null);
-            }
         }
     }
 
@@ -365,20 +336,8 @@ public class OrderQueryNode implements NodeActionWithConfig {
      */
     private void appendOrderItem(StringBuilder summary, int index, Map<String, Object> order) {
         String orderNumber = (String) order.get(ORDER_NUMBER);
-        String statusDesc = getStatusDescription(order.get(STATUS));
-        summary.append(String.format(ORDER_ITEM_TEMPLATE, index, orderNumber, statusDesc));
-    }
-
-    /**
-     * 获取订单状态描述
-     */
-    private String getStatusDescription(Object statusObj) {
-        if (statusObj instanceof Integer status) {
-            return OrderStatusEnum.getDescription(status);
-        } else if (statusObj != null) {
-            return statusObj.toString();
-        }
-        return "未知状态";
+        Integer status = (Integer) order.get(STATUS);
+        summary.append(String.format(ORDER_ITEM_TEMPLATE, index, orderNumber, OrderStatusEnum.getDescription(status)));
     }
 
     /**

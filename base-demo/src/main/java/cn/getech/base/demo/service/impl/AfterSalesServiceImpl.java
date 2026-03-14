@@ -63,7 +63,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
         String serviceNumber = generateServiceNumber("RS");
         afterSales.setServiceNumber(serviceNumber);
         afterSales.setOrderId(order.getId());
-        afterSales.setType(RETURNED.getCode()); // 退货申请
+        afterSales.setType(RETURN_REQUEST.getCode()); // 退货申请
         afterSales.setReason("用户申请退货: " + userInput);
         afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); // 待处理
         afterSales.setCreateTime(LocalDateTime.now());
@@ -103,7 +103,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
         String serviceNumber = generateServiceNumber("ES");
         afterSales.setServiceNumber(serviceNumber);
         afterSales.setOrderId(order.getId());
-        afterSales.setType(EXCHANGE.getCode()); // 换货申请
+        afterSales.setType(EXCHANGE_REQUEST.getCode()); // 换货申请
         afterSales.setReason("用户申请换货: " + userInput);
         afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); // 待处理
         afterSales.setCreateTime(LocalDateTime.now());
@@ -143,7 +143,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
         String serviceNumber = generateServiceNumber("RP");
         afterSales.setServiceNumber(serviceNumber);
         afterSales.setOrderId(order.getId());
-        afterSales.setType(REPAIR.getCode()); // 维修申请
+        afterSales.setType(REPAIR_REQUEST.getCode()); // 维修申请
         afterSales.setReason("用户申请维修: " + userInput);
         afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); //待处理
         afterSales.setCreateTime(LocalDateTime.now());
@@ -183,7 +183,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
         String serviceNumber = generateServiceNumber("RF");
         afterSales.setServiceNumber(serviceNumber);
         afterSales.setOrderId(order.getId());
-        afterSales.setType(AfterSalesTypeEnum.REFUNDED.getCode()); // 退款申请
+        afterSales.setType(AfterSalesTypeEnum.REFUND_REQUEST.getCode()); // 退款申请
         afterSales.setReason("用户申请退款: " + userInput);
         afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode()); // 待处理
         afterSales.setRefundAmount(BigDecimal.ZERO); // 需要根据订单计算

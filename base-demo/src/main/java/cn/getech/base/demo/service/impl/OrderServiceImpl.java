@@ -5,7 +5,7 @@ import cn.getech.base.demo.enums.OrderQueryTypeEnum;
 import cn.getech.base.demo.enums.OrderStatusEnum;
 import cn.getech.base.demo.mapper.OrderMapper;
 import cn.getech.base.demo.service.OrderService;
-import cn.getech.base.demo.tools.ParamUtils;
+import cn.getech.base.demo.utils.ParamUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +63,7 @@ public class OrderServiceImpl implements OrderService {
             return queryOrdersIntelligent(queryParams);
         }
 
-        OrderQueryTypeEnum orderQueryTypeEnum = parseQueryType(queryType);
+        OrderQueryTypeEnum orderQueryTypeEnum = ParamUtils.parseEnum(OrderQueryTypeEnum.class, queryType);
         return switch (orderQueryTypeEnum) {
             case BY_ORDER_NUMBER -> queryByOrderNumber(queryParams);
             case BY_STATUS -> queryByStatus(queryParams);
@@ -189,8 +189,7 @@ public class OrderServiceImpl implements OrderService {
             log.warn("【按用户最近订单查询】用户ID为空");
             return Collections.emptyList();
         }
-
-        int limit = getQueryParamAsInt(queryParams, LIMIT, DEFAULT_USER_RECENT_LIMIT);
+        int limit = (Integer) queryParams.getOrDefault(LIMIT, DEFAULT_USER_RECENT_LIMIT);
         return convertOrders(orderMapper.selectRecentOrdersByUserId(userId, limit));
     }
 
@@ -329,26 +328,6 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return null;
-    }
-
-    /**
-     * 安全获取查询参数并转为整数
-     */
-    private int getQueryParamAsInt(Map<String, Object> params, String key, int defaultValue) {
-        Integer value = ParamUtils.getQueryParam(params, key, Integer.class);
-        return value != null ? value : defaultValue;
-    }
-
-    /**
-     * 解析查询类型枚举
-     */
-    private OrderQueryTypeEnum parseQueryType(String queryType) {
-        try {
-            return OrderQueryTypeEnum.valueOf(queryType);
-        } catch (IllegalArgumentException e) {
-            log.debug("【订单查询】未知查询类型: {}", queryType);
-            return null;
-        }
     }
 
     /**

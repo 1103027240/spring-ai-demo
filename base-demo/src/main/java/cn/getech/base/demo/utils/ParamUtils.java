@@ -1,5 +1,6 @@
-package cn.getech.base.demo.tools;
+package cn.getech.base.demo.utils;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Map;
 
@@ -7,22 +8,18 @@ import java.util.Map;
 public class ParamUtils {
 
     /**
-     * 将有效值放入Map
+     * 通用枚举解析方法
      */
-    public static void putIfValid(Map<String, Object> source, Map<String, Object> target, String key) {
-        if (source.containsKey(key) && source.get(key) != null) {
-            target.put(key, source.get(key));
+    public static <T extends Enum<T>> T parseEnum(Class<T> enumClass, String value) {
+        if (StrUtil.isBlank(value)) {
+            return null;
         }
-    }
 
-    /**
-     * 复制有效参数
-     */
-    public static void copyValidParams(Map<String, Object> source, Map<String, Object> target, String[] keys) {
-        for (String key : keys) {
-            if (source.containsKey(key) && source.get(key) != null) {
-                target.put(key, source.get(key));
-            }
+        try {
+            return Enum.valueOf(enumClass, value);
+        } catch (IllegalArgumentException e) {
+            log.debug("【枚举解析】{}的枚举值 '{}' 不存在", enumClass.getSimpleName(), value);
+            return null;
         }
     }
 
@@ -55,6 +52,26 @@ public class ParamUtils {
         } catch (Exception e) {
             log.warn("【参数获取】参数转换失败，键: {}, 值: {}, 目标类型: {}", key, value, type);
             return null;
+        }
+    }
+
+    /**
+     * 将有效值放入Map
+     */
+    public static void putIfValid(Map<String, Object> source, Map<String, Object> target, String key) {
+        if (source.containsKey(key) && source.get(key) != null) {
+            target.put(key, source.get(key));
+        }
+    }
+
+    /**
+     * 复制有效参数
+     */
+    public static void copyValidParams(Map<String, Object> source, Map<String, Object> target, String[] keys) {
+        for (String key : keys) {
+            if (source.containsKey(key) && source.get(key) != null) {
+                target.put(key, source.get(key));
+            }
         }
     }
 

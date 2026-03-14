@@ -1,6 +1,8 @@
 package cn.getech.base.demo.node.customer;
 
+import cn.getech.base.demo.enums.AfterSalesTypeEnum;
 import cn.getech.base.demo.service.AfterSalesService;
+import cn.getech.base.demo.utils.ParamUtils;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
@@ -36,33 +38,35 @@ public class AfterSalesNode implements NodeActionWithConfig {
 
         // 1.调用大模型分析售后类型
         Map<String, String> analysisAfterSalesMap = getAnalysisAfterSales(userInput);
+        String afterSalesTypeName = AfterSalesTypeEnum.getName(analysisAfterSalesMap.get(AFTER_SALES_TYPE));
+        AfterSalesTypeEnum afterSalesTypeEnum = ParamUtils.parseEnum(AfterSalesTypeEnum.class, afterSalesTypeName);
 
         // 2.根据售后类型进行对应处理
         Map<String, Object> processResult = new HashMap<>();
-        switch (analysisAfterSalesMap.get(AFTER_SALES_TYPE)) {
-            case "return_request":
+        switch (afterSalesTypeEnum) {
+            case RETURN_REQUEST:
                 processResult = afterSalesService.processReturnRequest(userInput, userId);
                 break;
-            case "exchange_request":
+            case EXCHANGE_REQUEST:
                 processResult = afterSalesService.processExchangeRequest(userInput, userId);
                 break;
-            case "repair_request":
+            case REPAIR_REQUEST:
                 processResult = afterSalesService.processRepairRequest(userInput, userId);
                 break;
-            case "refund_request":
+            case REFUND_REQUEST:
                 processResult = afterSalesService.processRefundRequest(userInput, userId);
                 break;
-            case "complaint":
+            case COMPLAINT:
                 processResult = processComplaintRequest(userInput, sentiment, userId);
                 break;
-            case "progress_query":
+            case PROGRESS_QUERY:
                 String serviceNumber = extractServiceNumber(userInput);
                 if (StrUtil.isNotBlank(serviceNumber)) {
                     processResult = afterSalesService.queryAfterSalesProgress(serviceNumber);
-                    break;
+                } else {
+                    processResult.put(STATUS, "error");
+                    processResult.put(MESSAGE, "请提供服务单号以便查询进度");
                 }
-                processResult.put(STATUS, "error");
-                processResult.put(MESSAGE, "请提供服务单号以便查询进度");
                 break;
             default:
                 processResult.put(AFTER_SALES_TYPE, analysisAfterSalesMap.get(AFTER_SALES_TYPE));

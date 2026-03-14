@@ -14,13 +14,19 @@ import java.util.Objects;
 @NoArgsConstructor
 public enum AfterSalesTypeEnum {
 
-    RETURNED(1, "return_request", "退货申请"),
+    RETURN_REQUEST(1, "return_request", "退货申请"),
 
-    EXCHANGE(2, "exchange_request", "换货申请"),
+    EXCHANGE_REQUEST(2, "exchange_request", "换货申请"),
 
-    REPAIR(3, "repair_request", "维修申请"),
+    REPAIR_REQUEST(3, "repair_request", "维修申请"),
 
-    REFUNDED(5, "refund_request", "退款申请"),
+    REFUND_REQUEST(4, "refund_request", "退款申请"),
+
+    COMPLAINT(5, "complaint", "投诉"),
+
+    PROGRESS_QUERY(6, "progress_query", "进度查询"),
+
+    OTHER(7, "other", "其他"),
 
     ;
 
@@ -36,6 +42,14 @@ public enum AfterSalesTypeEnum {
                 .findFirst()
                 .map(AfterSalesTypeEnum::getDetailDescription)
                 .orElse("未知");
+    }
+
+    public static String getName(String description){
+        return Arrays.asList(AfterSalesTypeEnum.values())
+                .stream().filter(e -> Objects.equals(e.getDescription(), description))
+                .findFirst()
+                .map(AfterSalesTypeEnum::name)
+                .orElse("");
     }
 
 }
