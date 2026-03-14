@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static cn.getech.base.demo.constant.FieldValueConstant.*;
+import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.enums.IntentRecognitionEnum.GENERAL_QUESTION;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.NEUTRAL;
 

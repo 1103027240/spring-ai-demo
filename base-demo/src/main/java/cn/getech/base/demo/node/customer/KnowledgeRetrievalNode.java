@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import static cn.getech.base.demo.constant.FieldValueConstant.*;
+import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.enums.IntentRecognitionEnum.GENERAL_QUESTION;
 
 /**

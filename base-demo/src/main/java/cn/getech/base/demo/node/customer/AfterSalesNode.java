@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
-import static cn.getech.base.demo.constant.FieldValueConstant.*;
+import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.constant.PatternConstant.SERVICE_NUMBER_PATTERN;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.*;
 

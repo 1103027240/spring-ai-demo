@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import static cn.getech.base.demo.constant.FieldValueConstant.*;
+import static cn.getech.base.demo.constant.FieldConstant.*;
 
 /**
  * @author 11030

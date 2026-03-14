@@ -13,9 +13,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import static cn.getech.base.demo.constant.FieldValueConstant.*;
+import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.constant.PatternConstant.ORDER_NUMBER_PATTERN;
 import static cn.hutool.core.date.DatePattern.NORM_DATETIME_FORMATTER;
 

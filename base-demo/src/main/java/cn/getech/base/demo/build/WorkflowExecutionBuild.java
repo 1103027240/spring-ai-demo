@@ -1,6 +1,6 @@
 package cn.getech.base.demo.build;
 
-import cn.getech.base.demo.constant.FieldValueConstant;
+import cn.getech.base.demo.constant.FieldConstant;
 import cn.getech.base.demo.converter.DocumentConverter;
 import cn.getech.base.demo.dto.CustomerServiceStateDto;
 import cn.getech.base.demo.dto.MessageDocumentVO;
@@ -10,11 +10,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import static cn.getech.base.demo.constant.FieldValueConstant.*;
+import static cn.getech.base.demo.constant.FieldConstant.*;
+import static cn.getech.base.demo.constant.FieldValueConstant.WORKFLOW_CUSTOMER_SERVICE;
 
 @Component
 public class WorkflowExecutionBuild {
@@ -95,12 +95,12 @@ public class WorkflowExecutionBuild {
                         .id(doc.getId())
                         .content(doc.getText())
                         .metadata(metadata)
-                        .messageId((Double) metadata.get(FieldValueConstant.MESSAGE_ID))
-                        .userId((Double) metadata.get(FieldValueConstant.USER_ID))
-                        .sessionId((String) metadata.get(FieldValueConstant.SESSION_ID))
-                        .messageType((Double) metadata.get(FieldValueConstant.MESSAGE_TYPE))
-                        .workflowExecutionId((String) metadata.get(FieldValueConstant.WORKFLOW_EXECUTION_ID))
-                        .createTime((Double) metadata.get(FieldValueConstant.CREATE_TIME))
+                        .messageId((Double) metadata.get(FieldConstant.MESSAGE_ID))
+                        .userId((Double) metadata.get(FieldConstant.USER_ID))
+                        .sessionId((String) metadata.get(FieldConstant.SESSION_ID))
+                        .messageType((Double) metadata.get(FieldConstant.MESSAGE_TYPE))
+                        .workflowExecutionId((String) metadata.get(FieldConstant.WORKFLOW_EXECUTION_ID))
+                        .createTime((Double) metadata.get(FieldConstant.CREATE_TIME))
                         .build());
     }
 

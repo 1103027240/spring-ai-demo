@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
-import static cn.getech.base.demo.constant.FieldValueConstant.*;
+import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.*;
 
 /**

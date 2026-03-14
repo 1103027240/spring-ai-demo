@@ -6,8 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.Arrays;
 
-import static cn.getech.base.demo.constant.FieldValueConstant.INTENT;
-import static cn.getech.base.demo.constant.FieldValueConstant.SENTIMENT;
+import static cn.getech.base.demo.constant.FieldConstant.INTENT;
+import static cn.getech.base.demo.constant.FieldConstant.SENTIMENT;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.*;
 import static cn.getech.base.demo.enums.IntentRecognitionEnum.GENERAL_QUESTION;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.*;

@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static cn.getech.base.demo.constant.FieldValueConstant.RESULT;
-import static cn.getech.base.demo.constant.FieldValueConstant.RESULTS;
+import static cn.getech.base.demo.constant.FieldConstant.RESULT;
+import static cn.getech.base.demo.constant.FieldConstant.RESULTS;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.NEGATIVE;
 import static cn.getech.base.demo.enums.SentimentAnalysisEnum.URGENT;
 
