@@ -133,4 +133,12 @@ public class FieldConstant {
 
     public static final String ORDER_DESC = "orderDesc";
 
+    public static final String SERVICE_NUMBER = "serviceNumber";
+
+    public static final String NEXT_STEPS = "nextSteps";
+
+    public static final String UPDATE_TIME = "updateTime";
+
+
+
 }
