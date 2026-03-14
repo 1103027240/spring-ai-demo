@@ -258,15 +258,14 @@ public class OrderQueryNode implements NodeActionWithConfig {
      * 处理时间范围参数
      */
     private void processTimeRangeParams(Map<String, Object> queryParams, Map<String, Object> extractedInfo) {
-        if (extractedInfo.containsKey(TIME_RANGE) && extractedInfo.get(TIME_RANGE) instanceof Map) {
-            Map<String, Object> timeRange = (Map<String, Object>) extractedInfo.get(TIME_RANGE);
+        Object startTime = extractedInfo.get(START_TIME);
+        Object endTime = extractedInfo.get(END_TIME);
 
-            if (timeRange.containsKey(START_TIME)) {
-                queryParams.put(START_TIME, timeRange.get(START_TIME));
-            }
-            if (timeRange.containsKey(END_TIME)) {
-                queryParams.put(END_TIME, timeRange.get(END_TIME));
-            }
+        if (startTime != null) {
+            queryParams.put(START_TIME, startTime);
+        }
+        if (endTime != null) {
+            queryParams.put(END_TIME, endTime);
         }
     }
 
@@ -294,7 +293,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
     private void parseAndPutTimeField(Map<String, Object> timeRange, String fieldName, Map<String, Object> orderInfo) {
         if (timeRange.containsKey(fieldName) && timeRange.get(fieldName) instanceof String) {
             String timeStr = (String) timeRange.get(fieldName);
-            if (StringUtils.hasText(timeStr) && !"null".equalsIgnoreCase(timeStr)) {
+            if (StrUtil.isNotBlank(timeStr) && !"null".equalsIgnoreCase(timeStr)) {
                 orderInfo.put(fieldName, LocalDateTime.parse(timeStr, NORM_DATETIME_FORMATTER));
             }
         }
