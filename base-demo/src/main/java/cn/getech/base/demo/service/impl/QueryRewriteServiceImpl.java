@@ -4,7 +4,6 @@ import cn.getech.base.demo.service.QueryRewriteService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,9 +19,6 @@ public class QueryRewriteServiceImpl implements QueryRewriteService {
 
     @Value("${rag.query-rewrite.max-alternatives:3}")
     private int maxAlternatives;
-
-    @Value("${rag.query-rewrite.similarity-threshold:0.8}")
-    private double similarityThreshold;
 
     // 同义词映射
     private final Map<String, List<String>> synonymMap = Map.of(

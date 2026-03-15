@@ -75,4 +75,26 @@ public class ParamUtils {
         }
     }
 
+    /**
+     * 解析文档ID
+     */
+    public static Long parseDocumentId(Object documentIdObj) {
+        if (documentIdObj == null) {
+            return null;
+        }
+
+        if (documentIdObj instanceof Long) {
+            return (Long) documentIdObj;
+        } else if (documentIdObj instanceof Integer) {
+            return ((Integer) documentIdObj).longValue();
+        } else if (documentIdObj instanceof String) {
+            try {
+                return Long.parseLong((String) documentIdObj);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
 }

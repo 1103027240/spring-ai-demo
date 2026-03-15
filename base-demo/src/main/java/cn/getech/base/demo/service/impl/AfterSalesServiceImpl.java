@@ -9,6 +9,7 @@ import cn.getech.base.demo.service.AfterSalesService;
 import cn.getech.base.demo.service.OrderService;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import static cn.getech.base.demo.constant.FieldConstant.*;
+import static cn.getech.base.demo.constant.FieldValueConstant.*;
 import static cn.getech.base.demo.constant.PatternConstant.ORDER_NUMBER_PATTERN;
 import static cn.getech.base.demo.enums.AfterSalesTypeEnum.*;
 import static cn.hutool.core.date.DatePattern.PURE_DATE_PATTERN;
@@ -27,19 +29,7 @@ import static cn.hutool.core.date.DatePattern.PURE_DATE_PATTERN;
  */
 @Slf4j
 @Service
-public class AfterSalesServiceImpl implements AfterSalesService {
-
-    // 常量定义
-    private static final String STATUS_SUCCESS = "success";
-    private static final String STATUS_ERROR = "error";
-    private static final String MESSAGE_ORDER_NOT_FOUND = "未找到订单号，请提供订单号以便处理%s";
-    private static final String MESSAGE_ORDER_INVALID = "订单不存在[%s]，请检查订单号是否正确";
-    private static final String MESSAGE_APPLICATION_SUBMITTED = "%s申请已提交，服务单号: %s，%s";
-    private static final int RANDOM_NUMBER_BOUND = 99999999;
-    private static final int RANDOM_NUMBER_FORMAT_LENGTH = 8;
-
-    @Autowired
-    private AfterSalesMapper afterSalesMapper;
+public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSales> implements AfterSalesService {
 
     @Autowired
     private OrderService orderService;
@@ -119,9 +109,9 @@ public class AfterSalesServiceImpl implements AfterSalesService {
 
         // 创建售后记录
         String serviceNumber = generateServiceNumber("RF");
-        AfterSales afterSales = createAfterSalesRecord(order.getId(), userId, REFUND_REQUEST.getCode(), serviceNumber, "用户申请退款: " + userInput);
+        AfterSales afterSales = createAfterSalesRecord(order.getId(), userId, REFUND_REQUEST.getId(), serviceNumber, "用户申请退款: " + userInput);
         afterSales.setRefundAmount(BigDecimal.ZERO); // 需要根据订单计算
-        afterSalesMapper.insert(afterSales);
+        baseMapper.insert(afterSales);
 
         Map<String, Object> result = buildSuccessResult(String.format(MESSAGE_APPLICATION_SUBMITTED, "退款", serviceNumber, "退款将在审核通过后3-5个工作日到账"), serviceNumber);
         result.put(ESTIMATED_TIME, "退款将在审核通过后3-5个工作日到账");
@@ -139,7 +129,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
             return buildErrorResult("服务单号不能为空");
         }
 
-        AfterSales afterSales = afterSalesMapper.selectByServiceNumber(serviceNumber);
+        AfterSales afterSales = baseMapper.selectByServiceNumber(serviceNumber);
         if (afterSales == null) {
             log.warn("【售后查询】服务单号不存在: {}", serviceNumber);
             return buildErrorResult("售后进度查询，未找到该服务单号: " + serviceNumber);
@@ -205,8 +195,8 @@ public class AfterSalesServiceImpl implements AfterSalesService {
 
         // 创建售后记录
         String serviceNumber = generateServiceNumber(prefix);
-        AfterSales afterSales = createAfterSalesRecord(order.getId(), userId, type.getCode(), serviceNumber, String.format("用户申请%s: %s", typeName, userInput));
-        afterSalesMapper.insert(afterSales);
+        AfterSales afterSales = createAfterSalesRecord(order.getId(), userId, type.getId(), serviceNumber, String.format("用户申请%s: %s", typeName, userInput));
+        baseMapper.insert(afterSales);
         log.info("【售后申请】{}申请提交成功，用户ID: {}, 订单号: {}, 服务单号: {}", typeName, userId, orderNumber, serviceNumber);
 
         Map<String, Object> result = buildSuccessResult(String.format(MESSAGE_APPLICATION_SUBMITTED, typeName, serviceNumber, processTime), serviceNumber);
@@ -224,7 +214,7 @@ public class AfterSalesServiceImpl implements AfterSalesService {
         afterSales.setOrderId(orderId);
         afterSales.setType(typeCode);
         afterSales.setReason(reason);
-        afterSales.setStatus(AfterSalesStatusEnum.PENDING.getCode());
+        afterSales.setStatus(AfterSalesStatusEnum.PENDING.getId());
         afterSales.setCreateTime(LocalDateTime.now());
         afterSales.setUserId(userId);
         return afterSales;

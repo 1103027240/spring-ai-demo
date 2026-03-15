@@ -3,7 +3,6 @@ package cn.getech.base.demo.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -39,15 +38,15 @@ public enum SplitterTypeEnum {
 
     private String id;
 
-    private String name;
-
     private String text;
+
+    private String detailText;
 
     private String recommendedUseCases;
 
-    public static boolean checkAlgorithmExist(String algorithm){
+    public static boolean checkAlgorithmExist(String id){
         long count = Arrays.asList(SplitterTypeEnum.values()).stream()
-                .filter(e -> Objects.equals(e.getId(), algorithm))
+                .filter(e -> Objects.equals(e.getId(), id))
                 .count();
         return count > 0;
     }

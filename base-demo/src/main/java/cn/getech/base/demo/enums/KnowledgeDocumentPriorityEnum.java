@@ -4,26 +4,27 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * @author 11030
- */
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public enum ChatSessionStatusEnum {
+public enum KnowledgeDocumentPriorityEnum {
 
-    ENDED(0, "已结束"),
+    LOWEST(0, "最低", "lowest"),
 
-    ACTIVE(1, "进行中"),
+    LOW(25, "低", "low"),
 
-    TRANSFERRED(2, "已转人工"),
+    MEDIUM(50, "中", "medium"),
 
-    WAITING(3, "等待回复"),
+    HIGH(75, "高", "high"),
+
+    HIGHEST(100, "最高", "highest"),
 
     ;
 
     private Integer id;
 
     private String text;
+
+    private String code;
 
 }

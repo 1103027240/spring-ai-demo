@@ -72,14 +72,14 @@ public class CustomerServiceGraphConfig {
         log.info("工作流名称：{}", CUSTOMER_SERVICE_NAME);
         log.info("标题：{}", CUSTOMER_SERVICE_TITLE);
         log.info("节点列表：");
-        log.info("  1. {} -> {}", StateGraph.START, INTENT_RECOGNITION.getName());
-        log.info("  2. {} -> {}", INTENT_RECOGNITION.getName(), SENTIMENT_ANALYSIS.getName());
-        log.info("  3. {} -> (条件分支)", SENTIMENT_ANALYSIS.getName());
-        log.info("     - {} -> {} -> {}", ORDER_QUERY.getId(), ORDER_QUERY.getName(), RESPONSE_GENERATION.getName());
-        log.info("     - {} -> {} -> {}", AFTER_SALES.getId(), AFTER_SALES.getName(), RESPONSE_GENERATION.getName());
-        log.info("     - {} -> {} -> {}", KNOWLEDGE_RETRIEVAL.getId(), KNOWLEDGE_RETRIEVAL.getName(), RESPONSE_GENERATION.getName());
-        log.info("  4. {} -> {}", RESPONSE_GENERATION.getName(), StateGraph.END);
-        log.info("=".repeat(80) + "\n");
+        log.info("  1. {} -> {}", StateGraph.START, INTENT_RECOGNITION.getText());
+        log.info("  2. {} -> {}", INTENT_RECOGNITION.getText(), SENTIMENT_ANALYSIS.getText());
+        log.info("  3. {} -> (条件分支)", SENTIMENT_ANALYSIS.getText());
+        log.info("     - {} -> {} -> {}", ORDER_QUERY.getId(), ORDER_QUERY.getText(), RESPONSE_GENERATION.getText());
+        log.info("     - {} -> {} -> {}", AFTER_SALES.getId(), AFTER_SALES.getText(), RESPONSE_GENERATION.getText());
+        log.info("     - {} -> {} -> {}", KNOWLEDGE_RETRIEVAL.getId(), KNOWLEDGE_RETRIEVAL.getText(), RESPONSE_GENERATION.getText());
+        log.info("  4. {} -> {}", RESPONSE_GENERATION.getText(), StateGraph.END);
+        log.info("{}\n", "=".repeat(80));
 
         return stateGraph.compile(compileConfig);
     }
@@ -90,31 +90,31 @@ public class CustomerServiceGraphConfig {
     public StateGraph createCustomerServiceGraph() throws GraphStateException {
         return new StateGraph(CUSTOMER_SERVICE_NAME, DocumentReviewFactory.documentReviewKeyStrategyFactory())
             // 创建节点
-            .addNode(INTENT_RECOGNITION.getName(), node_async(new IntentRecognitionNode()))
-            .addNode(SENTIMENT_ANALYSIS.getName(), node_async(new SentimentAnalysisNode()))
-            .addNode(KNOWLEDGE_RETRIEVAL.getName(), node_async(new KnowledgeRetrievalNode()))
-            .addNode(ORDER_QUERY.getName(), node_async(new OrderQueryNode()))
-            .addNode(AFTER_SALES.getName(), node_async(new AfterSalesNode()))
-            .addNode(RESPONSE_GENERATION.getName(), node_async(new ResponseGenerationNode()))
+            .addNode(INTENT_RECOGNITION.getText(), node_async(new IntentRecognitionNode()))
+            .addNode(SENTIMENT_ANALYSIS.getText(), node_async(new SentimentAnalysisNode()))
+            .addNode(KNOWLEDGE_RETRIEVAL.getText(), node_async(new KnowledgeRetrievalNode()))
+            .addNode(ORDER_QUERY.getText(), node_async(new OrderQueryNode()))
+            .addNode(AFTER_SALES.getText(), node_async(new AfterSalesNode()))
+            .addNode(RESPONSE_GENERATION.getText(), node_async(new ResponseGenerationNode()))
 
             // 创建边
-            .addEdge(StateGraph.START, INTENT_RECOGNITION.getName())
-            .addEdge(INTENT_RECOGNITION.getName(), SENTIMENT_ANALYSIS.getName())
+            .addEdge(StateGraph.START, INTENT_RECOGNITION.getText())
+            .addEdge(INTENT_RECOGNITION.getText(), SENTIMENT_ANALYSIS.getText())
 
             // 创建条件边
-            .addConditionalEdges(SENTIMENT_ANALYSIS.getName(),
+            .addConditionalEdges(SENTIMENT_ANALYSIS.getText(),
                     edge_async(new CustomerServiceDecisionRouter()),
                     // 根据条件值找到对应节点
                     Map.of(
-                            ORDER_QUERY.getId(), ORDER_QUERY.getName(),  // 订单查询
-                            AFTER_SALES.getId(), AFTER_SALES.getName(),  // 售后处理
-                            KNOWLEDGE_RETRIEVAL.getId(), KNOWLEDGE_RETRIEVAL.getName()  // 知识库检索
+                            ORDER_QUERY.getId(), ORDER_QUERY.getText(),  // 订单查询
+                            AFTER_SALES.getId(), AFTER_SALES.getText(),  // 售后处理
+                            KNOWLEDGE_RETRIEVAL.getId(), KNOWLEDGE_RETRIEVAL.getText()  // 知识库检索
                     ))
 
-            .addEdge(ORDER_QUERY.getName(), RESPONSE_GENERATION.getName())
-            .addEdge(AFTER_SALES.getName(), RESPONSE_GENERATION.getName())
-            .addEdge(KNOWLEDGE_RETRIEVAL.getName(), RESPONSE_GENERATION.getName())
-            .addEdge(RESPONSE_GENERATION.getName(), StateGraph.END);
+            .addEdge(ORDER_QUERY.getText(), RESPONSE_GENERATION.getText())
+            .addEdge(AFTER_SALES.getText(), RESPONSE_GENERATION.getText())
+            .addEdge(KNOWLEDGE_RETRIEVAL.getText(), RESPONSE_GENERATION.getText())
+            .addEdge(RESPONSE_GENERATION.getText(), StateGraph.END);
     }
 
 }

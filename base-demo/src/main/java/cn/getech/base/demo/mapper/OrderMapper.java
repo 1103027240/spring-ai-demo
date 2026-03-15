@@ -1,14 +1,14 @@
 package cn.getech.base.demo.mapper;
 
 import cn.getech.base.demo.entity.Order;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 
 @Mapper
-@Repository
-public interface OrderMapper {
+public interface OrderMapper extends BaseMapper<Order> {
 
     /**
      * 根据订单号查询订单

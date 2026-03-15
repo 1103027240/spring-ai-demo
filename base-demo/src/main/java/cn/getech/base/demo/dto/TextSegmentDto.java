@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * 文本分段类：表示文本中的一个片段及其类型
  * @author 11030
@@ -11,7 +13,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TextSegmentDto {
+public class TextSegmentDto implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * 文本片段

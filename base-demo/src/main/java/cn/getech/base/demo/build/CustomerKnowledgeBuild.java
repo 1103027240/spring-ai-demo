@@ -56,7 +56,7 @@ public class CustomerKnowledgeBuild {
      * 根据同步类型选择消息
      */
     public List<ChatMessage> selectMessagesBySyncType(String sessionId, Integer syncType) {
-        if (INCREMENTAL.getCode().equals(syncType)) {
+        if (INCREMENTAL.getId().equals(syncType)) {
             return chatMessageService.selectUnsyncedMessages(sessionId);
         }
         return chatMessageService.selectAllValidMessages(sessionId);

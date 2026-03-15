@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * 工作流执行请求DTO
  * @author 11030
@@ -11,7 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class WorkflowRequestDto {
+public class WorkflowRequestDto implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * 用户输入

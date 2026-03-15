@@ -23,13 +23,13 @@ public enum MessageTaskSyncTypeEnum {
 
     ;
 
-    private Integer code;
+    private Integer id;
 
     private String text;
 
-    public static String getText(Integer code) {
+    public static String getText(Integer id) {
         return Arrays.asList(MessageTaskSyncTypeEnum.values())
-                .stream().filter(e -> Objects.equals(e.getCode(), code))
+                .stream().filter(e -> Objects.equals(e.getId(), id))
                 .findFirst()
                 .map(MessageTaskSyncTypeEnum::getText)
                 .orElse("未知");

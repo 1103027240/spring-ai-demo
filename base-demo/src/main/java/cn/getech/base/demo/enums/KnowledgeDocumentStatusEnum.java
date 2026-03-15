@@ -3,37 +3,26 @@ package cn.getech.base.demo.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import java.util.Arrays;
-import java.util.Objects;
 
-/**
- * @author 11030
- */
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public enum KnowledgeDocumentStatusEnum {
 
-    DISABLED(0, "禁用"),
+    DISABLED(0, "禁用", "disabled"),
 
-    ENABLED(1, "启用"),
+    ENABLED(1, "启用", "enabled"),
 
-    PENDING(3, "待审核"),
+    PENDING(2, "待审核", "pending"),
 
-    DELETED(4, "已删除"),
+    DELETED(3, "已删除", "deleted"),
 
     ;
 
-    private Integer code;
+    private Integer id;
 
     private String text;
 
-    public static String getText(Integer code) {
-        return Arrays.asList(KnowledgeDocumentStatusEnum.values())
-                .stream().filter(e -> Objects.equals(e.getCode(), code))
-                .findFirst()
-                .map(KnowledgeDocumentStatusEnum::getText)
-                .orElse("未知");
-    }
+    private String code;
 
 }

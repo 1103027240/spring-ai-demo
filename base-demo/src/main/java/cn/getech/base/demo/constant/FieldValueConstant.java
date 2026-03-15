@@ -35,6 +35,16 @@ public class FieldValueConstant {
 
     public static final String ORDER_ITEM_TEMPLATE = "%d. %s - %s\n";
 
+    public static final String STATUS_SUCCESS = "success";
+
+    public static final String STATUS_ERROR = "error";
+
+    public static final String MESSAGE_ORDER_NOT_FOUND = "未找到订单号，请提供订单号以便处理%s";
+
+    public static final String MESSAGE_ORDER_INVALID = "订单不存在[%s]，请检查订单号是否正确";
+
+    public static final String MESSAGE_APPLICATION_SUBMITTED = "%s申请已提交，服务单号: %s，%s";
+
     /**
      * 事务提交后延迟时间（毫秒）
      */
@@ -56,5 +66,9 @@ public class FieldValueConstant {
     public static final int DEFAULT_PRODUCT_QUERY_DAYS = 90;
 
     public static final int DEFAULT_USER_RECENT_LIMIT = 5;
+
+    public static final int RANDOM_NUMBER_BOUND = 99999999;
+
+    public static final int RANDOM_NUMBER_FORMAT_LENGTH = 8;
 
 }

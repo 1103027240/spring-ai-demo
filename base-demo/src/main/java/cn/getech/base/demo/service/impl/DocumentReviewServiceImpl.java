@@ -93,11 +93,11 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
                     stateSnapshot.node(), stateSnapshot.next(), stateSnapshot.config().checkPointId().orElse("N/A"));
 
             // 判断中断点是否是人工审批节点
-            if(!HUMAN_APPROVAL.getName().equals(stateSnapshot.next())){
+            if(!HUMAN_APPROVAL.getText().equals(stateSnapshot.next())){
                 return Map.of(
                         "success", false,
                         "instanceId", instanceId,
-                        "error", String.format("该工作流实例[%s]对应的当前节点[%s]，不是中断节点[%s]", instanceId, stateSnapshot.next(), HUMAN_APPROVAL.getName()));
+                        "error", String.format("该工作流实例[%s]对应的当前节点[%s]，不是中断节点[%s]", instanceId, stateSnapshot.next(), HUMAN_APPROVAL.getText()));
             }
 
             // 准备恢复数据

@@ -6,6 +6,7 @@ import cn.getech.base.demo.enums.ChatSessionStatusEnum;
 import cn.getech.base.demo.enums.ChatSessionTypeEnum;
 import cn.getech.base.demo.mapper.ChatSessionMapper;
 import cn.getech.base.demo.service.ChatSessionService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,29 +21,26 @@ import static cn.getech.base.demo.constant.RedisKeyConstant.SESSION_ACTIVE;
  * @author 11030
  */
 @Service
-public class ChatSessionServiceImpl implements ChatSessionService {
-
-    @Autowired
-    private ChatSessionMapper chatSessionMapper;
+public class ChatSessionServiceImpl extends ServiceImpl<ChatSessionMapper, ChatSession> implements ChatSessionService {
 
     @Override
     public void createOrUpdateChatSession(CustomerServiceStateDto state) {
         // 插入或更新会话
-        ChatSession session = chatSessionMapper.selectBySessionId(state.getSessionId());
+        ChatSession session = baseMapper.selectBySessionId(state.getSessionId());
         if (session == null) {
             session = new ChatSession();
             session.setSessionId(state.getSessionId());
             session.setUserId(state.getUserId());
             session.setUserName(state.getUserName());
-            session.setSessionType(ChatSessionTypeEnum.CONSULTATION.getCode());
-            session.setStatus(ChatSessionStatusEnum.ACTIVE.getCode());
+            session.setSessionType(ChatSessionTypeEnum.CONSULTATION.getId());
+            session.setStatus(ChatSessionStatusEnum.ACTIVE.getId());
             session.setStartTime(LocalDateTime.now());
             session.setMessageCount(0);
             session.setCreateTime(LocalDateTime.now());
-            chatSessionMapper.insert(session);
+            baseMapper.insert(session);
         } else {
             session.setLastMessageTime(LocalDateTime.now());
-            chatSessionMapper.updateById(session);
+            baseMapper.updateById(session);
         }
     }
 

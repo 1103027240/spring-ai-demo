@@ -28,8 +28,8 @@ public class MessageSyncTaskBuild {
     public MessageSyncTask buildSyncTask(CustomerServiceStateDto state, ChatMessage userMessage, ChatMessage aiMessage) {
         MessageSyncTask task = new MessageSyncTask();
         task.setSessionId(state.getSessionId());
-        task.setSyncType(INCREMENTAL.getCode());
-        task.setStatus(MessageTaskStatusEnum.PENDING.getCode());
+        task.setSyncType(INCREMENTAL.getId());
+        task.setStatus(MessageTaskStatusEnum.PENDING.getId());
         task.setRetryCount(0);
         task.setLastMessageId(determineLastMessageId(userMessage, aiMessage));
         task.setCreatedTime(LocalDateTime.now());

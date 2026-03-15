@@ -1,7 +1,7 @@
 package cn.getech.base.demo.node.customer;
 
 import cn.getech.base.demo.enums.IntentRecognitionEnum;
-import cn.getech.base.demo.service.KnowledgeBaseService;
+import cn.getech.base.demo.service.KnowledgeDocumentService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
@@ -29,13 +29,13 @@ public class KnowledgeRetrievalNode implements NodeActionWithConfig {
     public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
         log.info("【知识库检索节点】开始执行");
 
-        KnowledgeBaseService knowledgeBaseService = SpringUtil.getBean(KnowledgeBaseService.class);
+        KnowledgeDocumentService knowledgeDocumentService = SpringUtil.getBean(KnowledgeDocumentService.class);
         String userInput = state.value(USER_INPUT, String.class).orElseThrow(() -> new IllegalArgumentException("用户输入不能为空"));
         String intent = state.value(INTENT, String.class).orElse(GENERAL_QUESTION.getId());
         String query = buildKnowledgeQuery(userInput, intent);
 
         // 从知识库检索相关信息
-        List<Map<String, Object>> knowledgeResults = knowledgeBaseService.searchKnowledge(query, 100);
+        List<Map<String, Object>> knowledgeResults = knowledgeDocumentService.searchKnowledge(query, 100);
         log.info("【知识库检索节点】检索完成，找到[{}]条结果", knowledgeResults.size());
 
         StringBuilder knowledgeContext = new StringBuilder();

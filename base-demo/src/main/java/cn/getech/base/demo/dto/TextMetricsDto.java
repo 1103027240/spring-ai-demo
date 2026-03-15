@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * 文本度量指标 DTO
  * 用于统计和分析文本的各种特征指标，支持智能分割策略的选择
@@ -12,7 +14,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TextMetricsDto {
+public class TextMetricsDto implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * 单词数量（英文）或词语数量（中文）

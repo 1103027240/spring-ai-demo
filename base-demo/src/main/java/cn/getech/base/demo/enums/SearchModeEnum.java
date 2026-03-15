@@ -4,25 +4,20 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * @author 11030
- */
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public enum ChatSessionStatusEnum {
+public enum SearchModeEnum {
 
-    ENDED(0, "已结束"),
+    VECTOR("vector", "向量搜索"),
 
-    ACTIVE(1, "进行中"),
+    KEYWORD("keyword", "关键词搜索"),
 
-    TRANSFERRED(2, "已转人工"),
-
-    WAITING(3, "等待回复"),
+    HYBRID("hybrid", "混合搜索"),
 
     ;
 
-    private Integer id;
+    private String id;
 
     private String text;
 

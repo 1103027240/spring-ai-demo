@@ -1,12 +1,15 @@
 package cn.getech.base.demo.dto;
 
 import lombok.*;
+
+import java.io.Serializable;
 import java.util.Map;
 
 @Data
 @Builder
 @EqualsAndHashCode(callSuper = false)
-public class MessageDocumentVO {
+public class MessageDocumentVO implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * Milvus文档ID

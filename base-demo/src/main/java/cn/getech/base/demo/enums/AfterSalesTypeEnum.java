@@ -30,23 +30,23 @@ public enum AfterSalesTypeEnum {
 
     ;
 
-    private Integer code;
+    private Integer id;
 
     private String text;
 
     private String detailText;
 
-    public static String getDetailText(Integer code) {
+    public static String getDetailText(Integer id) {
         return Arrays.asList(AfterSalesTypeEnum.values())
-                .stream().filter(e -> Objects.equals(e.getCode(), code))
+                .stream().filter(e -> Objects.equals(e.getId(), id))
                 .findFirst()
                 .map(AfterSalesTypeEnum::getDetailText)
                 .orElse("未知");
     }
 
-    public static String getName(String description){
+    public static String getName(String text){
         return Arrays.asList(AfterSalesTypeEnum.values())
-                .stream().filter(e -> Objects.equals(e.getText(), description))
+                .stream().filter(e -> Objects.equals(e.getText(), text))
                 .findFirst()
                 .map(AfterSalesTypeEnum::name)
                 .orElse("");

@@ -35,7 +35,7 @@ public class HumanApprovalNode implements NodeActionWithConfig {
             return Map.of(
                     "approval_output", ApprovalDecisionEnum.WAITING.getId(), //决策状态为待审批
                     "approval_status", ApprovalStatusEnum.WAITING.getId(), //流程状态为待审批
-                    "next_node", DocumentReviewNodeEnum.HUMAN_APPROVAL.getName()); //返回当前人工审批节点
+                    "next_node", DocumentReviewNodeEnum.HUMAN_APPROVAL.getText()); //返回当前人工审批节点
         }
 
         // 通过ApprovalDecisionRouter路由到下一个节点

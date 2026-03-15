@@ -28,6 +28,6 @@ public enum CustomerServiceNodeEnum {
 
     private String id;
 
-    private String name;
+    private String text;
 
 }

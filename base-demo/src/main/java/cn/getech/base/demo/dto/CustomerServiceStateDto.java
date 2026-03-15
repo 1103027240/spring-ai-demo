@@ -2,6 +2,8 @@ package cn.getech.base.demo.dto;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,7 +17,8 @@ import static cn.getech.base.demo.enums.SentimentAnalysisEnum.URGENT;
  */
 @Slf4j
 @Data
-public class CustomerServiceStateDto {
+public class CustomerServiceStateDto implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * 工作流执行ID

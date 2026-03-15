@@ -1,13 +1,16 @@
 package cn.getech.base.demo.service.impl;
 
+import cn.getech.base.demo.entity.ChatMessage;
 import cn.getech.base.demo.entity.Order;
 import cn.getech.base.demo.enums.OrderQueryTypeEnum;
 import cn.getech.base.demo.enums.OrderStatusEnum;
+import cn.getech.base.demo.mapper.ChatMessageMapper;
 import cn.getech.base.demo.mapper.OrderMapper;
 import cn.getech.base.demo.service.OrderService;
 import cn.getech.base.demo.utils.ParamUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,10 +28,7 @@ import static cn.hutool.core.date.DatePattern.NORM_DATETIME_FORMATTER;
  */
 @Slf4j
 @Service
-public class OrderServiceImpl implements OrderService {
-
-    @Autowired
-    private OrderMapper orderMapper;
+public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements OrderService {
 
     /**
      * 查询订单
@@ -76,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order getByOrderNumber(String orderNumber) {
-        return orderMapper.getByOrderNumber(orderNumber);
+        return baseMapper.getByOrderNumber(orderNumber);
     }
 
     /**
@@ -89,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
             return Collections.emptyList();
         }
 
-        return Optional.ofNullable(orderMapper.getByOrderNumber(orderNumber))
+        return Optional.ofNullable(baseMapper.getByOrderNumber(orderNumber))
                 .filter(order -> hasOrderAccessPermission(order, queryParams))
                 .map(order -> Collections.singletonList(convertOrderToMap(order)))
                 .orElseGet(() -> {
@@ -114,7 +114,7 @@ public class OrderServiceImpl implements OrderService {
         // 设置分页
         params.put(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
 
-        return convertOrders(orderMapper.selectByStatusAndTimeRange(params));
+        return convertOrders(baseMapper.selectByStatusAndTimeRange(params));
     }
 
     /**
@@ -133,7 +133,7 @@ public class OrderServiceImpl implements OrderService {
         // 设置分页
         params.put(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
 
-        return convertOrders(orderMapper.selectByTimeRange(params));
+        return convertOrders(baseMapper.selectByTimeRange(params));
     }
 
     /**
@@ -158,7 +158,7 @@ public class OrderServiceImpl implements OrderService {
         // 设置分页
         params.put(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
 
-        return convertOrders(orderMapper.selectByProductKeyword(params));
+        return convertOrders(baseMapper.selectByProductKeyword(params));
     }
 
     /**
@@ -177,7 +177,7 @@ public class OrderServiceImpl implements OrderService {
         // 设置分页
         params.putIfAbsent(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
 
-        return convertOrders(orderMapper.selectByCondition(params));
+        return convertOrders(baseMapper.selectByCondition(params));
     }
 
     /**
@@ -190,7 +190,7 @@ public class OrderServiceImpl implements OrderService {
             return Collections.emptyList();
         }
         int limit = (Integer) queryParams.getOrDefault(LIMIT, DEFAULT_USER_RECENT_LIMIT);
-        return convertOrders(orderMapper.selectRecentOrdersByUserId(userId, limit));
+        return convertOrders(baseMapper.selectRecentOrdersByUserId(userId, limit));
     }
 
     /**
@@ -215,7 +215,7 @@ public class OrderServiceImpl implements OrderService {
         Map<String, Object> condition = buildIntelligentQueryCondition(queryParams);
 
         // 4. 执行查询
-        return convertOrders(orderMapper.selectByCondition(condition));
+        return convertOrders(baseMapper.selectByCondition(condition));
     }
 
     /**

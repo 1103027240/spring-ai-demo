@@ -68,21 +68,21 @@ public class DocumentReviewConfig {
         GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, DOCUMENT_REVIEW_TITLE);
 
         // 配置持久化和中断节点
-        CompileConfig compileConfig = graphBuild.buildCompileConfig(mySqlSaver, true, HUMAN_APPROVAL.getName());
+        CompileConfig compileConfig = graphBuild.buildCompileConfig(mySqlSaver, true, HUMAN_APPROVAL.getText());
 
         log.info("\n" + "=".repeat(80));
         log.info("=== Document Review Graph ===");
         log.info("工作流名称：{}", DOCUMENT_REVIEW_NAME);
         log.info("标题：{}", DOCUMENT_REVIEW_TITLE);
         log.info("节点列表：");
-        log.info("  1. {} -> {}", StateGraph.START, CONTENT_ANALYSIS.getName());
-        log.info("  2. {} -> {}", CONTENT_ANALYSIS.getName(), COMPLIANCE_CHECK.getName());
-        log.info("  3. {} -> {}", COMPLIANCE_CHECK.getName(), RISK_ASSESSMENT.getName());
-        log.info("  4. {} -> {}", RISK_ASSESSMENT.getName(), HUMAN_APPROVAL.getName());
-        log.info("  5. {} -> (条件分支)", HUMAN_APPROVAL.getName());
-        log.info("     - {} -> {} -> {}", APPROVE.getId(), APPROVE_PROCESSING.getName(), FINAL_REPORT.getName());
-        log.info("     - {} -> {} -> {}", REJECT.getId(), REJECT_PROCESSING.getName(), FINAL_REPORT.getName());
-        log.info("  6. {} -> {}", FINAL_REPORT.getName(), StateGraph.END);
+        log.info("  1. {} -> {}", StateGraph.START, CONTENT_ANALYSIS.getText());
+        log.info("  2. {} -> {}", CONTENT_ANALYSIS.getText(), COMPLIANCE_CHECK.getText());
+        log.info("  3. {} -> {}", COMPLIANCE_CHECK.getText(), RISK_ASSESSMENT.getText());
+        log.info("  4. {} -> {}", RISK_ASSESSMENT.getText(), HUMAN_APPROVAL.getText());
+        log.info("  5. {} -> (条件分支)", HUMAN_APPROVAL.getText());
+        log.info("     - {} -> {} -> {}", APPROVE.getId(), APPROVE_PROCESSING.getText(), FINAL_REPORT.getText());
+        log.info("     - {} -> {} -> {}", REJECT.getId(), REJECT_PROCESSING.getText(), FINAL_REPORT.getText());
+        log.info("  6. {} -> {}", FINAL_REPORT.getText(), StateGraph.END);
         log.info("========================================================\n");
 
         return stateGraph.compile(compileConfig);
@@ -94,32 +94,32 @@ public class DocumentReviewConfig {
     private StateGraph createDocumentReviewGraph() throws GraphStateException {
         return new StateGraph(DOCUMENT_REVIEW_NAME, DocumentReviewFactory.documentReviewKeyStrategyFactory())
             // 创建节点
-            .addNode(CONTENT_ANALYSIS.getName(), node_async(new ContentAnalysisNode()))
-            .addNode(COMPLIANCE_CHECK.getName(), node_async(new ComplianceCheckNode()))
-            .addNode(RISK_ASSESSMENT.getName(), node_async(new RiskAssessmentNode()))
-            .addNode(HUMAN_APPROVAL.getName(), node_async(new HumanApprovalNode()))
-            .addNode(APPROVE_PROCESSING.getName(), node_async(new ApproveProcessingNode()))
-            .addNode(REJECT_PROCESSING.getName(), node_async(new RejectProcessingNode()))
-            .addNode(FINAL_REPORT.getName(), node_async(new FinalReportNode()))
+            .addNode(CONTENT_ANALYSIS.getText(), node_async(new ContentAnalysisNode()))
+            .addNode(COMPLIANCE_CHECK.getText(), node_async(new ComplianceCheckNode()))
+            .addNode(RISK_ASSESSMENT.getText(), node_async(new RiskAssessmentNode()))
+            .addNode(HUMAN_APPROVAL.getText(), node_async(new HumanApprovalNode()))
+            .addNode(APPROVE_PROCESSING.getText(), node_async(new ApproveProcessingNode()))
+            .addNode(REJECT_PROCESSING.getText(), node_async(new RejectProcessingNode()))
+            .addNode(FINAL_REPORT.getText(), node_async(new FinalReportNode()))
 
             // 创建边
-            .addEdge(StateGraph.START, CONTENT_ANALYSIS.getName())
-            .addEdge(CONTENT_ANALYSIS.getName(), COMPLIANCE_CHECK.getName())
-            .addEdge(COMPLIANCE_CHECK.getName(), RISK_ASSESSMENT.getName())
-            .addEdge(RISK_ASSESSMENT.getName(), HUMAN_APPROVAL.getName())
+            .addEdge(StateGraph.START, CONTENT_ANALYSIS.getText())
+            .addEdge(CONTENT_ANALYSIS.getText(), COMPLIANCE_CHECK.getText())
+            .addEdge(COMPLIANCE_CHECK.getText(), RISK_ASSESSMENT.getText())
+            .addEdge(RISK_ASSESSMENT.getText(), HUMAN_APPROVAL.getText())
 
             // 创建条件边
-            .addConditionalEdges(HUMAN_APPROVAL.getName(),
+            .addConditionalEdges(HUMAN_APPROVAL.getText(),
                     edge_async(new ApprovalDecisionRouter()),
-                    // 根据条件值（APPROVE/REJECT）找到对应节点
+                    // 根据条件值找到对应节点
                     Map.of(
-                            APPROVE.getId(), APPROVE_PROCESSING.getName(),
-                            REJECT.getId(), REJECT_PROCESSING.getName()
+                            APPROVE.getId(), APPROVE_PROCESSING.getText(),  //通过
+                            REJECT.getId(), REJECT_PROCESSING.getText()  //拒绝
                     ))
 
-            .addEdge(APPROVE_PROCESSING.getName(), FINAL_REPORT.getName())
-            .addEdge(REJECT_PROCESSING.getName(), FINAL_REPORT.getName())
-            .addEdge(FINAL_REPORT.getName(), StateGraph.END);
+            .addEdge(APPROVE_PROCESSING.getText(), FINAL_REPORT.getText())
+            .addEdge(REJECT_PROCESSING.getText(), FINAL_REPORT.getText())
+            .addEdge(FINAL_REPORT.getText(), StateGraph.END);
     }
 
 }

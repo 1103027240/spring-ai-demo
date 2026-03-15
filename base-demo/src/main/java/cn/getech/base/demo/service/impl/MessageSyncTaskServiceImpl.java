@@ -76,7 +76,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
 
         try {
             // 2.更新任务状态为处理中
-            updateTaskStatus(task, MessageTaskStatusEnum.PROCESSING.getCode());
+            updateTaskStatus(task, MessageTaskStatusEnum.PROCESSING.getId());
 
             // 3.会话消息同步到Milvus
             if (!customerKnowledgeBuild.syncMessagesToMilvus(sessionId, task.getSyncType())) {
@@ -84,7 +84,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
             }
 
             // 4.更新任务状态为已完成
-            updateTaskStatus(task, MessageTaskStatusEnum.COMPLETED.getCode());
+            updateTaskStatus(task, MessageTaskStatusEnum.COMPLETED.getId());
 
             // 5.更新会话消息同步状态为已同步
             chatMessageService.updateMessageSyncStatus(sessionId);
@@ -125,7 +125,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     public void handleSyncFailure(MessageSyncTask task, String sessionId, Exception e) {
         log.error("【异步同步】处理同步任务失败，sessionId: {}", sessionId, e);
         if (task != null) {
-            task.setStatus(MessageTaskStatusEnum.FAILED.getCode());
+            task.setStatus(MessageTaskStatusEnum.FAILED.getId());
             task.setRetryCount(task.getRetryCount() + 1);
             task.setErrorMessage(e.getMessage());
             task.setUpdatedTime(LocalDateTime.now());
