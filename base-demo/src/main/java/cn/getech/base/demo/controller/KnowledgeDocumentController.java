@@ -61,17 +61,23 @@ public class KnowledgeDocumentController {
         return knowledgeDocumentService.searchDocument(dto);
     }
 
-    @GetMapping("/documents/similarity")
-    @Operation(summary = "向量相似性搜索", description = "基于向量相似性搜索最相关的知识库文档")
+    @PostMapping("/documents/similarity")
+    @Operation(summary = "向量相似性搜索（游标分页）", description = "基于向量相似性搜索最相关的知识库文档，支持游标双向分页")
     public Map<String, Object> similaritySearch(
             @Parameter(description = "搜索查询", required = true) @RequestParam String query,
 
-            @Parameter(description = "返回结果数量限制，默认5") @RequestParam(defaultValue = "5")
-            @Min(value = 1, message = "结果数量不能小于1") @Max(value = 20, message = "结果数量不能大于20") int limit,
+            @Parameter(description = "返回结果数量限制，默认20") @RequestParam(defaultValue = "20")
+            @Min(value = 1, message = "结果数量不能小于1") @Max(value = 100, message = "结果数量不能大于100") int limit,
+
+            @Parameter(description = "游标字符串，用于分页") @RequestParam(required = false) String cursor,
+
+            @Parameter(description = "分页方向：forward(下一页), backward(上一页), first(首页)，默认forward") 
+            @RequestParam(defaultValue = "forward") String cursorDirection,
 
             @Parameter(description = "相似度阈值，默认0.6") @RequestParam(defaultValue = "0.6")
             @Min(value = 0, message = "阈值不能小于0") @Max(value = 1, message = "阈值不能大于1") double similarityThreshold) {
-        return knowledgeDocumentService.similaritySearch(query, limit, similarityThreshold);
+        
+        return knowledgeDocumentService.similaritySearch(query, limit, cursor, cursorDirection, similarityThreshold);
     }
 
     /**

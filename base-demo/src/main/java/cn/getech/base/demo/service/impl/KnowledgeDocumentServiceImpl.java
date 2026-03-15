@@ -849,46 +849,52 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         //return knowledgeDocumentMapper.countByCondition(condition);
     }
 
-    @Override
-    public Map<String, Object> similaritySearch(String query, int limit, double similarityThreshold) {
-        return similaritySearchWithCursor(query, limit, null, similarityThreshold);
-    }
-
     /**
-     * 带游标分页的相似度搜索
-     * 
+     * 带游标分页的相似度搜索（支持双向分页）
      * @param query 查询文本
      * @param limit 每页条数
      * @param cursor 游标字符串（第一次查询为null）
+     * @param cursorDirection 游标方向：forward(下一页), backward(上一页), first(首页)
      * @param similarityThreshold 相似度阈值
      * @return 包含结果和游标信息的Map
      */
-    public Map<String, Object> similaritySearchWithCursor(String query, int limit, String cursor, double similarityThreshold) {
+    public Map<String, Object> similaritySearch(String query, int limit, String cursor, String cursorDirection, double similarityThreshold) {
         Map<String, Object> result = new HashMap<>();
+        if (StrUtil.isBlank(query)) {
+            result.put("documents", new ArrayList<>());
+            result.put("nextCursor", null);
+            result.put("previousCursor", null);
+            result.put("hasNext", false);
+            result.put("hasPrevious", false);
+            return result;
+        }
+
+        if (StrUtil.isBlank(cursorDirection)) {
+            cursorDirection = CURSOR_DIRECTION_FORWARD;
+        }
 
         try {
-            if (StrUtil.isBlank(query)) {
-                result.put("documents", new ArrayList<>());
-                result.put("next_cursor", null);
-                result.put("has_next", false);
-                return result;
-            }
-
-            // 解码游标
             Set<Long> returnedIds = new HashSet<>();
             Double cursorMinScore = null;
+            Double cursorMaxScore = null;
             Long lastCursorId = null;
-
             if (StrUtil.isNotBlank(cursor)) {
                 try {
+                    // 解码游标
                     String[] cursorParts = CursorUtils.decodeCursor(cursor);
-                    if (cursorParts != null && cursorParts.length >= 1) {
+                    if (cursorParts != null && cursorParts.length >= 2) {
+                        // 获取最低分数、最高分数
                         cursorMinScore = Double.parseDouble(cursorParts[0]);
-                        if (cursorParts.length >= 2 && StrUtil.isNotBlank(cursorParts[1])) {
-                            lastCursorId = Long.parseLong(cursorParts[1]);
-                        }
+                        cursorMaxScore = Double.parseDouble(cursorParts[1]);
+                        
+                        // 获取lastId（混合模式）
                         if (cursorParts.length >= 3 && StrUtil.isNotBlank(cursorParts[2])) {
-                            returnedIds = Arrays.stream(cursorParts[2].split("\\" + ID_SEPARATOR))
+                            lastCursorId = Long.parseLong(cursorParts[2]);
+                        }
+                        
+                        // 获取已返回的ID列表
+                        if (cursorParts.length >= 4 && StrUtil.isNotBlank(cursorParts[3])) {
+                            returnedIds = Arrays.stream(cursorParts[3].split("\\" + ID_SEPARATOR))
                                     .filter(StrUtil::isNotBlank)
                                     .map(Long::valueOf)
                                     .collect(Collectors.toSet());
@@ -908,45 +914,74 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     .build();
 
             List<Document> vectorDocs = customerKnowledgeVectorStore.similaritySearch(request);
-
-            if (vectorDocs.isEmpty()) {
+            if (CollUtil.isEmpty(vectorDocs)) {
                 result.put("documents", new ArrayList<>());
-                result.put("next_cursor", null);
-                result.put("has_next", false);
+                result.put("nextCursor", null);
+                result.put("previousCursor", null);
+                result.put("hasNext", false);
+                result.put("hasPrevious", false);
                 return result;
             }
 
-            // 过滤文档：分数+ID双重过滤 + 去重
-            List<Document> filteredDocs = new ArrayList<>();
-            Set<Long> currentIds = new HashSet<>();
+            // 分析分数分布，判断是否使用混合模式
+            List<Double> scores = new ArrayList<>();
             Double minScore = null;
-
+            Double maxScore = null;
             for (Document doc : vectorDocs) {
                 Double score = (Double) doc.getMetadata().get("similarity");
-                if (score == null) {
-                    continue;
+                if (score != null) {
+                    if (minScore == null || score < minScore) {
+                        minScore = score;
+                    }
+                    if (maxScore == null || score > maxScore) {
+                        maxScore = score;
+                    }
+                    scores.add(score);
                 }
+            }
 
-                if (minScore == null || score < minScore) {
-                    minScore = score;
+            // 检测连续相同分数的块
+            int tailSameScoreBlockSize = 0;
+            Double tailSameScoreValue = null;
+            if (CollUtil.isNotEmpty(scores)) {
+                tailSameScoreValue = scores.get(scores.size() - 1);
+                tailSameScoreBlockSize = 1;
+                
+                for (int i = scores.size() - 2; i >= 0; i--) {
+                    if (Math.abs(scores.get(i) - tailSameScoreValue) <= SCORE_SAME_THRESHOLD) {
+                        tailSameScoreBlockSize++;
+                    } else {
+                        break;
+                    }
                 }
+            }
 
-                Object documentIdObj = doc.getMetadata().get("documentId");
+            // 判断是否需要使用混合模式
+            boolean useHybridMode = (vectorDocs.size() >= LARGE_RESULT_THRESHOLD) && 
+                    (tailSameScoreBlockSize >= scores.size() || tailSameScoreBlockSize >= VECTOR_SEARCH_BATCH_SIZE);
+
+            // 根据方向过滤文档
+            List<Document> filteredDocs = filterDocsByDirection(
+                    vectorDocs, cursorDirection, cursorMinScore, cursorMaxScore,
+                    lastCursorId, returnedIds, useHybridMode);
+
+            // 构建结果
+            List<Map<String, Object>> documents = new ArrayList<>();
+            Set<Long> currentIds = new HashSet<>();
+            Double currentMinScore = null;
+            Double currentMaxScore = null;
+            Long lastId = null;
+
+            for (Document doc : filteredDocs) {
+                Map<String, Object> metadata = doc.getMetadata();
+                Object documentIdObj = metadata.get("documentId");
                 if (documentIdObj == null) {
                     continue;
                 }
+
                 Long documentId = ParamUtils.parseDocumentId(documentIdObj);
                 if (documentId == null) {
                     continue;
-                }
-
-                // 游标过滤：分数 > minScore 或 (分数≈minScore 且 id > lastCursorId)
-                if (cursorMinScore != null && lastCursorId != null) {
-                    boolean shouldInclude = score > cursorMinScore ||
-                            (Math.abs(score - cursorMinScore) <= SCORE_SAME_THRESHOLD && documentId > lastCursorId);
-                    if (!shouldInclude) {
-                        continue;
-                    }
                 }
 
                 // 去重：跳过已返回的文档
@@ -954,55 +989,64 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     continue;
                 }
 
-                filteredDocs.add(doc);
-                currentIds.add(documentId);
+                Double score = (Double) metadata.get("similarity");
+                if (currentMinScore == null || score < currentMinScore) {
+                    currentMinScore = score;
+                }
+                if (currentMaxScore == null || score > currentMaxScore) {
+                    currentMaxScore = score;
+                }
 
-                if (filteredDocs.size() >= limit) {
+                Map<String, Object> docResult = new HashMap<>();
+                docResult.put("id", documentId);
+                docResult.put("title", metadata.get("title"));
+                docResult.put("content", doc.getText());
+                docResult.put("summary", metadata.get("summary"));
+                docResult.put("category", metadata.get("category"));
+                docResult.put("tags", metadata.get("tags"));
+                docResult.put("similarity_score", score);
+                docResult.put("create_time", metadata.get("create_time"));
+
+                documents.add(docResult);
+                currentIds.add(documentId);
+                lastId = documentId;
+
+                if (documents.size() >= limit) {
                     break;
                 }
             }
 
-            // 转换为结果格式
-            List<Map<String, Object>> documents = filteredDocs.stream()
-                    .map(doc -> {
-                        Map<String, Object> metadata = doc.getMetadata();
-                        Map<String, Object> docResult = new HashMap<>();
-                        docResult.put("id", metadata.get("documentId"));
-                        docResult.put("title", metadata.get("title"));
-                        docResult.put("content", doc.getText());
-                        docResult.put("summary", metadata.get("summary"));
-                        docResult.put("category", metadata.get("category"));
-                        docResult.put("tags", metadata.get("tags"));
-                        docResult.put("similarity_score", metadata.get("similarity"));
-                        docResult.put("create_time", metadata.get("create_time"));
-                        return docResult;
-                    })
-                    .collect(Collectors.toList());
-
             // 相同分数按ID排序
             sortResultsByScoreAndId(documents);
 
-            // 生成游标
-            Long lastId = null;
-            if (!documents.isEmpty()) {
-                lastId = (Long) documents.get(documents.size() - 1).get("id");
-            }
-
+            // 合并ID集合
             Set<Long> allIds = new HashSet<>(returnedIds);
             allIds.addAll(currentIds);
 
             result.put("documents", documents);
 
+            // 生成双向游标
             if (documents.size() >= limit) {
-                result.put("next_cursor", CursorUtils.encodeCursorSimple(minScore, lastId, allIds));
+                // 生成next_cursor（forward方向）
+                Double nextMinScore = useHybridMode ? currentMinScore : minScore;
+                result.put("next_cursor", CursorUtils.encodeCursor(nextMinScore, currentMaxScore, lastId, allIds));
                 result.put("has_next", true);
             } else {
                 result.put("next_cursor", null);
                 result.put("has_next", false);
             }
 
+            // 生成previous_cursor（backward方向）
+            if (cursor != null) {
+                Double prevMaxScore = useHybridMode ? currentMaxScore : maxScore;
+                result.put("previous_cursor", CursorUtils.encodeCursor(cursorMinScore, prevMaxScore, null, returnedIds));
+                result.put("has_previous", true);
+            } else {
+                result.put("previous_cursor", null);
+                result.put("has_previous", false);
+            }
         } catch (Exception e) {
-            log.error("相似度搜索失败，query: {}, limit: {}, cursor: {}", query, limit, cursor, e);
+            log.error("相似度搜索失败，query: {}, limit: {}, cursor: {}, direction: {}", query, limit, cursor, cursorDirection, e);
             result.put("error", "搜索失败: " + e.getMessage());
         }
 

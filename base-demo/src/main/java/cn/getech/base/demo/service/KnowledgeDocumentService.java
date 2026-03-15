@@ -27,7 +27,7 @@ public interface KnowledgeDocumentService {
 
     Map<String, Object> searchDocument(KnowledgeDocumentSearchDto dto);
 
-    Map<String, Object> similaritySearch(String query, int limit, double similarityThreshold);
+    Map<String, Object> similaritySearch(String query, int limit, String cursor, String cursorDirection, double similarityThreshold);
 
 }
 

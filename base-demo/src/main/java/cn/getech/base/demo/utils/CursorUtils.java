@@ -15,42 +15,17 @@ public class CursorUtils {
     private static final String ID_SEPARATOR = ","; // ID列表分隔符
 
     /**
-     * 编码游标（简化版）
-     * 返回数据格式：minScore|lastId|id1,id2,id3,...
-     */
-    public static String encodeCursorSimple(Double minScore, Long lastId, Set<Long> returnedIds) {
-        try {
-            StringBuilder cursorData = new StringBuilder();
-            cursorData.append(minScore != null ? minScore : "0.0").append(CURSOR_SEPARATOR);
-            cursorData.append(lastId != null ? lastId : "").append(CURSOR_SEPARATOR);
-
-            List<Long> idList = returnedIds.stream()
-                    .skip(Math.max(0, returnedIds.size() - MAX_CURSOR_ID_COUNT))
-                    .collect(Collectors.toList());
-
-            cursorData.append(idList.stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.joining(ID_SEPARATOR)));
-
-            return Base64.getEncoder().encodeToString(cursorData.toString().getBytes());
-        } catch (Exception e) {
-            log.error("编码游标失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 编码游标（完整版）
-     * 返回数据格式：minScore|maxScore|lastId|id1,id2,id3,...
-     * - minScore: 最低分数（forward方向使用）
-     * - maxScore: 最高分数（backward方向使用）
-     * - lastId: 最后一个文档的ID（混合模式下使用，普通模式为空）
-     * - ids: 已返回的文档ID列表，通过逗号分隔（用于去重）
+     * 编码游标
      * @param minSimilarityScore 最低相似度分数
      * @param maxSimilarityScore 最高相似度分数
      * @param lastId 最后一个文档的ID（混合模式）
      * @param returnedIds 已返回的文档ID集合
      * @return Base64编码的游标字符串
+     * 返回数据格式：minScore|maxScore|lastId|id1,id2,id3,...
+     * - minScore: 最低分数（forward方向使用）
+     * - maxScore: 最高分数（backward方向使用）
+     * - lastId: 最后一个文档的ID（混合模式下使用，普通模式为空）
+     * - ids: 已返回的文档ID列表，通过逗号分隔（用于去重）
      */
     public static String encodeCursor(Double minSimilarityScore, Double maxSimilarityScore, Long lastId, Set<Long> returnedIds) {
         try {
@@ -78,11 +53,10 @@ public class CursorUtils {
 
     /**
      * 解码游标
-     * 请求参数支持两种格式：
-     * - 简化版（similaritySearch使用）：minScore|lastId|id1,id2,id3,...
-     * - 完整版（searchDocument使用）：minScore|maxScore|lastId|id1,id2,id3,...
      * @param cursor Base64编码的游标字符串
      * @return 解码后的数组
+     * 请求参数格式：minScore|maxScore|lastId|id1,id2,id3,...
+     * 返回数据格式：[minScore, maxScore, lastId, "id1,id2,id3,..."]
      */
     public static String[] decodeCursor(String cursor) {
         try {
@@ -97,11 +71,10 @@ public class CursorUtils {
 
     /**
      * 从游标中获取之前返回的文档ID集合
-     * 请求参数支持格式：
-     * - 新格式：minScore|maxScore|lastId|id1,id2,id3,... （ids在索引3）
-     * - 旧格式：minScore|id1,id2,id3,... （ids在索引1）
      * @param cursor 游标字符串
      * @return 已返回的文档ID集合
+     * 请求参数格式：minScore|maxScore|lastId|id1,id2,id3,...
+     * 返回数据格式：[id1, id2, id3, ...]
      */
     public static Set<Long> getPreviousReturnedIds(String cursor) {
         Set<Long> ids = new HashSet<>();
@@ -111,21 +84,13 @@ public class CursorUtils {
 
         try {
             String[] cursorParts = decodeCursor(cursor);
-            if (cursorParts == null) {
+            if (cursorParts == null || cursorParts.length == 0) {
                 return ids;
             }
 
             // 优先使用新格式
             if (cursorParts.length >= 4) {
                 String idString = cursorParts[3];
-                if (StrUtil.isNotBlank(idString)) {
-                    ids = parseIdList(idString);
-                }
-            }
-
-            // 兼容旧格式
-            else if (cursorParts.length > 1) {
-                String idString = cursorParts[1];
                 if (StrUtil.isNotBlank(idString)) {
                     ids = parseIdList(idString);
                 }
@@ -139,8 +104,10 @@ public class CursorUtils {
 
     /**
      * 解析ID列表字符串
-     * @param idString ID列表字符串，如"1,2,3,4"
+     * @param idString ID列表字符串
      * @return ID集合
+     * 请求参数格式：id1,id2,id3,...
+     * 返回数据格式：[id1, id2, id3, ...]
      */
     public static Set<Long> parseIdList(String idString) {
         return Arrays.stream(idString.split("\\" + ID_SEPARATOR))
