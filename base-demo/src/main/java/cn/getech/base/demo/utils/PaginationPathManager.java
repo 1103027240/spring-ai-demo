@@ -2,18 +2,15 @@ package cn.getech.base.demo.utils;
 
 import cn.getech.base.demo.dto.PaginationPathVO;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-
 import java.util.concurrent.TimeUnit;
 
 /**
  * 分页路径管理器（基于Redis）
- * 
- * 用于在Redis中存储分页路径，支持无限分页
- * 避免内存无限增长，同时保证向后分页的准确性
  */
 @Slf4j
 @Component
@@ -44,8 +41,8 @@ public class PaginationPathManager {
         try {
             String key = PATH_KEY_PREFIX + pathId;
             String encodedPath = CursorUtils.encodePaginationPath(path);
-            
-            if (encodedPath != null) {
+
+            if (StrUtil.isNotBlank(encodedPath)) {
                 redisTemplate.opsForValue().set(key, encodedPath, PATH_EXPIRE_HOURS, TimeUnit.HOURS);
                 log.debug("分页路径已保存到Redis，pathId: {}, 总页数: {}", pathId, path.getTotalPageCount());
             }
@@ -58,15 +55,15 @@ public class PaginationPathManager {
      * 从Redis加载分页路径
      */
     public PaginationPathVO loadPath(String pathId) {
-        if (pathId == null) {
+        if (StrUtil.isBlank(pathId)) {
             return null;
         }
 
         try {
             String key = PATH_KEY_PREFIX + pathId;
             String encodedPath = (String) redisTemplate.opsForValue().get(key);
-            
-            if (encodedPath != null) {
+
+            if (StrUtil.isNotBlank(encodedPath)) {
                 PaginationPathVO path = CursorUtils.decodePaginationPath(encodedPath);
                 log.debug("从Redis加载分页路径成功，pathId: {}, 当前页数: {}", pathId, path.getTotalPageCount());
                 return path;
@@ -79,4 +76,5 @@ public class PaginationPathManager {
             return null;
         }
     }
+
 }

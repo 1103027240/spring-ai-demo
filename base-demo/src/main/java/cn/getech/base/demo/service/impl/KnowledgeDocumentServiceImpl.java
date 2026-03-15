@@ -301,22 +301,18 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         return document;
     }
 
-/**
- * 搜索文档（支持三种模式：VECTOR、KEYWORD、HYBRID）
- * 
- * 模式说明：
- * - VECTOR: 向量搜索，支持游标分页（向前、向后、首页滚动），使用缓存
- * - KEYWORD: 关键词搜索，传统MySQL分页，使用缓存
- * - HYBRID: 向量+关键词混合搜索，支持游标分页（向前、向后、首页滚动），使用缓存
- * 
- * 所有模式都支持无限分页，优化了查询性能
- * 
- * 容错处理：
- * - pathId不存在或格式错误：自动降级为首次查询
- * - 分页路径数据损坏：自动降级为首次查询
- * - 向量库查询失败：自动降级为关键词搜索
- * - 数据库查询失败：返回空结果和错误提示
- */
+    /**
+     * 搜索文档（支持三种模式：VECTOR、KEYWORD、HYBRID）
+     * 模式说明：
+     * - VECTOR: 向量搜索，支持游标分页（向前、向后、首页滚动），使用缓存
+     * - KEYWORD: 关键词搜索，传统MySQL分页，使用缓存
+     * - HYBRID: 向量 + 关键词混合搜索，支持游标分页（向前、向后、首页滚动），使用缓存
+     * 容错处理：
+     * - pathId不存在或格式错误：自动降级为首次查询
+     * - 分页路径数据损坏：自动降级为首次查询
+     * - 向量库查询失败：自动降级为关键词搜索
+     * - 数据库查询失败：返回空结果和错误提示
+     */
     @Override
     public Map<String, Object> searchDocument(KnowledgeDocumentSearchDto dto) {
         SearchModeEnum searchModeEnum = SearchModeEnum.valueOf(dto.getSearchMode());
@@ -324,56 +320,38 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         // KEYWORD、VECTOR和HYBRID模式首次查询都尝试从缓存获取（容错：缓存失败不影响主流程）
         if (StrUtil.isBlank(dto.getCursor())) {
-            try {
-                Map<String, Object> cacheMap = getKeywordFromCache(cacheKey);
-                if (CollUtil.isNotEmpty(cacheMap)) {
-                    return cacheMap;
-                }
-            } catch (Exception e) {
-                log.warn("从缓存获取失败，继续执行搜索，cacheKey: {}", cacheKey, e);
+            Map<String, Object> cacheMap = getKeywordFromCache(cacheKey);
+            if (CollUtil.isNotEmpty(cacheMap)) {
+                return cacheMap;
             }
         }
 
         Map<String, Object> result = new HashMap<>();
         List<KnowledgeDocument> documents;
 
-        try {
-            // 根据模式执行不同的搜索策略
-            switch (searchModeEnum) {
-                case VECTOR:
-                    // VECTOR模式：向量搜索 + 游标分页 + 缓存
-                    documents = searchWithVectorMode(dto, result);
-                    buildVectorResponse(result, documents, dto);
-                    break;
-                    
-                case KEYWORD:
-                    // KEYWORD模式：MySQL关键词搜索 + 传统分页 + 缓存
-                    documents = searchWithKeywordMode(dto, result);
-                    buildCommonResponse(result, documents, dto);
-                    break;
-                    
-                case HYBRID:
-                default:
-                    // HYBRID模式：向量+关键词混合搜索 + 统一使用游标分页 + 缓存
-                    documents = searchWithHybridMode(dto, result);
-                    buildVectorResponse(result, documents, dto);
-                    break;
-            }
+        // 根据模式执行不同的搜索策略
+        switch (searchModeEnum) {
+            case VECTOR:
+                // VECTOR模式：向量搜索 + 游标分页 + 缓存
+                documents = searchWithVectorMode(dto, result);
+                buildVectorResponse(result, documents, dto);
+                break;
+            case KEYWORD:
+                // KEYWORD模式：MySQL关键词搜索 + 传统分页 + 缓存
+                documents = searchWithKeywordMode(dto, result);
+                buildCommonResponse(result, documents, dto);
+                break;
+            case HYBRID:
+            default:
+                // HYBRID模式：向量 + 关键词混合搜索 + 统一使用游标分页 + 缓存
+                documents = searchWithHybridMode(dto, result);
+                buildVectorResponse(result, documents, dto);
+                break;
+        }
 
-            // 缓存结果（首次查询，容错：缓存失败不影响主流程）
-            if (StrUtil.isBlank(dto.getCursor())) {
-                try {
-                    cacheResult(cacheKey, result);
-                } catch (Exception e) {
-                    log.warn("缓存结果失败，不影响主流程，cacheKey: {}", cacheKey, e);
-                }
-            }
-        } catch (Exception e) {
-            log.error("搜索文档失败，searchMode: {}, 参数: {}", dto.getSearchMode(), dto, e);
-            result.put("documents", new ArrayList<>());
-            result.put("error", "搜索失败: " + e.getMessage());
-            result.put("current_page", dto.getPage());
-            result.put("page_size", dto.getSize());
+        // 缓存结果
+        if (StrUtil.isBlank(dto.getCursor())) {
+            cacheResult(cacheKey, result);
         }
 
         return result;
@@ -386,52 +364,46 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         List<Map<String, Object>> docResponses = documents.stream()
                 .map(this::convertToDocumentResponse)
                 .collect(Collectors.toList());
-        
         result.put("documents", docResponses);
-        result.put("current_page", dto.getPage());
-        result.put("page_size", dto.getSize());
+        result.put("currentPage", dto.getPage());
+        result.put("pageSize", dto.getSize());
     }
 
     /**
      * 向量搜索模式（游标分页）
-     * 优化：改进 ID 累积策略，避免无限增长
      * 支持无限分页（使用Redis存储分页路径）
-     * 
      * 容错处理：
-     * - Redis查询超时：直接抛出异常，不降级
-     * - Redis连接失败：直接抛出异常，不降级
+     * - Redis查询超时或连接失败：直接跑异常
      * - pathId不存在或格式错误：自动降级为首次查询
      * - 分页路径数据损坏：自动降级为首次查询
      * - 向量库查询失败：自动降级为关键词搜索
      * - 数据库查询失败：返回空结果
      */
     private List<KnowledgeDocument> searchWithVectorMode(KnowledgeDocumentSearchDto dto, Map<String, Object> result) {
+        long startTime = System.currentTimeMillis();
         int limit = dto.getSize();
         String cursorDirection = dto.getCursorDirection() != null ? dto.getCursorDirection() : CURSOR_DIRECTION_FORWARD;
-        long startTime = System.currentTimeMillis();
+
+        String pathId = dto.getPathId();
+        if (StrUtil.isBlank(pathId)) {
+            pathId = paginationPathManager.generatePathId();
+        }
 
         // 管理分页路径ID
-        String pathId = dto.getPathId();
         boolean pathExpired = false;  // 标记path是否过期
         PaginationPathVO path = new PaginationPathVO();
         
         try {
-            if (StrUtil.isBlank(pathId)) {
-                pathId = paginationPathManager.generatePathId();
-            }
-
-            // 从Redis加载分页路径（容错：超时或失败自动降级）
+            // 从Redis加载分页路径，如果pathId不存在，生成新pathId，并查询第一页
             path = paginationPathManager.loadPath(pathId);
             if (path == null || path.getCurrentPage() == null) {
-                // 如果Redis中找不到path或path为空，生成新的pathId并重新查询
-                log.info("分页路径不存在或已过期，pathId: {}，重新开始查询", pathId);
+                log.info("分页路径不存在或已过期，生成新pathId: {}，查询第一页", pathId);
                 pathExpired = true;
                 pathId = paginationPathManager.generatePathId();
                 path = new PaginationPathVO();
-                cursorDirection = CURSOR_DIRECTION_FIRST;  // 强制降级为首次查询
+                cursorDirection = CURSOR_DIRECTION_FIRST;
             }
-        } catch (Exception e) {
-            // Redis查询失败（超时、连接失败等），直接抛出异常不降级
+        } catch (Exception e) { // Redis查询失败（超时、连接失败等），直接抛出异常不降级
             log.error("Redis查询失败，pathId: {}", pathId, e);
             throw new RuntimeException("Redis查询超时或连接失败，请稍后重试", e);
         }
@@ -455,8 +427,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         }
 
         // 返回pathId给前端
-        result.put("path_id", pathId);
-
+        result.put("pathId", pathId);
         return documents;
     }
 
@@ -466,8 +437,37 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 优化：智能判断是否到达最后一页，避免无效的向前查询
      */
     private List<KnowledgeDocument> executeVectorSearch(KnowledgeDocumentSearchDto dto, Map<String, Object> result,
-                                                      PaginationPathVO path, String pathId,
-                                                      int limit, long startTime, boolean isFirst, String logMsg) {
+                                                        PaginationPathVO path, String pathId, int limit, long startTime,
+                                                        boolean isFirst, String logMsg) {
+        // Forward分页时，从path中获取上一页的分页信息
+        if (!isFirst) {
+            PageInfoVO currentPage = path.getCurrentPage();
+            if (currentPage != null) {
+                // 累积所有已返回的ID
+                Set<Long> allReturnedIds = new HashSet<>();
+                for (int i = 0; i <= path.getCurrentIndex(); i++) {
+                    PageInfoVO page = path.getPageList().get(i);
+                    if (page.getIds() != null) {
+                        allReturnedIds.addAll(page.getIds());
+                    }
+                }
+
+                // 编码游标并设置到dto
+                String cursor = CursorUtils.encodeCursor(
+                        currentPage.getMinScore(),
+                        currentPage.getMaxScore(),
+                        currentPage.getLastId(),
+                        allReturnedIds,
+                        pathId,
+                        currentPage.getLastExactScore(),
+                        currentPage.getLastExactId()
+                );
+                dto.setCursor(cursor);
+                log.debug("Forward分页，设置游标信息，lastExactScore: {}, lastExactId: {}, 返回ID数量: {}",
+                        currentPage.getLastExactScore(), currentPage.getLastExactId(), allReturnedIds.size());
+            }
+        }
+
         CursorSearchResultVO cursorResult = vectorSearch(dto);
         List<KnowledgeDocument> documents = cursorResult.getDocuments();
 
@@ -493,20 +493,31 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 .map(KnowledgeDocument::getId)
                 .collect(Collectors.toList());
 
+        // 获取最后一条数据的精确分数和ID（混合搜索后，最后一条可能来自关键词搜索，需要重新计算）
+        Double lastExactScore = null;
+        Long lastExactId = null;
+        if (!documents.isEmpty()) {
+            KnowledgeDocument lastDoc = documents.get(documents.size() - 1);
+            lastExactScore = lastDoc.getSimilarityScore();
+            lastExactId = lastDoc.getId();
+        }
+
         PageInfoVO pageInfo = new PageInfoVO(
                 cursorResult.getMinScore(),
                 cursorResult.getMaxScore(),
                 cursorResult.getLastId(),
-                currentIds);
-        pageInfo.setSortedIds(sortedIds);
+                currentIds,
+                sortedIds,
+                lastExactScore,
+                lastExactId);
 
         // 手动添加到分页路径
         path.addPageFromPageInfo(pageInfo);
 
-        result.put("next_cursor", !isLastPage ? CursorUtils.encodePaginationPath(path) : null);
-        result.put("previous_cursor", isFirst ? null : (path.hasPrevious() ? CursorUtils.encodePaginationPath(path) : null));
-        result.put("has_next", !isLastPage);
-        result.put("has_previous", !isFirst && path.hasPrevious());
+        result.put("nextCursor", !isLastPage ? CursorUtils.encodePaginationPath(path) : null);
+        result.put("previousCursor", isFirst ? null : (path.hasPrevious() ? CursorUtils.encodePaginationPath(path) : null));
+        result.put("hasNext", !isLastPage);
+        result.put("hasPrevious", !isFirst && path.hasPrevious());
 
         // 保存分页路径到Redis（容错：保存失败不影响主流程）
         try {
@@ -519,7 +530,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         addPaginationStatus(result, path);
 
         log.debug("{}，耗时: {}ms，返回文档数: {}，是否最后一页: {}", logMsg, System.currentTimeMillis() - startTime, documents.size(), isLastPage);
-
         return documents;
     }
 
@@ -568,11 +578,10 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         // 添加分页状态信息
         Map<String, Object> paginationStatus = new HashMap<>();
-        paginationStatus.put("current_page", path.getCurrentPageIndex());  // 当前页码
-        paginationStatus.put("total_pages", path.getTotalPageCount());  // 总页数
-        paginationStatus.put("earliest_available_page", path.getFirstPageIndex());  // 可回溯的最早页码（始终为1）
-
-        result.put("pagination_status", paginationStatus);
+        paginationStatus.put("currentPage", path.getCurrentPageIndex());  // 当前页码
+        paginationStatus.put("totalPages", path.getTotalPageCount());  // 总页数
+        paginationStatus.put("earliestAvailablePage", path.getFirstPageIndex());  // 可回溯的最早页码（始终为1）
+        result.put("paginationStatus", paginationStatus);
     }
 
     /**
@@ -949,8 +958,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 优化：智能判断是否到达最后一页，避免无效的向前查询
      */
     private List<KnowledgeDocument> executeHybridFirstSearch(KnowledgeDocumentSearchDto dto, Map<String, Object> result,
-                                                         PaginationPathVO path, String pathId,
-                                                         int limit, long startTime) {
+                                                             PaginationPathVO path, String pathId,
+                                                             int limit, long startTime) {
         // 步骤1：向量搜索（获取高分文档）
         CursorSearchResultVO cursorResult = vectorSearch(dto);
         List<KnowledgeDocument> documents = cursorResult.getDocuments();
@@ -1003,12 +1012,23 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 .map(KnowledgeDocument::getId)
                 .collect(Collectors.toList());
 
+        // 获取最后一条数据的精确分数和ID（混合搜索后，最后一条可能来自关键词搜索，需要重新计算）
+        Double lastExactScore = null;
+        Long lastExactId = null;
+        if (!documents.isEmpty()) {
+            KnowledgeDocument lastDoc = documents.get(documents.size() - 1);
+            lastExactScore = lastDoc.getSimilarityScore();
+            lastExactId = lastDoc.getId();
+        }
+
         PageInfoVO pageInfo = new PageInfoVO(
                 cursorResult.getMinScore(),
                 cursorResult.getMaxScore(),
                 cursorResult.getLastId(),
-                currentIds);
-        pageInfo.setSortedIds(sortedIds);
+                currentIds,
+                sortedIds,
+                lastExactScore,
+                lastExactId);
 
         // 添加到分页路径
         path.addPageFromPageInfo(pageInfo);
@@ -1017,10 +1037,10 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         boolean isLastPage = vectorSearchExhausted || documents.size() < limit;
 
         // 设置游标和分页信息
-        result.put("next_cursor", !isLastPage ? CursorUtils.encodePaginationPath(path) : null);
-        result.put("previous_cursor", null);
-        result.put("has_next", !isLastPage);
-        result.put("has_previous", false);
+        result.put("nextCursor", !isLastPage ? CursorUtils.encodePaginationPath(path) : null);
+        result.put("previousCursor", null);
+        result.put("hasNext", !isLastPage);
+        result.put("hasPrevious", false);
 
         // 保存分页路径到Redis
         try {
@@ -1114,6 +1134,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 核心逻辑：
      * 1. 向量模式：基于分数过滤 + ID去重
      * 2. 混合模式：基于分数 + ID双重过滤，解决大结果集相同分数的分页问题
+     * 3. 精确分页模式：使用最后一条数据的精确分数和ID，解决一页内混合不同分数和相同分数的场景
+     * 
      * 混合模式控制：
      * - 通过 dto.enableHybridMode 标记控制是否启用分数连续性分析
      * - 如果文档ID有序（如按创建时间递增），建议设为false以提高性能
@@ -1126,10 +1148,13 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         Double minScore = null;
         Double maxScore = null;
         Long lastId = null;
+        Double lastExactScore = null;
+        Long lastExactId = null;
         boolean useHybridMode = false;
+        boolean hasLargeSameScoreBlock = false;
 
         if (StrUtil.isBlank(dto.getKeyword())) {
-            return new CursorSearchResultVO(results, minScore, maxScore, lastId, useHybridMode);
+            return new CursorSearchResultVO(results, minScore, maxScore, lastId, lastExactScore, lastExactId, useHybridMode, hasLargeSameScoreBlock);
         }
 
         // ========== 第一步：解码游标 ==========
@@ -1138,6 +1163,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         Long lastCursorId = null;
         Set<Long> returnedIds = new HashSet<>();
         boolean hybridModeFromCursor = false;
+        Double cursorLastExactScore = null;
+        Long cursorLastExactId = null;
 
         if (StrUtil.isNotBlank(dto.getCursor())) {
             try {
@@ -1146,19 +1173,30 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     // 获取最低分数、最高分数
                     cursorMinScore = Double.parseDouble(cursorParts[0]);
                     cursorMaxScore = Double.parseDouble(cursorParts[1]);
-                    
+
                     // 检查是否是混合模式游标（包含lastId）
                     if (cursorParts.length >= 3 && StrUtil.isNotBlank(cursorParts[2])) {
                         hybridModeFromCursor = true;
                         lastCursorId = Long.parseLong(cursorParts[2]);
                     }
-                    
+
                     // 获取已返回的ID列表
                     if (cursorParts.length >= 4 && StrUtil.isNotBlank(cursorParts[3])) {
                         returnedIds = Arrays.stream(cursorParts[3].split("\\" + ID_SEPARATOR))
                                 .filter(StrUtil::isNotBlank)
                                 .map(Long::valueOf)
                                 .collect(Collectors.toSet());
+                    }
+
+                    // 获取精确分数和精确ID（新格式，位置 >= 6）
+                    if (cursorParts.length >= 7) {
+                        if (StrUtil.isNotBlank(cursorParts[5])) {
+                            cursorLastExactScore = Double.parseDouble(cursorParts[5]);
+                        }
+                        if (StrUtil.isNotBlank(cursorParts[6])) {
+                            cursorLastExactId = Long.parseLong(cursorParts[6]);
+                        }
+                        log.debug("解码到精确分页信息，lastExactScore: {}, lastExactId: {}", cursorLastExactScore, cursorLastExactId);
                     }
                 }
             } catch (Exception e) {
@@ -1185,7 +1223,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
             List<Document> vectorDocs = customerKnowledgeVectorStore.similaritySearch(searchRequest);
             if (CollUtil.isEmpty(vectorDocs)) {
-                return new CursorSearchResultVO(results, minScore, maxScore, lastId, useHybridMode);
+                return new CursorSearchResultVO(results, minScore, maxScore, lastId, lastExactScore, lastExactId, useHybridMode, hasLargeSameScoreBlock);
             }
 
             // ========== 第三步：分析分数分布，判断是否使用混合模式 ==========
@@ -1258,17 +1296,20 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             }
 
             // ========== 第四步：根据方向和模式过滤文档 ==========
-            List<Document> filteredDocs = filterDocsByDirection(
-                    vectorDocs, cursorDirection, cursorMinScore, cursorMaxScore,
-                    lastCursorId, returnedIds, useHybridMode);
+            // 优先使用精确分页（如果有精确分数和ID）
+            if (cursorLastExactScore != null && cursorLastExactId != null) {
+                log.debug("使用精确分页模式，lastExactScore: {}, lastExactId: {}", cursorLastExactScore, cursorLastExactId);
+            }
+
+            List<Document> filteredDocs = filterDocsByDirection(vectorDocs, cursorDirection, cursorMinScore, cursorMaxScore,
+                    lastCursorId, returnedIds, useHybridMode, cursorLastExactScore, cursorLastExactId);
 
             // ========== 第五步：构建结果 ==========
             for (Document doc : filteredDocs) {
                 Map<String, Object> metadata = doc.getMetadata();
 
-                Long documentId = ParamUtils.parseDocumentId(metadata.get("documentId"));
-
                 // 后端去重：跳过已返回的文档ID
+                Long documentId = ParamUtils.parseDocumentId(metadata.get("documentId"));
                 if (returnedIds.contains(documentId)) {
                     continue;
                 }
@@ -1292,16 +1333,22 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     break;
                 }
             }
+
+            // 保存最后一条数据的精确分数和ID
+            if (CollUtil.isNotEmpty(results)) {
+                KnowledgeDocument lastDoc = results.get(results.size() - 1);
+                lastExactScore = lastDoc.getSimilarityScore();
+                lastExactId = lastDoc.getId();
+            }
         } catch (Exception e) {
             log.error("向量搜索失败", e);
         }
 
-        return new CursorSearchResultVO(results, minScore, maxScore, lastId, useHybridMode);
+        return new CursorSearchResultVO(results, minScore, maxScore, lastId, lastExactScore, lastExactId, useHybridMode, hasLargeSameScoreBlock);
     }
 
     /**
      * 根据方向和模式过滤文档
-     * 
      * @param docs 向量库返回的文档列表
      * @param direction 游标方向（forward/backward/first）
      * @param minThreshold 最小分数阈值（forward方向使用）
@@ -1309,12 +1356,20 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * @param lastCursorId 上次返回的最后一个文档ID（混合模式使用）
      * @param returnedIds 已返回的文档ID集合
      * @param useHybridMode 是否使用混合模式
+     * @param lastExactScore 最后一条数据的精确分数（精确分页模式）
+     * @param lastExactId 最后一条数据的精确ID（精确分页模式）
      * @return 过滤后的文档列表
      */
     private List<Document> filterDocsByDirection(List<Document> docs, String direction,
                                                  Double minThreshold, Double maxThreshold,
-                                                 Long lastCursorId, Set<Long> returnedIds, boolean useHybridMode) {
+                                                 Long lastCursorId, Set<Long> returnedIds, boolean useHybridMode,
+                                                 Double lastExactScore, Long lastExactId) {
         List<Document> filtered = new ArrayList<>();
+
+        // 优先使用精确分页模式（解决一页内混合不同分数和相同分数的场景）
+        if (lastExactScore != null && lastExactId != null && CURSOR_DIRECTION_FORWARD.equals(direction)) {
+            return filterDocsByExactPagination(docs, lastExactScore, lastExactId, returnedIds);
+        }
 
         for (Document doc : docs) {
             Map<String, Object> metadata = doc.getMetadata();
@@ -1357,6 +1412,48 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
+     * 精确分页过滤（解决场景1和场景2）
+     * 场景1：1000条相同分数，返回200条
+     * 场景2：180条不同分数 + 20条相同分数（属于1000条的一部分）
+     * 策略：使用最后一条数据的精确分数和ID作为起点，过滤出后面的数据
+     * - 如果分数相同，ID必须更大（ID是有序的）
+     * - 如果分数更小，可以包含
+     */
+    private List<Document> filterDocsByExactPagination(List<Document> docs, Double lastExactScore, Long lastExactId, Set<Long> returnedIds) {
+        List<Document> filtered = new ArrayList<>();
+
+        for (Document doc : docs) {
+            Map<String, Object> metadata = doc.getMetadata();
+
+            Double score = (Double) metadata.get("similarity");
+            if (score == null) {
+                continue;
+            }
+
+            Object documentIdObj = metadata.get("documentId");
+            if (documentIdObj == null) {
+                continue;
+            }
+
+            Long documentId = ParamUtils.parseDocumentId(documentIdObj);
+            if (documentId == null) {
+                continue;
+            }
+
+            // 精确过滤：分数更小 或 (分数相同且ID更大)
+            boolean shouldInclude = score < lastExactScore ||
+                    (Math.abs(score - lastExactScore) <= SCORE_SAME_THRESHOLD && documentId > lastExactId);
+
+            if (shouldInclude && !returnedIds.contains(documentId)) {
+                filtered.add(doc);
+            }
+        }
+
+        // 保持向量库原始顺序（已按分数降序，相同分数按ID升序）
+        return filtered;
+    }
+
+    /**
      * 混合模式下判断文档是否应该包含
      * 
      * 游标中存储的分数说明：
@@ -1381,16 +1478,14 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 return true;
             }
             // 条件：分数更小 或 (分数相同且ID更大)
-            return score < minThreshold || 
-                   (Math.abs(score - minThreshold) <= SCORE_SAME_THRESHOLD && documentId > lastCursorId);
+            return score < minThreshold || (Math.abs(score - minThreshold) <= SCORE_SAME_THRESHOLD && documentId > lastCursorId);
         } else if (CURSOR_DIRECTION_BACKWARD.equals(direction)) {
             // Backward: 向后翻页，找分数更大的文档
             if (maxThreshold == null) {
                 return true;
             }
             // 条件：分数更大 或 (分数相同且ID更小)
-            return score > maxThreshold || 
-                   (Math.abs(score - maxThreshold) <= SCORE_SAME_THRESHOLD && documentId < lastCursorId);
+            return score > maxThreshold || (Math.abs(score - maxThreshold) <= SCORE_SAME_THRESHOLD && documentId < lastCursorId);
         }
         return true; // first方向包含所有
     }
@@ -1519,13 +1614,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
 /**
  * 带游标分页的相似度搜索（支持双向分页 + 混合模式控制 + 无限分页 + 缓存）
- * 
- * 优化：
- * - 支持向前、向后、首页滚动分页，保证分页数据准确
- * - 使用Redis存储分页路径，支持无限滚动
- * - 支持path容错，即使pathId过期或传错也能正常显示
- * - 支持缓存结果，提升查询性能
- * 
  * 容错处理：
  * - Redis查询超时：直接抛出异常，不降级
  * - Redis连接失败：直接抛出异常，不降级
@@ -1534,7 +1622,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
  * - 向量库查询失败：返回空结果和错误提示
  * - 数据库查询失败：返回空结果和错误提示
  * - 缓存操作失败：不影响主流程
- * 
  * @param query 查询文本
  * @param limit 每页条数
  * @param cursor 游标字符串（第一次查询为null）
@@ -1561,10 +1648,10 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         Map<String, Object> result = new HashMap<>();
         if (StrUtil.isBlank(query)) {
             result.put("documents", new ArrayList<>());
-            result.put("next_cursor", null);
-            result.put("previous_cursor", null);
-            result.put("has_next", false);
-            result.put("has_previous", false);
+            result.put("nextCursor", null);
+            result.put("previousCursor", null);
+            result.put("hasNext", false);
+            result.put("hasPrevious", false);
             return result;
         }
 
@@ -1594,7 +1681,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
             if (pathExpired) {
                 // path过期：重新查询第一页
-                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId);
+                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId, cursorInfo);
                 saveToPaginationPath(path, documents, result);
                 savePathToRedisSafely(pathId, path);
                 result.put("path_id", pathId);
@@ -1605,14 +1692,14 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             } else if (CURSOR_DIRECTION_FIRST.equals(cursorDirection)) {
                 // First：从向量库获取第一页
                 path = new PaginationPathVO();
-                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId);
+                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId, cursorInfo);
                 saveToPaginationPath(path, documents, result);
                 savePathToRedisSafely(pathId, path);
                 result.put("path_id", pathId);
                 log.debug("First查询完成，耗时: {}ms，返回文档数: {}", System.currentTimeMillis() - startTime, documents.size());
             } else {
                 // Forward：获取下一页
-                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId);
+                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId, cursorInfo);
                 saveToPaginationPath(path, documents, result);
                 savePathToRedisSafely(pathId, path);
                 result.put("path_id", pathId);
@@ -1707,23 +1794,35 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         Double cursorMinScore = null;
         Double cursorMaxScore = null;
         Long lastCursorId = null;
-        
+        Double cursorLastExactScore = null;
+        Long cursorLastExactId = null;
+
         if (StrUtil.isNotBlank(cursor)) {
             try {
                 String[] cursorParts = CursorUtils.decodeCursor(cursor);
                 if (cursorParts != null && cursorParts.length >= 2) {
                     cursorMinScore = Double.parseDouble(cursorParts[0]);
                     cursorMaxScore = Double.parseDouble(cursorParts[1]);
-                    
+
                     if (cursorParts.length >= 3 && StrUtil.isNotBlank(cursorParts[2])) {
                         lastCursorId = Long.parseLong(cursorParts[2]);
                     }
-                    
+
                     if (cursorParts.length >= 4 && StrUtil.isNotBlank(cursorParts[3])) {
                         returnedIds = Arrays.stream(cursorParts[3].split("\\" + ID_SEPARATOR))
                                 .filter(StrUtil::isNotBlank)
                                 .map(Long::valueOf)
                                 .collect(Collectors.toSet());
+                    }
+
+                    // 解析精确分数和精确ID（新格式，位置 >= 7）
+                    if (cursorParts.length >= 7) {
+                        if (StrUtil.isNotBlank(cursorParts[5])) {
+                            cursorLastExactScore = Double.parseDouble(cursorParts[5]);
+                        }
+                        if (StrUtil.isNotBlank(cursorParts[6])) {
+                            cursorLastExactId = Long.parseLong(cursorParts[6]);
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -1732,10 +1831,17 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 cursorMinScore = null;
                 cursorMaxScore = null;
                 lastCursorId = null;
+                cursorLastExactScore = null;
+                cursorLastExactId = null;
             }
         }
-        
-        return new CursorInfoVO(returnedIds, cursorMinScore, cursorMaxScore, lastCursorId);
+
+        // 检查是否有精确分页信息
+        if (cursorLastExactScore != null && cursorLastExactId != null) {
+            log.debug("解码到精确分页信息，lastExactScore: {}, lastExactId: {}", cursorLastExactScore, cursorLastExactId);
+        }
+
+        return new CursorInfoVO(returnedIds, cursorMinScore, cursorMaxScore, lastCursorId, cursorLastExactScore, cursorLastExactId);
     }
 
     /**
@@ -1766,7 +1872,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 使用关键字段组合，避免哈希冲突
      */
     private String buildSimilarityCacheKey(String query, int limit, String cursor, Boolean enableHybridMode) {
-        // 使用关键字段组合生成缓存键，避免hashCode冲突
+        // 使用关键字段组合生成缓存键（直接使用字符串，避免hashCode冲突）
         StringBuilder keyBuilder = new StringBuilder(CACHE_PREFIX);
         keyBuilder.append("similarity:");
         keyBuilder.append(query).append(":");
@@ -1774,16 +1880,16 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         keyBuilder.append(enableHybridMode);
         // cursor不包含在缓存键中，因为翻页时不使用缓存
 
-        // 使用字符串的hashCode，避免对象hashCode冲突
-        return keyBuilder.toString().hashCode() + "";
+        // 直接使用字符串作为缓存key，避免hashCode冲突
+        return keyBuilder.toString();
     }
 
     /**
-     * 执行向量搜索
+     * 执行向量搜索（支持精确分页）
      */
-    private List<Map<String, Object>> performVectorSearch(String query, int limit, double similarityThreshold, 
+    private List<Map<String, Object>> performVectorSearch(String query, int limit, double similarityThreshold,
                                                            Boolean enableHybridMode, Map<String, Object> result,
-                                                           Set<Long> returnedIds, String pathId) {
+                                                           Set<Long> returnedIds, String pathId, CursorInfoVO cursorInfo) {
         // 向量搜索
         int topK = Math.min(limit + returnedIds.size() * 2, 200);
         SearchRequest request = SearchRequest.builder()
@@ -1800,8 +1906,16 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         // 分析分数分布，判断是否使用混合模式
         boolean useHybridMode = analyzeScoreDistribution(vectorDocs, enableHybridMode);
 
-        // 根据方向过滤文档
-        List<Document> filteredDocs = filterDocsForForward(vectorDocs, returnedIds, useHybridMode);
+        // 优先使用精确分页（如果有精确分数和ID）
+        Double cursorLastExactScore = cursorInfo != null ? cursorInfo.getCursorLastExactScore() : null;
+        Long cursorLastExactId = cursorInfo != null ? cursorInfo.getCursorLastExactId() : null;
+
+        if (cursorLastExactScore != null && cursorLastExactId != null) {
+            log.debug("similaritySearch使用精确分页模式，lastExactScore: {}, lastExactId: {}", cursorLastExactScore, cursorLastExactId);
+        }
+
+        // 根据方向和精确分页信息过滤文档
+        List<Document> filteredDocs = filterDocsForForwardWithExact(vectorDocs, returnedIds, useHybridMode, cursorLastExactScore, cursorLastExactId);
 
         // 构建结果
         List<Map<String, Object>> documents = new ArrayList<>();
@@ -1856,7 +1970,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         sortResultsByScoreAndId(documents);
 
         // 保存分页信息到result
-        savePaginationInfoToResult(result, documents, currentMinScore, currentMaxScore, lastId, returnedIds, useHybridMode, pathId);
+        savePaginationInfoToResult(result, documents, currentMinScore, currentMaxScore, lastId, returnedIds, useHybridMode, pathId, limit);
 
         return documents;
     }
@@ -1933,22 +2047,74 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
+     * 过滤文档（forward方向，支持精确分页）
+     * 解决场景1和场景2：
+     * 场景1：1000条相同分数，返回200条
+     * 场景2：180条不同分数 + 20条相同分数（属于1000条的一部分）
+     */
+    private List<Document> filterDocsForForwardWithExact(List<Document> vectorDocs, Set<Long> returnedIds, boolean useHybridMode,
+                                                          Double cursorLastExactScore, Long cursorLastExactId) {
+        List<Document> filtered = new ArrayList<>();
+
+        // 如果有精确分数和ID，使用精确分页
+        if (cursorLastExactScore != null && cursorLastExactId != null) {
+            for (Document doc : vectorDocs) {
+                Map<String, Object> metadata = doc.getMetadata();
+                Object documentIdObj = metadata.get("documentId");
+                if (documentIdObj == null) {
+                    continue;
+                }
+
+                Long documentId = ParamUtils.parseDocumentId(documentIdObj);
+                if (documentId == null) {
+                    continue;
+                }
+
+                Double score = (Double) metadata.get("similarity");
+                if (score == null) {
+                    continue;
+                }
+
+                // 精确过滤：分数更小 或 (分数相同且ID更大)
+                boolean shouldInclude = score < cursorLastExactScore ||
+                        (Math.abs(score - cursorLastExactScore) <= SCORE_SAME_THRESHOLD && documentId > cursorLastExactId);
+
+                if (shouldInclude && !returnedIds.contains(documentId)) {
+                    filtered.add(doc);
+                }
+            }
+        } else {
+            // 使用普通的forward过滤
+            filtered = filterDocsForForward(vectorDocs, returnedIds, useHybridMode);
+        }
+
+        return filtered;
+    }
+
+    /**
      * 保存分页信息到result
      */
     private void savePaginationInfoToResult(Map<String, Object> result, List<Map<String, Object>> documents,
                                             Double currentMinScore, Double currentMaxScore, Long lastId,
-                                            Set<Long> returnedIds, boolean useHybridMode, String pathId) {
-        int limit = documents.size();
+                                            Set<Long> returnedIds, boolean useHybridMode, String pathId, int limit) {
+        // 获取最后一条数据的精确分数和ID
+        Double lastExactScore = null;
+        Long lastExactId = null;
+        if (!documents.isEmpty()) {
+            Map<String, Object> lastDoc = documents.get(documents.size() - 1);
+            lastExactScore = (Double) lastDoc.get("similarity_score");
+            lastExactId = (Long) lastDoc.get("id");
+        }
 
-        // 生成游标（使用编码后的paginationPath）
+        // 生成游标（使用编码后的paginationPath，包含精确分数和ID）
         if (documents.size() >= limit) {
-            // 生成传统的cursor（兼容性）
+            // 生成传统的cursor（兼容性，包含精确分数和ID）
             Set<Long> allIds = new HashSet<>(returnedIds);
             for (Map<String, Object> doc : documents) {
                 allIds.add((Long) doc.get("id"));
             }
             Double nextMinScore = useHybridMode ? currentMinScore : currentMinScore;
-            String traditionalCursor = CursorUtils.encodeCursor(nextMinScore, currentMaxScore, lastId, allIds, pathId);
+            String traditionalCursor = CursorUtils.encodeCursor(nextMinScore, currentMaxScore, lastId, allIds, pathId, lastExactScore, lastExactId);
             result.put("next_cursor", traditionalCursor);
             result.put("has_next", true);
         } else {
@@ -1961,7 +2127,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
-     * 保存文档到分页路径
+     * 保存文档到分页路径（支持精确分页）
      */
     private void saveToPaginationPath(PaginationPathVO path, List<Map<String, Object>> documents, Map<String, Object> result) {
         if (documents == null || documents.isEmpty()) {
@@ -1971,6 +2137,24 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         Set<Long> currentIds = documents.stream()
                 .map(doc -> (Long) doc.get("id"))
                 .collect(Collectors.toSet());
+
+        // 创建有序的ID列表（按分数降序，相同分数按ID升序）
+        List<Long> sortedIds = documents.stream()
+                .sorted((a, b) -> {
+                    Double s1 = (Double) a.get("similarity_score");
+                    Double s2 = (Double) b.get("similarity_score");
+                    if (s1 == null && s2 == null) {
+                        Long id1 = (Long) a.get("id");
+                        Long id2 = (Long) b.get("id");
+                        return id1 != null && id2 != null ? id1.compareTo(id2) : 0;
+                    }
+                    if (s1 == null) return 1;
+                    if (s2 == null) return -1;
+                    int cmp = s2.compareTo(s1);  // 分数降序
+                    return cmp != 0 ? cmp : ((Long) a.get("id")).compareTo((Long) b.get("id"));  // 相同分数按ID升序
+                })
+                .map(doc -> (Long) doc.get("id"))
+                .collect(Collectors.toList());
 
         Double minScore = null;
         Double maxScore = null;
@@ -1987,14 +2171,23 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             lastId = (Long) doc.get("id");
         }
 
-        PageInfoVO pageInfo = new PageInfoVO(minScore, maxScore, lastId, currentIds);
+        // 获取最后一条数据的精确分数和ID
+        Double lastExactScore = null;
+        Long lastExactId = null;
+        if (!documents.isEmpty()) {
+            Map<String, Object> lastDoc = documents.get(documents.size() - 1);
+            lastExactScore = (Double) lastDoc.get("similarity_score");
+            lastExactId = (Long) lastDoc.get("id");
+        }
+
+        PageInfoVO pageInfo = new PageInfoVO(minScore, maxScore, lastId, currentIds, sortedIds, lastExactScore, lastExactId);
         path.addPageFromPageInfo(pageInfo);
 
         // 更新result中的游标
-        result.put("next_cursor", CursorUtils.encodePaginationPath(path));
-        result.put("previous_cursor", path.hasPrevious() ? CursorUtils.encodePaginationPath(path) : null);
-        result.put("has_next", true);
-        result.put("has_previous", path.hasPrevious());
+        result.put("nextCursor", CursorUtils.encodePaginationPath(path));
+        result.put("previousCursor", path.hasPrevious() ? CursorUtils.encodePaginationPath(path) : null);
+        result.put("hasNext", true);
+        result.put("hasPrevious", path.hasPrevious());
     }
 
     /**
@@ -2457,11 +2650,10 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
-     * 构建搜索缓存键
      * 使用关键字段组合，避免哈希冲突
      */
     private String buildSearchCacheKey(KnowledgeDocumentSearchDto dto) {
-        // 使用关键字段组合生成缓存键，避免hashCode冲突
+        // 使用关键字段组合生成缓存键（直接使用字符串，避免hashCode冲突）
         StringBuilder keyBuilder = new StringBuilder(CACHE_PREFIX);
         keyBuilder.append("search:");
         keyBuilder.append(dto.getSearchMode()).append(":");
@@ -2473,9 +2665,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         keyBuilder.append(dto.getOrderByViewCount()).append(":");
         keyBuilder.append(dto.getAuthor()).append(":");
         keyBuilder.append(dto.getStatus());
-
-        // 使用字符串的hashCode，避免对象hashCode冲突
-        return keyBuilder.toString().hashCode() + "";
+        return keyBuilder.toString();
     }
 
     /**

@@ -7,7 +7,6 @@ import lombok.*;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import static cn.getech.base.demo.utils.CursorUtils.MAX_CURSOR_ID_COUNT;
 
 @Data
@@ -27,20 +26,28 @@ public class PageInfoVO implements Serializable {
 
     private List<Long> sortedIds;  // 有序的文档ID列表（按分数降序）
 
+    private Double lastExactScore;  // 最后一条数据的精确分数（用于精确分页）
+
+    private Long lastExactId;       // 最后一条数据的精确ID（用于精确分页，ID是有序的）
+
     public PageInfoVO(Double minScore, Double maxScore, Long lastId, Set<Long> ids) {
         this.minScore = minScore;
         this.maxScore = maxScore;
         this.lastId = lastId;
         this.ids = ids;
         this.sortedIds = new ArrayList<>();  // 初始化为空列表
+        this.lastExactScore = null;
+        this.lastExactId = null;
     }
 
-    public PageInfoVO(Double minScore, Double maxScore, Long lastId, Set<Long> ids, List<Long> sortedIds) {
+    public PageInfoVO(Double minScore, Double maxScore, Long lastId, Set<Long> ids, List<Long> sortedIds, Double lastExactScore, Long lastExactId) {
         this.minScore = minScore;
         this.maxScore = maxScore;
         this.lastId = lastId;
         this.ids = ids;
         this.sortedIds = sortedIds != null ? sortedIds : new ArrayList<>();
+        this.lastExactScore = lastExactScore;
+        this.lastExactId = lastExactId;
     }
 
     public String encode() {
@@ -70,6 +77,11 @@ public class PageInfoVO implements Serializable {
                     .collect(Collectors.joining(",")));
         }
 
+        // 添加精确分数和精确ID（新格式）
+        sb.append(",");
+        sb.append(lastExactScore != null ? String.format("%.4f", lastExactScore) : "").append(",");
+        sb.append(lastExactId != null ? lastExactId : "");
+
         return sb.toString();
     }
 
@@ -98,7 +110,19 @@ public class PageInfoVO implements Serializable {
             }
         }
 
-        return new PageInfoVO(minScore, maxScore, lastId, ids, sortedIds);
+        // 解析精确分数和精确ID
+        Double lastExactScore = null;
+        Long lastExactId = null;
+        if (parts.length >= 6) {
+            if (StrUtil.isNotBlank(parts[4])) {
+                lastExactScore = Double.parseDouble(parts[4]);
+            }
+            if (StrUtil.isNotBlank(parts[5])) {
+                lastExactId = Long.parseLong(parts[5]);
+            }
+        }
+
+        return new PageInfoVO(minScore, maxScore, lastId, ids, sortedIds, lastExactScore, lastExactId);
     }
 
 }

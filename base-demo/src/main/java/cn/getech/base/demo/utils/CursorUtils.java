@@ -1,6 +1,5 @@
 package cn.getech.base.demo.utils;
 
-import cn.getech.base.demo.dto.PageInfoVO;
 import cn.getech.base.demo.dto.PaginationPathVO;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -16,24 +15,21 @@ public class CursorUtils {
 
     private static final String ID_SEPARATOR = ","; // ID列表分隔符
 
-    // 移除分页路径限制，支持无限分页（使用Redis存储）
-    // private static final int MAX_PAGINATION_PATH_SIZE = 50; // 已移除限制
-
     public static final int MAX_ACCUMULATED_IDS = 200; // 最多累积200个ID（优化内存占用）
 
-    // 移除警告阈值
-    // private static final int WARNING_PAGE_THRESHOLD = 40; // 已移除
-
     /**
-     * 编码游标（支持pathId）
+     * 编码游标（支持pathId，添加精确分数和ID）
      * @param minSimilarityScore 最低相似度分数
      * @param maxSimilarityScore 最高相似度分数
      * @param lastId 最后一个文档的ID（混合模式）
      * @param returnedIds 已返回的文档ID集合
      * @param pathId 分页路径ID（用于无限分页）
+     * @param lastExactScore 最后一条数据的精确分数
+     * @param lastExactId 最后一条数据的精确ID
      * @return Base64编码的游标字符串
+     * 返回数据格式：minSimilarityScore|maxSimilarityScore|lastId|returnedIds|pathId|lastExactScore|lastExactId
      */
-    public static String encodeCursor(Double minSimilarityScore, Double maxSimilarityScore, Long lastId, Set<Long> returnedIds, String pathId) {
+    public static String encodeCursor(Double minSimilarityScore, Double maxSimilarityScore, Long lastId, Set<Long> returnedIds, String pathId, Double lastExactScore, Long lastExactId) {
         try {
             StringBuilder cursorData = new StringBuilder();
             cursorData.append(minSimilarityScore != null ? minSimilarityScore : "0.0").append(CURSOR_SEPARATOR);
@@ -48,10 +44,14 @@ public class CursorUtils {
                     .map(String::valueOf)
                     .collect(Collectors.joining(ID_SEPARATOR)));
 
-            // 添加pathId（新格式）
             if (StrUtil.isNotBlank(pathId)) {
                 cursorData.append(CURSOR_SEPARATOR).append(pathId);
             }
+
+            // 添加精确分数和精确ID
+            cursorData.append(CURSOR_SEPARATOR);
+            cursorData.append(lastExactScore != null ? lastExactScore : "").append(CURSOR_SEPARATOR);
+            cursorData.append(lastExactId != null ? lastExactId : "");
 
             return Base64.getEncoder().encodeToString(cursorData.toString().getBytes());
         } catch (Exception e) {
@@ -61,7 +61,8 @@ public class CursorUtils {
     }
 
     /**
-     * 解码游标（旧格式，用于兼容）
+     * 解码游标
+     * 请求数据格式：minSimilarityScore|maxSimilarityScore|lastId|returnedIds|pathId|lastExactScore|lastExactId
      */
     public static String[] decodeCursor(String cursor) {
         try {
@@ -75,31 +76,8 @@ public class CursorUtils {
     }
 
     /**
-     * 检查游标是否是新格式（包含分页路径）
-     */
-    public static boolean isPaginationPathCursor(String cursor) {
-        if (StrUtil.isBlank(cursor)) {
-            return false;
-        }
-        try {
-            String[] cursorParts = decodeCursor(cursor);
-            if (cursorParts != null && cursorParts.length >= 2) {
-                String firstPart = cursorParts[0];
-                try {
-                    Integer.parseInt(firstPart);
-                    return true;
-                } catch (NumberFormatException e) {
-                    return false;
-                }
-            }
-        } catch (Exception e) {
-            return false;
-        }
-        return false;
-    }
-
-    /**
      * 编码分页路径游标
+     * 返回数据格式：currentIndex|totalPageCount|pageInfo1;pageInfo2;pageInfo2...
      */
     public static String encodePaginationPath(PaginationPathVO path) {
         return path.encode();
@@ -107,19 +85,10 @@ public class CursorUtils {
 
     /**
      * 解码分页路径游标
+     * 请求数据格式：currentIndex|totalPageCount|pageInfo1;pageInfo2;pageInfo2...
      */
     public static PaginationPathVO decodePaginationPath(String cursor) {
         return PaginationPathVO.decode(cursor);
-    }
-
-    /**
-     * 解析ID列表字符串
-     */
-    public static Set<Long> parseIdList(String idString) {
-        return Arrays.stream(idString.split("\\" + ID_SEPARATOR))
-                .filter(StrUtil::isNotBlank)
-                .map(Long::valueOf)
-                .collect(Collectors.toSet());
     }
 
 }

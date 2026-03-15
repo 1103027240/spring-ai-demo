@@ -92,6 +92,13 @@ public class PaginationPathVO implements Serializable {
         return totalPageCount;
     }
 
+    /**
+     * 获取分页列表
+     */
+    public LinkedList<PageInfoVO> getPageList() {
+        return pageList;
+    }
+
     public String encode() {
         long startTime = System.currentTimeMillis();
         try {
