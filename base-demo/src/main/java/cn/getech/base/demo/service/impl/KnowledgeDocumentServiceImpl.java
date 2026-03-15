@@ -1,8 +1,12 @@
 package cn.getech.base.demo.service.impl;
 
+import cn.getech.base.demo.dto.CursorInfoVO;
 import cn.getech.base.demo.dto.CursorSearchResultVO;
 import cn.getech.base.demo.dto.KnowledgeDocumentDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentSearchDto;
+import cn.getech.base.demo.dto.PageInfoVO;
+import cn.getech.base.demo.dto.PaginationContextVO;
+import cn.getech.base.demo.dto.PaginationPathVO;
 import cn.getech.base.demo.entity.KnowledgeCategory;
 import cn.getech.base.demo.entity.KnowledgeDocument;
 import cn.getech.base.demo.enums.KnowledgeDocumentStatusEnum;
@@ -297,15 +301,36 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         return document;
     }
 
+/**
+ * 搜索文档（支持三种模式：VECTOR、KEYWORD、HYBRID）
+ * 
+ * 模式说明：
+ * - VECTOR: 向量搜索，支持游标分页（向前、向后、首页滚动），使用缓存
+ * - KEYWORD: 关键词搜索，传统MySQL分页，使用缓存
+ * - HYBRID: 向量+关键词混合搜索，支持游标分页（向前、向后、首页滚动），使用缓存
+ * 
+ * 所有模式都支持无限分页，优化了查询性能
+ * 
+ * 容错处理：
+ * - pathId不存在或格式错误：自动降级为首次查询
+ * - 分页路径数据损坏：自动降级为首次查询
+ * - 向量库查询失败：自动降级为关键词搜索
+ * - 数据库查询失败：返回空结果和错误提示
+ */
     @Override
     public Map<String, Object> searchDocument(KnowledgeDocumentSearchDto dto) {
         SearchModeEnum searchModeEnum = SearchModeEnum.valueOf(dto.getSearchMode());
         String cacheKey = buildSearchCacheKey(dto);
 
-        if (!SearchModeEnum.VECTOR.equals(searchModeEnum) && StrUtil.isBlank(dto.getCursor())) {
-            Map<String, Object> cacheMap = getKeywordFromCache(cacheKey);
-            if (CollUtil.isNotEmpty(cacheMap)) {
-                return cacheMap;
+        // KEYWORD、VECTOR和HYBRID模式首次查询都尝试从缓存获取（容错：缓存失败不影响主流程）
+        if (StrUtil.isBlank(dto.getCursor())) {
+            try {
+                Map<String, Object> cacheMap = getKeywordFromCache(cacheKey);
+                if (CollUtil.isNotEmpty(cacheMap)) {
+                    return cacheMap;
+                }
+            } catch (Exception e) {
+                log.warn("从缓存获取失败，继续执行搜索，cacheKey: {}", cacheKey, e);
             }
         }
 
@@ -313,42 +338,58 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         List<KnowledgeDocument> documents;
 
         try {
+            // 根据模式执行不同的搜索策略
             switch (searchModeEnum) {
                 case VECTOR:
+                    // VECTOR模式：向量搜索 + 游标分页 + 缓存
                     documents = searchWithVectorMode(dto, result);
+                    buildVectorResponse(result, documents, dto);
                     break;
+                    
                 case KEYWORD:
+                    // KEYWORD模式：MySQL关键词搜索 + 传统分页 + 缓存
                     documents = searchWithKeywordMode(dto, result);
+                    buildCommonResponse(result, documents, dto);
                     break;
+                    
                 case HYBRID:
                 default:
-                    if (StrUtil.isNotBlank(dto.getCursor())) {
-                        documents = searchWithVectorMode(dto, result);
-                    } else {
-                        documents = searchWithHybridMode(dto, result);
-                    }
+                    // HYBRID模式：向量+关键词混合搜索 + 统一使用游标分页 + 缓存
+                    documents = searchWithHybridMode(dto, result);
+                    buildVectorResponse(result, documents, dto);
                     break;
             }
 
-            // 构建通用响应（VECTOR模式已经在searchWithVectorMode中构建，这里跳过）
-            if (!SearchModeEnum.VECTOR.equals(searchModeEnum)) {
-                buildCommonResponse(result, documents, dto);
-            } else {
-                // VECTOR模式：添加current_page和page_size
-                result.put("current_page", dto.getPage());
-                result.put("page_size", dto.getSize());
-            }
-
-            // 缓存结果（vector和带游标的查询不缓存）
-            if (!SearchModeEnum.VECTOR.equals(searchModeEnum) && dto.getCursor() == null) {
-                cacheResult(cacheKey, result);
+            // 缓存结果（首次查询，容错：缓存失败不影响主流程）
+            if (StrUtil.isBlank(dto.getCursor())) {
+                try {
+                    cacheResult(cacheKey, result);
+                } catch (Exception e) {
+                    log.warn("缓存结果失败，不影响主流程，cacheKey: {}", cacheKey, e);
+                }
             }
         } catch (Exception e) {
             log.error("搜索文档失败，searchMode: {}, 参数: {}", dto.getSearchMode(), dto, e);
+            result.put("documents", new ArrayList<>());
             result.put("error", "搜索失败: " + e.getMessage());
+            result.put("current_page", dto.getPage());
+            result.put("page_size", dto.getSize());
         }
 
         return result;
+    }
+
+    /**
+     * 构建向量搜索响应
+     */
+    private void buildVectorResponse(Map<String, Object> result, List<KnowledgeDocument> documents, KnowledgeDocumentSearchDto dto) {
+        List<Map<String, Object>> docResponses = documents.stream()
+                .map(this::convertToDocumentResponse)
+                .collect(Collectors.toList());
+        
+        result.put("documents", docResponses);
+        result.put("current_page", dto.getPage());
+        result.put("page_size", dto.getSize());
     }
 
     /**
@@ -357,8 +398,12 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 支持无限分页（使用Redis存储分页路径）
      * 
      * 容错处理：
-     * - 如果Redis中找不到path或path为空，自动降级为首次查询
-     * - 确保即使pathId过期或传错，也能正常显示数据
+     * - Redis查询超时：直接抛出异常，不降级
+     * - Redis连接失败：直接抛出异常，不降级
+     * - pathId不存在或格式错误：自动降级为首次查询
+     * - 分页路径数据损坏：自动降级为首次查询
+     * - 向量库查询失败：自动降级为关键词搜索
+     * - 数据库查询失败：返回空结果
      */
     private List<KnowledgeDocument> searchWithVectorMode(KnowledgeDocumentSearchDto dto, Map<String, Object> result) {
         int limit = dto.getSize();
@@ -368,198 +413,45 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         // 管理分页路径ID
         String pathId = dto.getPathId();
         boolean pathExpired = false;  // 标记path是否过期
+        PaginationPathVO path = new PaginationPathVO();
         
-        if (StrUtil.isBlank(pathId)) {
-            pathId = paginationPathManager.generatePathId();
-        }
+        try {
+            if (StrUtil.isBlank(pathId)) {
+                pathId = paginationPathManager.generatePathId();
+            }
 
-        // 从Redis加载分页路径
-        CursorUtils.PaginationPath path = paginationPathManager.loadPath(pathId);
-        if (path == null || path.getCurrentPage() == null) {
-            // 如果Redis中找不到path或path为空，生成新的pathId并重新查询
-            log.info("分页路径不存在或已过期，pathId: {}，重新开始查询", pathId);
-            pathExpired = true;
-            pathId = paginationPathManager.generatePathId();
-            path = new CursorUtils.PaginationPath();
-            cursorDirection = CURSOR_DIRECTION_FIRST;  // 强制降级为首次查询
+            // 从Redis加载分页路径（容错：超时或失败自动降级）
+            path = paginationPathManager.loadPath(pathId);
+            if (path == null || path.getCurrentPage() == null) {
+                // 如果Redis中找不到path或path为空，生成新的pathId并重新查询
+                log.info("分页路径不存在或已过期，pathId: {}，重新开始查询", pathId);
+                pathExpired = true;
+                pathId = paginationPathManager.generatePathId();
+                path = new PaginationPathVO();
+                cursorDirection = CURSOR_DIRECTION_FIRST;  // 强制降级为首次查询
+            }
+        } catch (Exception e) {
+            // Redis查询失败（超时、连接失败等），直接抛出异常不降级
+            log.error("Redis查询失败，pathId: {}", pathId, e);
+            throw new RuntimeException("Redis查询超时或连接失败，请稍后重试", e);
         }
 
         // 根据分页方向处理
-        CursorUtils.PageInfo currentPageInfo = path.getCurrentPage();
+        PageInfoVO currentPageInfo = path.getCurrentPage();
         List<KnowledgeDocument> documents;
 
         if (pathExpired) {
             // path过期：重新查询第一页
-            CursorSearchResultVO cursorResult = vectorSearch(dto);
-            documents = cursorResult.getDocuments();
-
-            // 添加到分页路径（保存有序的ID列表）
-            Set<Long> currentIds = documents.stream()
-                    .map(KnowledgeDocument::getId)
-                    .collect(Collectors.toSet());
-            
-            // 创建有序的ID列表（按分数降序）
-            List<Long> sortedIds = documents.stream()
-                    .sorted((a, b) -> {
-                        Double s1 = a.getSimilarityScore();
-                        Double s2 = b.getSimilarityScore();
-                        if (s1 == null && s2 == null) return a.getId().compareTo(b.getId());
-                        if (s1 == null) return 1;
-                        if (s2 == null) return -1;
-                        int cmp = s2.compareTo(s1);  // 分数降序
-                        return cmp != 0 ? cmp : a.getId().compareTo(b.getId());
-                    })
-                    .map(KnowledgeDocument::getId)
-                    .collect(Collectors.toList());
-            
-            CursorUtils.PageInfo pageInfo = new CursorUtils.PageInfo(
-                    cursorResult.getMinScore(), 
-                    cursorResult.getMaxScore(), 
-                    cursorResult.getLastId(), 
-                    currentIds);
-            pageInfo.sortedIds = sortedIds;
-            
-            // 手动添加到分页路径
-            path.addPageFromPageInfo(pageInfo);
-
-            result.put("next_cursor", documents.size() >= limit ? CursorUtils.encodePaginationPath(path) : null);
-            result.put("previous_cursor", null);
-            result.put("has_next", documents.size() >= limit);
-            result.put("has_previous", false);
-
-            // 保存分页路径到Redis
-            paginationPathManager.savePath(pathId, path);
-
-            // 添加分页状态信息
-            addPaginationStatus(result, path);
-
-            log.info("路径已过期，重新查询第一页，耗时: {}ms，返回文档数: {}", System.currentTimeMillis() - startTime, documents.size());
+            documents = executeVectorSearch(dto, result, path, pathId, limit, startTime, true, "重新查询第一页");
         } else if (CURSOR_DIRECTION_BACKWARD.equals(cursorDirection) && path.hasPrevious()) {
             // Backward：返回上一页（从路径中获取）
-            CursorUtils.PageInfo prevPage = path.getPreviousPage();
-            path.currentIndex--;  // 移动到上一页
-
-            documents = fetchDocumentsByPageInfo(prevPage, dto);
-
-            // 判断has_next：是否有下一页（即能否再向前翻回）
-            boolean hasNext = path.hasNext();
-
-            result.put("next_cursor", hasNext ? CursorUtils.encodePaginationPath(path) : null);
-            result.put("previous_cursor", path.hasPrevious() ? CursorUtils.encodePaginationPath(path) : null);
-            result.put("has_next", hasNext);
-            result.put("has_previous", path.hasPrevious());
-
-            // 保存分页路径到Redis
-            paginationPathManager.savePath(pathId, path);
-
-            // 添加分页状态信息
-            addPaginationStatus(result, path);
-
-            log.debug("Backward分页完成，耗时: {}ms，返回文档数: {}，has_next: {}", System.currentTimeMillis() - startTime, documents.size(), hasNext);
+            documents = executeBackwardSearch(dto, result, path, pathId, limit, startTime);
         } else if (CURSOR_DIRECTION_FIRST.equals(cursorDirection)) {
             // First：从向量库获取第一页
-            CursorSearchResultVO cursorResult = vectorSearch(dto);
-            documents = cursorResult.getDocuments();
-
-            // 添加到分页路径（保存有序的ID列表）
-            Set<Long> currentIds = documents.stream()
-                    .map(KnowledgeDocument::getId)
-                    .collect(Collectors.toSet());
-            
-            // 创建有序的ID列表（按分数降序）
-            List<Long> sortedIds = documents.stream()
-                    .sorted((a, b) -> {
-                        Double s1 = a.getSimilarityScore();
-                        Double s2 = b.getSimilarityScore();
-                        if (s1 == null && s2 == null) return a.getId().compareTo(b.getId());
-                        if (s1 == null) return 1;
-                        if (s2 == null) return -1;
-                        int cmp = s2.compareTo(s1);  // 分数降序
-                        return cmp != 0 ? cmp : a.getId().compareTo(b.getId());
-                    })
-                    .map(KnowledgeDocument::getId)
-                    .collect(Collectors.toList());
-            
-            CursorUtils.PageInfo pageInfo = new CursorUtils.PageInfo(
-                    cursorResult.getMinScore(), 
-                    cursorResult.getMaxScore(), 
-                    cursorResult.getLastId(), 
-                    currentIds);
-            pageInfo.sortedIds = sortedIds;
-            
-            // 手动添加到分页路径
-            path.addPageFromPageInfo(pageInfo);
-
-            result.put("next_cursor", documents.size() >= limit ? CursorUtils.encodePaginationPath(path) : null);
-            result.put("previous_cursor", null);
-            result.put("has_next", documents.size() >= limit);
-            result.put("has_previous", false);
-
-            // 保存分页路径到Redis
-            paginationPathManager.savePath(pathId, path);
-
-            // 添加分页状态信息
-            addPaginationStatus(result, path);
-
-            log.debug("First查询完成，耗时: {}ms，返回文档数: {}", System.currentTimeMillis() - startTime, documents.size());
+            documents = executeVectorSearch(dto, result, path, pathId, limit, startTime, true, "First查询完成");
         } else {
             // Forward：获取下一页
-            CursorSearchResultVO cursorResult = vectorSearch(dto);
-            documents = cursorResult.getDocuments();
-
-            // 添加到分页路径（保存有序的ID列表）
-            Set<Long> currentIds = documents.stream()
-                    .map(KnowledgeDocument::getId)
-                    .collect(Collectors.toSet());
-
-            // 只保留最近2页的ID用于去重（优化内存占用）
-            Set<Long> allIds = new HashSet<>(currentIds);
-            if (currentPageInfo != null && currentPageInfo.ids != null) {
-                Set<Long> previousIds = new HashSet<>(currentPageInfo.ids);
-                if (previousIds.size() > 100) {
-                    List<Long> idList = new ArrayList<>(previousIds);
-                    Collections.sort(idList, Collections.reverseOrder());
-                    previousIds = new HashSet<>(idList.subList(0, 100));
-                }
-                allIds.addAll(previousIds);
-            }
-
-            // 创建有序的ID列表（按分数降序）
-            List<Long> sortedIds = documents.stream()
-                    .sorted((a, b) -> {
-                        Double s1 = a.getSimilarityScore();
-                        Double s2 = b.getSimilarityScore();
-                        if (s1 == null && s2 == null) return a.getId().compareTo(b.getId());
-                        if (s1 == null) return 1;
-                        if (s2 == null) return -1;
-                        int cmp = s2.compareTo(s1);  // 分数降序
-                        return cmp != 0 ? cmp : a.getId().compareTo(b.getId());
-                    })
-                    .map(KnowledgeDocument::getId)
-                    .collect(Collectors.toList());
-            
-            CursorUtils.PageInfo pageInfo = new CursorUtils.PageInfo(
-                    cursorResult.getMinScore(), 
-                    cursorResult.getMaxScore(), 
-                    cursorResult.getLastId(), 
-                    allIds);
-            pageInfo.sortedIds = sortedIds;
-            
-            // 手动添加到分页路径
-            path.addPageFromPageInfo(pageInfo);
-
-            result.put("next_cursor", documents.size() >= limit ? CursorUtils.encodePaginationPath(path) : null);
-            result.put("previous_cursor", path.hasPrevious() ? CursorUtils.encodePaginationPath(path) : null);
-            result.put("has_next", documents.size() >= limit);
-            result.put("has_previous", path.hasPrevious());
-
-            // 保存分页路径到Redis
-            paginationPathManager.savePath(pathId, path);
-
-            // 添加分页状态信息
-            addPaginationStatus(result, path);
-
-            log.debug("Forward分页完成，耗时: {}ms，返回文档数: {}，累积ID数: {}", System.currentTimeMillis() - startTime, documents.size(), allIds.size());
+            documents = executeVectorSearch(dto, result, path, pathId, limit, startTime, false, "Forward分页完成");
         }
 
         // 返回pathId给前端
@@ -569,9 +461,107 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
+     * 执行向量搜索（首次查询或path过期时使用）
+     * 合并了executeVectorSearch和executeForwardSearch的逻辑，避免重复代码
+     * 优化：智能判断是否到达最后一页，避免无效的向前查询
+     */
+    private List<KnowledgeDocument> executeVectorSearch(KnowledgeDocumentSearchDto dto, Map<String, Object> result,
+                                                      PaginationPathVO path, String pathId,
+                                                      int limit, long startTime, boolean isFirst, String logMsg) {
+        CursorSearchResultVO cursorResult = vectorSearch(dto);
+        List<KnowledgeDocument> documents = cursorResult.getDocuments();
+
+        // 智能判断：如果返回的文档数少于limit，说明是最后一页
+        boolean isLastPage = documents.size() < limit;
+
+        // 添加到分页路径（保存有序的ID列表）
+        Set<Long> currentIds = documents.stream()
+                .map(KnowledgeDocument::getId)
+                .collect(Collectors.toSet());
+
+        // 创建有序的ID列表（按分数降序，相同分数按ID升序）
+        List<Long> sortedIds = documents.stream()
+                .sorted((a, b) -> {
+                    Double s1 = a.getSimilarityScore();
+                    Double s2 = b.getSimilarityScore();
+                    if (s1 == null && s2 == null) return a.getId().compareTo(b.getId());
+                    if (s1 == null) return 1;
+                    if (s2 == null) return -1;
+                    int cmp = s2.compareTo(s1);  // 分数降序
+                    return cmp != 0 ? cmp : a.getId().compareTo(b.getId());  // 相同分数按ID升序
+                })
+                .map(KnowledgeDocument::getId)
+                .collect(Collectors.toList());
+
+        PageInfoVO pageInfo = new PageInfoVO(
+                cursorResult.getMinScore(),
+                cursorResult.getMaxScore(),
+                cursorResult.getLastId(),
+                currentIds);
+        pageInfo.setSortedIds(sortedIds);
+
+        // 手动添加到分页路径
+        path.addPageFromPageInfo(pageInfo);
+
+        result.put("next_cursor", !isLastPage ? CursorUtils.encodePaginationPath(path) : null);
+        result.put("previous_cursor", isFirst ? null : (path.hasPrevious() ? CursorUtils.encodePaginationPath(path) : null));
+        result.put("has_next", !isLastPage);
+        result.put("has_previous", !isFirst && path.hasPrevious());
+
+        // 保存分页路径到Redis（容错：保存失败不影响主流程）
+        try {
+            paginationPathManager.savePath(pathId, path);
+        } catch (Exception e) {
+            log.warn("保存分页路径到Redis失败，pathId: {}，不影响主流程", pathId, e);
+        }
+
+        // 添加分页状态信息
+        addPaginationStatus(result, path);
+
+        log.debug("{}，耗时: {}ms，返回文档数: {}，是否最后一页: {}", logMsg, System.currentTimeMillis() - startTime, documents.size(), isLastPage);
+
+        return documents;
+    }
+
+    /**
+     * 执行向后搜索（Backward）
+     */
+    private List<KnowledgeDocument> executeBackwardSearch(KnowledgeDocumentSearchDto dto, Map<String, Object> result,
+                                                       PaginationPathVO path, String pathId,
+                                                       int limit, long startTime) {
+        // Backward：返回上一页（从路径中获取）
+        PageInfoVO prevPage = path.getPreviousPage();
+        path.setCurrentIndex(path.getCurrentIndex() - 1);  // 移动到上一页
+
+        List<KnowledgeDocument> documents = fetchDocumentsByPageInfo(prevPage, dto);
+
+        // 判断has_next：是否有下一页（即能否再向前翻回）
+        boolean hasNext = path.hasNext();
+
+        result.put("next_cursor", hasNext ? CursorUtils.encodePaginationPath(path) : null);
+        result.put("previous_cursor", path.hasPrevious() ? CursorUtils.encodePaginationPath(path) : null);
+        result.put("has_next", hasNext);
+        result.put("has_previous", path.hasPrevious());
+
+        // 保存分页路径到Redis（容错：保存失败不影响主流程）
+        try {
+            paginationPathManager.savePath(pathId, path);
+        } catch (Exception e) {
+            log.warn("保存分页路径到Redis失败，pathId: {}，不影响主流程", pathId, e);
+        }
+
+        // 添加分页状态信息
+        addPaginationStatus(result, path);
+
+        log.debug("Backward分页完成，耗时: {}ms，返回文档数: {}，has_next: {}", System.currentTimeMillis() - startTime, documents.size(), hasNext);
+
+        return documents;
+    }
+
+    /**
      * 添加分页状态信息到结果中
      */
-    private void addPaginationStatus(Map<String, Object> result, CursorUtils.PaginationPath path) {
+    private void addPaginationStatus(Map<String, Object> result, PaginationPathVO path) {
         if (path == null) {
             return;
         }
@@ -593,14 +583,14 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 2. 只有在有序ID列表为空时，才重新查询向量库
      * 3. 大幅提升向后分页性能（从几百毫秒降低到几十毫秒）
      */
-    private List<KnowledgeDocument> fetchDocumentsByPageInfo(CursorUtils.PageInfo pageInfo, KnowledgeDocumentSearchDto dto) {
+    private List<KnowledgeDocument> fetchDocumentsByPageInfo(PageInfoVO pageInfo, KnowledgeDocumentSearchDto dto) {
         List<KnowledgeDocument> documents = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         
         try {
             int limit = dto.getSize();
-            List<Long> sortedIds = pageInfo.sortedIds;
-            Set<Long> returnedIds = pageInfo.ids;
+            List<Long> sortedIds = pageInfo.getSortedIds();
+            Set<Long> returnedIds = pageInfo.getIds();
             
             // 优先使用有序的ID列表查询数据库（确保向后分页返回的数据完全一致）
             if (sortedIds != null && !sortedIds.isEmpty()) {
@@ -621,11 +611,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                         if (StrUtil.isNotBlank(dto.getCategory()) && !dto.getCategory().equals(document.getCategory())) {
                             continue;
                         }
-                        
+
                         // 如果有分数范围，设置相似度分数
-                        if (pageInfo.minScore != null && pageInfo.maxScore != null) {
+                        if (pageInfo.getMinScore() != null && pageInfo.getMaxScore() != null) {
                             // 使用分数范围的中间值作为近似分数
-                            document.setSimilarityScore((pageInfo.minScore + pageInfo.maxScore) / 2);
+                            document.setSimilarityScore((pageInfo.getMinScore() + pageInfo.getMaxScore()) / 2);
                         }
                         
                         documents.add(document);
@@ -722,26 +712,9 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
-     * 添加分页状态信息到结果中
-     */
-    private void addPaginationStatus(Map<String, Object> result, CursorUtils.PaginationPath path) {
-        if (path == null) {
-            return;
-        }
-
-        // 添加分页状态信息
-        Map<String, Object> paginationStatus = new HashMap<>();
-        paginationStatus.put("current_page", path.getCurrentPageIndex());  // 当前页码
-        paginationStatus.put("total_pages", path.getTotalPageCount());  // 总页数
-        paginationStatus.put("earliest_available_page", path.getFirstPageIndex());  // 可回溯的最早页码（始终为1）
-
-        result.put("pagination_status", paginationStatus);
-    }
-
-    /**
      * 通过向量搜索获取文档（最后备用方案）
      */
-    private List<KnowledgeDocument> fetchDocumentsByVectorSearch(CursorUtils.PageInfo pageInfo, KnowledgeDocumentSearchDto dto) {
+    private List<KnowledgeDocument> fetchDocumentsByVectorSearch(PageInfoVO pageInfo, KnowledgeDocumentSearchDto dto) {
         List<KnowledgeDocument> documents = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         int vectorQueryCount = 0;
@@ -749,10 +722,10 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         try {
             int limit = dto.getSize();
-            Double minScore = pageInfo.minScore;
-            Double maxScore = pageInfo.maxScore;
-            Long lastId = pageInfo.lastId;
-            Set<Long> returnedIds = pageInfo.ids;
+            Double minScore = pageInfo.getMinScore();
+            Double maxScore = pageInfo.getMaxScore();
+            Long lastId = pageInfo.getLastId();
+            Set<Long> returnedIds = pageInfo.getIds();
 
             if (minScore == null || maxScore == null) {
                 log.debug("分数范围不完整，无法查询向量库");
@@ -886,40 +859,19 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
-     * 添加分页状态信息到结果中
-     */
-    private void addPaginationStatus(Map<String, Object> result, CursorUtils.PaginationPath path) {
-        if (path == null) {
-            return;
-        }
-
-        // 添加分页状态信息
-        Map<String, Object> paginationStatus = new HashMap<>();
-        paginationStatus.put("current_page", path.getCurrentPageIndex());  // 当前页码
-        paginationStatus.put("total_pages", path.getTotalPageCount());  // 总页数
-        paginationStatus.put("earliest_available_page", path.getFirstPageIndex());  // 可回溯的最早页码（始终为1）
-
-        result.put("pagination_status", paginationStatus);
-    }
-
-    /**
      * 关键词搜索模式（传统分页）
+     * 注意：keywordSearch方法已经做了数据库分页，这里只需要设置分页信息
      */
     private List<KnowledgeDocument> searchWithKeywordMode(KnowledgeDocumentSearchDto dto, Map<String, Object> result) {
+        // keywordSearch已经做了数据库分页（offset/limit），直接使用结果
         List<KnowledgeDocument> documents = keywordSearch(dto);
         if (documents == null) documents = new ArrayList<>();
 
-        // 传统分页信息
+        // 计算总页数和分页信息
         int pageSize = dto.getSize();
         int currentPage = dto.getPage();
-        int offset = (currentPage - 1) * pageSize;
-        int total = documents.size();
+        int total = getTotalSearchCount(dto);
         int totalPages = (int) Math.ceil((double) total / pageSize);
-
-        // 应用分页
-        if (offset < documents.size()) {
-            documents = new ArrayList<>(documents.subList(offset, Math.min(offset + pageSize, documents.size())));
-        }
 
         result.put("total_count", total);
         result.put("total_pages", totalPages);
@@ -930,91 +882,161 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
-     * 添加分页状态信息到结果中
+     * 混合搜索模式（向量+关键词，统一使用游标分页）
+     * 优化：首次查询补充关键词搜索，后续翻页只使用向量搜索
+     * 支持无限分页（使用Redis存储分页路径）
+     *
+     * 策略：
+     * - 首次查询（无cursor或path过期）：向量搜索，结果不足则补充关键词搜索，使用游标分页
+     * - 后续查询（有cursor）：只使用向量搜索的游标分页（关键词结果已在首次查询时补充）
      */
-    private void addPaginationStatus(Map<String, Object> result, CursorUtils.PaginationPath path) {
-        if (path == null) {
-            return;
+    private List<KnowledgeDocument> searchWithHybridMode(KnowledgeDocumentSearchDto dto, Map<String, Object> result) {
+        int limit = dto.getSize();
+        String cursorDirection = dto.getCursorDirection() != null ? dto.getCursorDirection() : CURSOR_DIRECTION_FORWARD;
+        long startTime = System.currentTimeMillis();
+
+        // 管理分页路径ID
+        String pathId = dto.getPathId();
+        boolean pathExpired = false;
+        PaginationPathVO path = new PaginationPathVO();
+
+        try {
+            if (StrUtil.isBlank(pathId)) {
+                pathId = paginationPathManager.generatePathId();
+            }
+
+            // 从Redis加载分页路径
+            path = paginationPathManager.loadPath(pathId);
+            if (path == null || path.getCurrentPage() == null) {
+                // 如果Redis中找不到path或path为空，生成新的pathId并重新查询
+                log.info("HYBRID模式分页路径不存在或已过期，pathId: {}，重新开始查询", pathId);
+                pathExpired = true;
+                pathId = paginationPathManager.generatePathId();
+                path = new PaginationPathVO();
+                cursorDirection = CURSOR_DIRECTION_FIRST;
+            }
+        } catch (Exception e) {
+            // Redis查询失败
+            log.error("HYBRID模式Redis查询失败，pathId: {}", pathId, e);
+            throw new RuntimeException("Redis查询超时或连接失败，请稍后重试", e);
         }
 
-        // 添加分页状态信息
-        Map<String, Object> paginationStatus = new HashMap<>();
-        paginationStatus.put("current_page", path.getCurrentPageIndex());  // 当前页码
-        paginationStatus.put("total_pages", path.getTotalPageCount());  // 总页数
-        paginationStatus.put("earliest_available_page", path.getFirstPageIndex());  // 可回溯的最早页码（始终为1）
+        // 根据分页方向处理
+        List<KnowledgeDocument> documents;
 
-        result.put("pagination_status", paginationStatus);
+        if (pathExpired) {
+            // path过期：重新查询第一页（首次查询，使用混合搜索）
+            documents = executeHybridFirstSearch(dto, result, path, pathId, limit, startTime);
+        } else if (CURSOR_DIRECTION_BACKWARD.equals(cursorDirection) && path.hasPrevious()) {
+            // Backward：返回上一页
+            documents = executeBackwardSearch(dto, result, path, pathId, limit, startTime);
+        } else if (CURSOR_DIRECTION_FIRST.equals(cursorDirection)) {
+            // First：首次查询，使用混合搜索
+            documents = executeHybridFirstSearch(dto, result, path, pathId, limit, startTime);
+        } else {
+            // Forward：获取下一页（后续翻页，只使用向量搜索）
+            documents = executeVectorSearch(dto, result, path, pathId, limit, startTime, false, "HYBRID Forward分页完成");
+        }
+
+        // 返回pathId给前端
+        result.put("path_id", pathId);
+
+        return documents;
     }
 
     /**
-     * 混合搜索模式（向量+关键词，传统分页）
+     * 执行HYBRID模式的首次搜索（向量+关键词）
+     * 优化：智能判断是否到达最后一页，避免无效的向前查询
      */
-    private List<KnowledgeDocument> searchWithHybridMode(KnowledgeDocumentSearchDto dto, Map<String, Object> result) {
-        int pageSize = dto.getSize();
-        int currentPage = dto.getPage();
-        int offset = (currentPage - 1) * pageSize;
-
+    private List<KnowledgeDocument> executeHybridFirstSearch(KnowledgeDocumentSearchDto dto, Map<String, Object> result,
+                                                         PaginationPathVO path, String pathId,
+                                                         int limit, long startTime) {
         // 步骤1：向量搜索（获取高分文档）
-        CursorSearchResultVO vectorResult = vectorSearch(dto);
-        List<KnowledgeDocument> documents = vectorResult.getDocuments();
+        CursorSearchResultVO cursorResult = vectorSearch(dto);
+        List<KnowledgeDocument> documents = cursorResult.getDocuments();
 
-        // 步骤2：只在第一页且向量结果不足时补充关键词搜索
-        if (documents.size() < pageSize && currentPage == 1) {
+        // 智能判断：如果向量搜索返回的文档数少于limit，说明是最后一页
+        boolean vectorSearchExhausted = documents.size() < limit;
+
+        // 步骤2：向量结果不足时补充关键词搜索（只在首次查询时）
+        if (!vectorSearchExhausted) {
             List<KnowledgeDocument> kwDocs = keywordSearch(dto);
             if (kwDocs != null && !kwDocs.isEmpty()) {
                 // 性能优化：只检查前N条ID
                 Set<Long> existingIds = documents.stream()
-                        .limit(pageSize * 2)
+                        .limit(limit * 2)
                         .map(KnowledgeDocument::getId)
                         .collect(Collectors.toSet());
 
-                // 补充不重复的文档
+                // 补充不重复的文档（关键词搜索的文档不设置相似度分数）
                 kwDocs.stream()
                         .filter(d -> !existingIds.contains(d.getId()))
-                        .limit(pageSize * 2)
+                        .limit(limit * 2)
                         .forEach(documents::add);
             }
         }
 
-        // 步骤3：只在有分数的文档中，相同分数按ID排序，保留向量搜索和关键词搜索的原始顺序
+        // 步骤3：排序（向量搜索结果按分数降序，关键词搜索结果追加在后面）
         sortDocumentsWithScoreOnly(documents);
 
-        // 步骤4：提前分页，只对当前页+下一页的结果排序
-        int endIndex = Math.min(offset + pageSize * 2, documents.size());
-        if (offset < documents.size()) {
-            // 只对需要处理的数据进行分页
-            documents = new ArrayList<>(documents.subList(offset, Math.min(offset + pageSize, endIndex)));
-        } else {
-            documents = new ArrayList<>();
+        // 步骤4：截取当前页
+        if (documents.size() > limit) {
+            documents = documents.subList(0, limit);
         }
 
-        // 步骤5：延迟计算总数（只在需要时）
-        int total = documents.size() >= pageSize ? getTotalSearchCount(dto) : documents.size();
-        int totalPages = (int) Math.ceil((double) total / pageSize);
+        // 步骤5：构建分页信息
+        Set<Long> currentIds = documents.stream()
+                .map(KnowledgeDocument::getId)
+                .collect(Collectors.toSet());
 
-        result.put("total_count", total);
-        result.put("total_pages", totalPages);
-        result.put("has_next", currentPage < totalPages);
-        result.put("has_previous", currentPage > 1);
+        // 创建有序的ID列表（按分数降序，相同分数按ID升序）
+        List<Long> sortedIds = documents.stream()
+                .sorted((a, b) -> {
+                    Double s1 = a.getSimilarityScore();
+                    Double s2 = b.getSimilarityScore();
+                    if (s1 == null && s2 == null) return a.getId().compareTo(b.getId());
+                    if (s1 == null) return 1;
+                    if (s2 == null) return -1;
+                    int cmp = s2.compareTo(s1);
+                    return cmp != 0 ? cmp : a.getId().compareTo(b.getId());
+                })
+                .map(KnowledgeDocument::getId)
+                .collect(Collectors.toList());
 
-        return documents;
-    }
+        PageInfoVO pageInfo = new PageInfoVO(
+                cursorResult.getMinScore(),
+                cursorResult.getMaxScore(),
+                cursorResult.getLastId(),
+                currentIds);
+        pageInfo.setSortedIds(sortedIds);
 
-    /**
-     * 添加分页状态信息到结果中
-     */
-    private void addPaginationStatus(Map<String, Object> result, CursorUtils.PaginationPath path) {
-        if (path == null) {
-            return;
+        // 添加到分页路径
+        path.addPageFromPageInfo(pageInfo);
+
+        // 判断是否最后一页：向量搜索耗尽 且 (没有关键词搜索结果 或 截取后仍不足limit)
+        boolean isLastPage = vectorSearchExhausted || documents.size() < limit;
+
+        // 设置游标和分页信息
+        result.put("next_cursor", !isLastPage ? CursorUtils.encodePaginationPath(path) : null);
+        result.put("previous_cursor", null);
+        result.put("has_next", !isLastPage);
+        result.put("has_previous", false);
+
+        // 保存分页路径到Redis
+        try {
+            paginationPathManager.savePath(pathId, path);
+        } catch (Exception e) {
+            log.warn("保存HYBRID模式分页路径到Redis失败，pathId: {}，不影响主流程", pathId, e);
         }
 
         // 添加分页状态信息
-        Map<String, Object> paginationStatus = new HashMap<>();
-        paginationStatus.put("current_page", path.getCurrentPageIndex());  // 当前页码
-        paginationStatus.put("total_pages", path.getTotalPageCount());  // 总页数
-        paginationStatus.put("earliest_available_page", path.getFirstPageIndex());  // 可回溯的最早页码（始终为1）
+        addPaginationStatus(result, path);
 
-        result.put("pagination_status", paginationStatus);
+        log.info("HYBRID模式首次查询完成，耗时: {}ms，返回文档数: {}，关键词补充数: {}，是否最后一页: {}",
+                System.currentTimeMillis() - startTime, documents.size(),
+                documents.stream().filter(d -> d.getSimilarityScore() == null).count(), isLastPage);
+
+        return documents;
     }
 
     /**
@@ -1495,24 +1517,47 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         return similaritySearch(query, limit, cursor, cursorDirection, similarityThreshold, false);
     }
 
-    /**
-     * 带游标分页的相似度搜索（支持双向分页 + 混合模式控制 + 无限分页）
-     * 
-     * 优化：
-     * - 支持向前、向后、首页滚动分页，保证分页数据准确
-     * - 使用Redis存储分页路径，支持无限滚动
-     * - 支持path容错，即使pathId过期或传错也能正常显示
-     * 
-     * @param query 查询文本
-     * @param limit 每页条数
-     * @param cursor 游标字符串（第一次查询为null）
-     * @param cursorDirection 游标方向：forward(下一页), backward(上一页), first(首页)
-     * @param similarityThreshold 相似度阈值
-     * @param enableHybridMode 是否启用混合模式（分数连续性分析），如果文档ID有序建议设为false
-     * @return 包含结果和游标信息的Map
-     */
+/**
+ * 带游标分页的相似度搜索（支持双向分页 + 混合模式控制 + 无限分页 + 缓存）
+ * 
+ * 优化：
+ * - 支持向前、向后、首页滚动分页，保证分页数据准确
+ * - 使用Redis存储分页路径，支持无限滚动
+ * - 支持path容错，即使pathId过期或传错也能正常显示
+ * - 支持缓存结果，提升查询性能
+ * 
+ * 容错处理：
+ * - Redis查询超时：直接抛出异常，不降级
+ * - Redis连接失败：直接抛出异常，不降级
+ * - pathId不存在或格式错误：自动降级为首次查询
+ * - 分页路径数据损坏：自动降级为首次查询
+ * - 向量库查询失败：返回空结果和错误提示
+ * - 数据库查询失败：返回空结果和错误提示
+ * - 缓存操作失败：不影响主流程
+ * 
+ * @param query 查询文本
+ * @param limit 每页条数
+ * @param cursor 游标字符串（第一次查询为null）
+ * @param cursorDirection 游标方向：forward(下一页), backward(上一页), first(首页)
+ * @param similarityThreshold 相似度阈值
+ * @param enableHybridMode 是否启用混合模式（分数连续性分析），如果文档ID有序建议设为false
+ * @return 包含结果和游标信息的Map
+ */
     @Override
     public Map<String, Object> similaritySearch(String query, int limit, String cursor, String cursorDirection, double similarityThreshold, Boolean enableHybridMode) {
+        // 首次查询尝试从缓存获取（容错：缓存失败不影响主流程）
+        String cacheKey = buildSimilarityCacheKey(query, limit, null, enableHybridMode);
+        if (StrUtil.isBlank(cursor)) {
+            try {
+                Map<String, Object> cacheResult = getKeywordFromCache(cacheKey);
+                if (CollUtil.isNotEmpty(cacheResult)) {
+                    return cacheResult;
+                }
+            } catch (Exception e) {
+                log.warn("从缓存获取失败，继续执行搜索，cacheKey: {}", cacheKey, e);
+            }
+        }
+
         Map<String, Object> result = new HashMap<>();
         if (StrUtil.isBlank(query)) {
             result.put("documents", new ArrayList<>());
@@ -1530,141 +1575,207 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         long startTime = System.currentTimeMillis();
 
         try {
-            // ========== 第一步：处理分页路径 ==========
-            String pathId = null;
-            boolean pathExpired = false;
-            CursorUtils.PaginationPath path = new CursorUtils.PaginationPath();
+            // 第一步：处理分页路径
+            PaginationContextVO context = initPaginationContext(cursor, cursorDirection);
+            PaginationPathVO path = context.getPath();
+            String pathId = context.getPathId();
+            boolean pathExpired = context.isPathExpired();
 
-            // 尝试从cursor中解析pathId
-            if (StrUtil.isNotBlank(cursor)) {
+            if (pathExpired) {
+                cursorDirection = CURSOR_DIRECTION_FIRST;
+            }
+
+            // 第二步：解析游标中的分页信息
+            CursorInfoVO cursorInfo = parseCursorInfo(cursor);
+            Set<Long> returnedIds = cursorInfo.getReturnedIds();
+
+            // 第三步：根据分页方向执行搜索
+            List<Map<String, Object>> documents;
+
+            if (pathExpired) {
+                // path过期：重新查询第一页
+                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId);
+                saveToPaginationPath(path, documents, result);
+                savePathToRedisSafely(pathId, path);
+                result.put("path_id", pathId);
+                log.info("路径已过期，重新查询第一页，耗时: {}ms，返回文档数: {}", System.currentTimeMillis() - startTime, documents.size());
+            } else if (CURSOR_DIRECTION_BACKWARD.equals(cursorDirection) && path.hasPrevious()) {
+                // Backward：返回上一页
+                documents = executeBackwardSearchForSimilarity(path, pathId, query, limit, result, startTime);
+            } else if (CURSOR_DIRECTION_FIRST.equals(cursorDirection)) {
+                // First：从向量库获取第一页
+                path = new PaginationPathVO();
+                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId);
+                saveToPaginationPath(path, documents, result);
+                savePathToRedisSafely(pathId, path);
+                result.put("path_id", pathId);
+                log.debug("First查询完成，耗时: {}ms，返回文档数: {}", System.currentTimeMillis() - startTime, documents.size());
+            } else {
+                // Forward：获取下一页
+                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId);
+                saveToPaginationPath(path, documents, result);
+                savePathToRedisSafely(pathId, path);
+                result.put("path_id", pathId);
+                log.debug("Forward分页完成，耗时: {}ms，返回文档数: {}", System.currentTimeMillis() - startTime, documents.size());
+            }
+
+            // 缓存结果（首次查询，容错：缓存失败不影响主流程）
+            if (StrUtil.isBlank(cursor)) {
                 try {
-                    String[] cursorParts = CursorUtils.decodeCursor(cursor);
-                    if (cursorParts != null && cursorParts.length >= 5) {
-                        // 新格式：cursorParts[4] 是 pathId
-                        pathId = cursorParts[4];
-                    }
+                    cacheResult(cacheKey, result);
                 } catch (Exception e) {
-                    log.warn("从cursor中解析pathId失败，cursor: {}", cursor);
+                    log.warn("缓存结果失败，不影响主流程，cacheKey: {}", cacheKey, e);
                 }
             }
 
-            // 从Redis加载分页路径
-            if (StrUtil.isNotBlank(pathId)) {
+        } catch (Exception e) {
+            log.error("相似度搜索失败，query: {}, limit: {}, cursor: {}, direction: {}", query, limit, cursor, cursorDirection, e);
+            result.put("documents", new ArrayList<>());
+            result.put("error", "搜索失败: " + e.getMessage());
+            result.put("next_cursor", null);
+            result.put("previous_cursor", null);
+            result.put("has_next", false);
+            result.put("has_previous", false);
+        }
+
+        return result;
+    }
+
+    /**
+     * 安全保存分页路径到Redis（容错：保存失败不影响主流程）
+     */
+    private void savePathToRedisSafely(String pathId, PaginationPathVO path) {
+        try {
+            paginationPathManager.savePath(pathId, path);
+        } catch (Exception e) {
+            log.warn("保存分页路径到Redis失败，pathId: {}，不影响主流程", pathId, e);
+        }
+    }
+
+    /**
+     * 初始化分页上下文（容错：Redis超时、连接失败直接抛出异常，不降级）
+     */
+    private PaginationContextVO initPaginationContext(String cursor, String cursorDirection) {
+        String pathId = null;
+        boolean pathExpired = false;
+        PaginationPathVO path = new PaginationPathVO();
+
+        // 尝试从cursor中解析pathId
+        if (StrUtil.isNotBlank(cursor)) {
+            try {
+                String[] cursorParts = CursorUtils.decodeCursor(cursor);
+                if (cursorParts != null && cursorParts.length >= 5) {
+                    pathId = cursorParts[4];
+                }
+            } catch (Exception e) {
+                log.warn("从cursor中解析pathId失败，cursor: {}", cursor);
+            }
+        }
+
+        // 从Redis加载分页路径（容错：超时、连接失败自动降级）
+        if (StrUtil.isNotBlank(pathId)) {
+            try {
                 path = paginationPathManager.loadPath(pathId);
                 if (path == null || path.getCurrentPage() == null) {
                     log.info("分页路径不存在或已过期，pathId: {}，重新开始查询", pathId);
                     pathExpired = true;
                     pathId = null;
-                    path = new CursorUtils.PaginationPath();
-                    cursorDirection = CURSOR_DIRECTION_FIRST;
+                    path = new PaginationPathVO();
                 }
-            } else {
+            } catch (Exception e) {
+                // Redis查询失败（超时、连接失败等），直接抛出异常不降级
+                log.error("Redis查询失败，pathId: {}", pathId, e);
+                throw new RuntimeException("Redis查询超时或连接失败，请稍后重试", e);
+            }
+        } else {
+            try {
                 pathId = paginationPathManager.generatePathId();
+            } catch (Exception e) {
+                log.warn("生成pathId失败，pathId: {}，继续使用随机ID", pathId, e);
+                pathId = UUID.randomUUID().toString();
             }
-
-            // ========== 第二步：解析游标中的分页信息 ==========
-            Set<Long> returnedIds = new HashSet<>();
-            Double cursorMinScore = null;
-            Double cursorMaxScore = null;
-            Long lastCursorId = null;
-            
-            if (StrUtil.isNotBlank(cursor)) {
-                try {
-                    String[] cursorParts = CursorUtils.decodeCursor(cursor);
-                    if (cursorParts != null && cursorParts.length >= 2) {
-                        cursorMinScore = Double.parseDouble(cursorParts[0]);
-                        cursorMaxScore = Double.parseDouble(cursorParts[1]);
-                        
-                        if (cursorParts.length >= 3 && StrUtil.isNotBlank(cursorParts[2])) {
-                            lastCursorId = Long.parseLong(cursorParts[2]);
-                        }
-                        
-                        if (cursorParts.length >= 4 && StrUtil.isNotBlank(cursorParts[3])) {
-                            returnedIds = Arrays.stream(cursorParts[3].split("\\" + ID_SEPARATOR))
-                                    .filter(StrUtil::isNotBlank)
-                                    .map(Long::valueOf)
-                                    .collect(Collectors.toSet());
-                        }
-                    }
-                } catch (Exception e) {
-                    log.warn("解码游标失败，重新开始搜索，cursor: {}", cursor);
-                    returnedIds = new HashSet<>();
-                    cursorMinScore = null;
-                    cursorMaxScore = null;
-                    lastCursorId = null;
-                }
-            }
-
-            // ========== 第三步：根据分页方向处理 ==========
-            List<Map<String, Object>> documents;
-            CursorUtils.PageInfo currentPageInfo = path.getCurrentPage();
-
-            if (pathExpired) {
-                // path过期：重新查询第一页
-                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId);
-                
-                if (documents != null && !documents.isEmpty()) {
-                    // 保存到分页路径
-                    saveToPaginationPath(path, documents, result);
-                    paginationPathManager.savePath(pathId, path);
-                    
-                    result.put("path_id", pathId);
-                }
-                
-                log.info("路径已过期，重新查询第一页，耗时: {}ms，返回文档数: {}", System.currentTimeMillis() - startTime, documents != null ? documents.size() : 0);
-            } else if (CURSOR_DIRECTION_BACKWARD.equals(cursorDirection) && path.hasPrevious()) {
-                // Backward：返回上一页（从路径中获取）
-                CursorUtils.PageInfo prevPage = path.getPreviousPage();
-                path.currentIndex--;  // 移动到上一页
-
-                documents = fetchDocumentsByPageInfoForSimilarity(prevPage, query, limit, result);
-
-                // 判断has_next：是否有下一页（即能否再向前翻回）
-                boolean hasNext = path.hasNext();
-
-                result.put("next_cursor", hasNext ? encodePaginationPathWithPage(path) : null);
-                result.put("previous_cursor", path.hasPrevious() ? encodePaginationPathWithPage(path) : null);
-                result.put("has_next", hasNext);
-                result.put("has_previous", path.hasPrevious());
-
-                // 保存分页路径到Redis
-                paginationPathManager.savePath(pathId, path);
-
-                log.debug("Backward分页完成，耗时: {}ms，返回文档数: {}，has_next: {}", System.currentTimeMillis() - startTime, documents.size(), hasNext);
-            } else if (CURSOR_DIRECTION_FIRST.equals(cursorDirection)) {
-                // First：从向量库获取第一页
-                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId);
-                
-                if (documents != null && !documents.isEmpty()) {
-                    // 清空path并保存新数据
-                    path = new CursorUtils.PaginationPath();
-                    saveToPaginationPath(path, documents, result);
-                    paginationPathManager.savePath(pathId, path);
-                    
-                    result.put("path_id", pathId);
-                }
-                
-                log.debug("First查询完成，耗时: {}ms，返回文档数: {}", System.currentTimeMillis() - startTime, documents.size());
-            } else {
-                // Forward：获取下一页
-                documents = performVectorSearch(query, limit, similarityThreshold, enableHybridMode, result, returnedIds, pathId);
-                
-                if (documents != null && !documents.isEmpty()) {
-                    saveToPaginationPath(path, documents, result);
-                    paginationPathManager.savePath(pathId, path);
-                    
-                    result.put("path_id", pathId);
-                }
-                
-                log.debug("Forward分页完成，耗时: {}ms，返回文档数: {}", System.currentTimeMillis() - startTime, documents.size());
-            }
-
-        } catch (Exception e) {
-            log.error("相似度搜索失败，query: {}, limit: {}, cursor: {}, direction: {}", query, limit, cursor, cursorDirection, e);
-            result.put("error", "搜索失败: " + e.getMessage());
         }
 
-        return result;
+        return new PaginationContextVO(path, pathId, pathExpired);
+    }
+
+    /**
+     * 解析游标信息
+     */
+    private CursorInfoVO parseCursorInfo(String cursor) {
+        Set<Long> returnedIds = new HashSet<>();
+        Double cursorMinScore = null;
+        Double cursorMaxScore = null;
+        Long lastCursorId = null;
+        
+        if (StrUtil.isNotBlank(cursor)) {
+            try {
+                String[] cursorParts = CursorUtils.decodeCursor(cursor);
+                if (cursorParts != null && cursorParts.length >= 2) {
+                    cursorMinScore = Double.parseDouble(cursorParts[0]);
+                    cursorMaxScore = Double.parseDouble(cursorParts[1]);
+                    
+                    if (cursorParts.length >= 3 && StrUtil.isNotBlank(cursorParts[2])) {
+                        lastCursorId = Long.parseLong(cursorParts[2]);
+                    }
+                    
+                    if (cursorParts.length >= 4 && StrUtil.isNotBlank(cursorParts[3])) {
+                        returnedIds = Arrays.stream(cursorParts[3].split("\\" + ID_SEPARATOR))
+                                .filter(StrUtil::isNotBlank)
+                                .map(Long::valueOf)
+                                .collect(Collectors.toSet());
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("解码游标失败，重新开始搜索，cursor: {}", cursor);
+                returnedIds = new HashSet<>();
+                cursorMinScore = null;
+                cursorMaxScore = null;
+                lastCursorId = null;
+            }
+        }
+        
+        return new CursorInfoVO(returnedIds, cursorMinScore, cursorMaxScore, lastCursorId);
+    }
+
+    /**
+     * 执行向后搜索（用于similaritySearch）
+     */
+    private List<Map<String, Object>> executeBackwardSearchForSimilarity(PaginationPathVO path, String pathId,
+                                                                         String query, int limit, Map<String, Object> result, long startTime) {
+        PageInfoVO prevPage = path.getPreviousPage();
+        path.setCurrentIndex(path.getCurrentIndex() - 1);  // 移动到上一页
+
+        List<Map<String, Object>> documents = fetchDocumentsByPageInfoForSimilarity(prevPage, query, limit, result);
+
+        boolean hasNext = path.hasNext();
+        result.put("next_cursor", hasNext ? encodePaginationPathWithPage(path) : null);
+        result.put("previous_cursor", path.hasPrevious() ? encodePaginationPathWithPage(path) : null);
+        result.put("has_next", hasNext);
+        result.put("has_previous", path.hasPrevious());
+
+        // 保存分页路径到Redis（容错：保存失败不影响主流程）
+        savePathToRedisSafely(pathId, path);
+        log.debug("Backward分页完成，耗时: {}ms，返回文档数: {}，has_next: {}", System.currentTimeMillis() - startTime, documents.size(), hasNext);
+
+        return documents;
+    }
+
+    /**
+     * 构建相似度搜索缓存键
+     * 使用关键字段组合，避免哈希冲突
+     */
+    private String buildSimilarityCacheKey(String query, int limit, String cursor, Boolean enableHybridMode) {
+        // 使用关键字段组合生成缓存键，避免hashCode冲突
+        StringBuilder keyBuilder = new StringBuilder(CACHE_PREFIX);
+        keyBuilder.append("similarity:");
+        keyBuilder.append(query).append(":");
+        keyBuilder.append(limit).append(":");
+        keyBuilder.append(enableHybridMode);
+        // cursor不包含在缓存键中，因为翻页时不使用缓存
+
+        // 使用字符串的hashCode，避免对象hashCode冲突
+        return keyBuilder.toString().hashCode() + "";
     }
 
     /**
@@ -1745,7 +1856,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         sortResultsByScoreAndId(documents);
 
         // 保存分页信息到result
-        savePaginationInfoToResult(result, documents, currentMinScore, currentMaxScore, lastId, returnedIds, useHybridMode);
+        savePaginationInfoToResult(result, documents, currentMinScore, currentMaxScore, lastId, returnedIds, useHybridMode, pathId);
 
         return documents;
     }
@@ -1852,7 +1963,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     /**
      * 保存文档到分页路径
      */
-    private void saveToPaginationPath(CursorUtils.PaginationPath path, List<Map<String, Object>> documents, Map<String, Object> result) {
+    private void saveToPaginationPath(PaginationPathVO path, List<Map<String, Object>> documents, Map<String, Object> result) {
         if (documents == null || documents.isEmpty()) {
             return;
         }
@@ -1876,7 +1987,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             lastId = (Long) doc.get("id");
         }
 
-        CursorUtils.PageInfo pageInfo = new CursorUtils.PageInfo(minScore, maxScore, lastId, currentIds);
+        PageInfoVO pageInfo = new PageInfoVO(minScore, maxScore, lastId, currentIds);
         path.addPageFromPageInfo(pageInfo);
 
         // 更新result中的游标
@@ -1889,13 +2000,13 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     /**
      * 根据PageInfo获取文档（用于similaritySearch的backward分页）
      */
-    private List<Map<String, Object>> fetchDocumentsByPageInfoForSimilarity(CursorUtils.PageInfo pageInfo, String query, 
+    private List<Map<String, Object>> fetchDocumentsByPageInfoForSimilarity(PageInfoVO pageInfo, String query, 
                                                                               int limit, Map<String, Object> result) {
         List<Map<String, Object>> documents = new ArrayList<>();
 
         try {
-            List<Long> sortedIds = pageInfo.sortedIds;
-            Set<Long> returnedIds = pageInfo.ids;
+            List<Long> sortedIds = pageInfo.getSortedIds();
+            Set<Long> returnedIds = pageInfo.getIds();
 
             // 优先使用有序的ID列表
             if (sortedIds != null && !sortedIds.isEmpty()) {
@@ -1918,7 +2029,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                         docResult.put("content", document.getContent());
                         docResult.put("summary", document.getSummary());
                         docResult.put("category", document.getCategory());
-                        docResult.put("similarity_score", (pageInfo.minScore + pageInfo.maxScore) / 2);
+                        docResult.put("similarity_score", (pageInfo.getMinScore() + pageInfo.getMaxScore()) / 2);
                         docResult.put("create_time", document.getCreateTime());
 
                         documents.add(docResult);
@@ -1946,14 +2057,14 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     /**
      * 通过向量搜索获取文档（用于similaritySearch的backward分页）
      */
-    private List<Map<String, Object>> fetchDocumentsByVectorSearchForSimilarity(CursorUtils.PageInfo pageInfo, String query, int limit) {
+    private List<Map<String, Object>> fetchDocumentsByVectorSearchForSimilarity(PageInfoVO pageInfo, String query, int limit) {
         List<Map<String, Object>> documents = new ArrayList<>();
 
         try {
-            Double minScore = pageInfo.minScore;
-            Double maxScore = pageInfo.maxScore;
-            Long lastId = pageInfo.lastId;
-            Set<Long> returnedIds = pageInfo.ids;
+            Double minScore = pageInfo.getMinScore();
+            Double maxScore = pageInfo.getMaxScore();
+            Long lastId = pageInfo.getLastId();
+            Set<Long> returnedIds = pageInfo.getIds();
 
             if (minScore == null || maxScore == null) {
                 log.debug("分数范围不完整，无法查询向量库");
@@ -2079,7 +2190,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     /**
      * 编码分页路径（包含pathId）
      */
-    private String encodePaginationPathWithPage(CursorUtils.PaginationPath path) {
+    private String encodePaginationPathWithPage(PaginationPathVO path) {
         // 这里需要扩展cursor编码，添加pathId
         // 暂时使用现有的encodePaginationPath
         return CursorUtils.encodePaginationPath(path);
@@ -2347,9 +2458,24 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
     /**
      * 构建搜索缓存键
+     * 使用关键字段组合，避免哈希冲突
      */
     private String buildSearchCacheKey(KnowledgeDocumentSearchDto dto) {
-        return CACHE_PREFIX + "search:" + dto.hashCode() + ":" + dto.getPage() + ":" + dto.getSize();
+        // 使用关键字段组合生成缓存键，避免hashCode冲突
+        StringBuilder keyBuilder = new StringBuilder(CACHE_PREFIX);
+        keyBuilder.append("search:");
+        keyBuilder.append(dto.getSearchMode()).append(":");
+        keyBuilder.append(dto.getKeyword()).append(":");
+        keyBuilder.append(dto.getCategory()).append(":");
+        keyBuilder.append(dto.getPage()).append(":");
+        keyBuilder.append(dto.getSize()).append(":");
+        keyBuilder.append(dto.getOrderByPriority()).append(":");
+        keyBuilder.append(dto.getOrderByViewCount()).append(":");
+        keyBuilder.append(dto.getAuthor()).append(":");
+        keyBuilder.append(dto.getStatus());
+
+        // 使用字符串的hashCode，避免对象hashCode冲突
+        return keyBuilder.toString().hashCode() + "";
     }
 
     /**

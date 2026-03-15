@@ -1,5 +1,6 @@
 package cn.getech.base.demo.utils;
 
+import cn.getech.base.demo.dto.PaginationPathVO;
 import cn.hutool.core.util.IdUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class PaginationPathManager {
     /**
      * 保存分页路径到Redis
      */
-    public void savePath(String pathId, CursorUtils.PaginationPath path) {
+    public void savePath(String pathId, PaginationPathVO path) {
         if (pathId == null || path == null) {
             return;
         }
@@ -56,7 +57,7 @@ public class PaginationPathManager {
     /**
      * 从Redis加载分页路径
      */
-    public CursorUtils.PaginationPath loadPath(String pathId) {
+    public PaginationPathVO loadPath(String pathId) {
         if (pathId == null) {
             return null;
         }
@@ -66,7 +67,7 @@ public class PaginationPathManager {
             String encodedPath = (String) redisTemplate.opsForValue().get(key);
             
             if (encodedPath != null) {
-                CursorUtils.PaginationPath path = CursorUtils.decodePaginationPath(encodedPath);
+                PaginationPathVO path = CursorUtils.decodePaginationPath(encodedPath);
                 log.debug("从Redis加载分页路径成功，pathId: {}, 当前页数: {}", pathId, path.getTotalPageCount());
                 return path;
             } else {
@@ -76,40 +77,6 @@ public class PaginationPathManager {
         } catch (Exception e) {
             log.error("从Redis加载分页路径失败，pathId: {}", pathId, e);
             return null;
-        }
-    }
-
-    /**
-     * 删除分页路径
-     */
-    public void deletePath(String pathId) {
-        if (pathId == null) {
-            return;
-        }
-
-        try {
-            String key = PATH_KEY_PREFIX + pathId;
-            redisTemplate.delete(key);
-            log.debug("分页路径已从Redis删除，pathId: {}", pathId);
-        } catch (Exception e) {
-            log.error("删除分页路径失败，pathId: {}", pathId, e);
-        }
-    }
-
-    /**
-     * 更新分页路径的过期时间
-     */
-    public void refreshPathExpire(String pathId) {
-        if (pathId == null) {
-            return;
-        }
-
-        try {
-            String key = PATH_KEY_PREFIX + pathId;
-            redisTemplate.expire(key, PATH_EXPIRE_HOURS, TimeUnit.HOURS);
-            log.debug("分页路径过期时间已刷新，pathId: {}", pathId);
-        } catch (Exception e) {
-            log.error("刷新分页路径过期时间失败，pathId: {}", pathId, e);
         }
     }
 }
