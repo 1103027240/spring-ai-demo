@@ -10,6 +10,7 @@ import cn.getech.base.demo.mapper.KnowledgeDocumentMapper;
 import cn.getech.base.demo.service.KnowledgeCategoryService;
 import cn.getech.base.demo.service.KnowledgeDocumentService;
 import cn.getech.base.demo.utils.CursorUtils;
+import cn.getech.base.demo.utils.DocumentUtils;
 import cn.getech.base.demo.utils.ObjectMapperUtils;
 import cn.getech.base.demo.utils.ParamUtils;
 import cn.getech.base.demo.utils.PaginationPathManager;
@@ -765,12 +766,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             List<Long> filteredIds = new ArrayList<>();
             for (Document doc : vectorDocs) {
                 Map<String, Object> metadata = doc.getMetadata();
-                Long documentId = ParamUtils.parseDocumentId(metadata.get("documentId"));
+                Long documentId = Long.parseLong(doc.getId());
                 Double score = doc.getScore();
-
-                if (score == null || documentId == null) {
-                    continue;
-                }
 
                 // 精确过滤：必须在分数范围内
                 if (score < minScore - SCORE_SAME_THRESHOLD || score > maxScore + SCORE_SAME_THRESHOLD) {
@@ -818,7 +815,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
                     // 查找对应的分数
                     for (Document doc : vectorDocs) {
-                        Long docId = ParamUtils.parseDocumentId(doc.getMetadata().get("documentId"));
+                        Long docId = Long.parseLong(doc.getId());
                         if (docId != null && docId.equals(document.getId())) {
                             document.setSimilarityScore(doc.getScore());
                             break;
@@ -1306,10 +1303,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 Map<String, Object> metadata = doc.getMetadata();
 
                 // 后端去重：跳过已返回的文档ID
-                Long documentId = ParamUtils.parseDocumentId(metadata.get("documentId"));
-                if (returnedIds.contains(documentId)) {
-                    continue;
-                }
+                Long documentId = Long.parseLong(doc.getId());
 
                 KnowledgeDocument document = baseMapper.selectById(documentId);
                 if (document == null || document.getStatus() != KnowledgeDocumentStatusEnum.ENABLED.getId()) {
@@ -1370,20 +1364,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         for (Document doc : docs) {
             Map<String, Object> metadata = doc.getMetadata();
-
-            // 获取分数
             Double score = doc.getScore();
-
-            // 获取文档ID
-            Object documentIdObj = metadata.get("documentId");
-            if (documentIdObj == null) {
-                continue;
-            }
-
-            Long documentId = ParamUtils.parseDocumentId(documentIdObj);
-            if (documentId == null) {
-                continue;
-            }
+            Long documentId = Long.parseLong(doc.getId());
 
             if (useHybridMode && lastCursorId != null) { // 混合模式：使用分数 + ID双重过滤
                 if (shouldIncludeInHybridMode(direction, score, documentId, minThreshold, maxThreshold, lastCursorId)) {
@@ -1418,18 +1400,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         for (Document doc : docs) {
             Map<String, Object> metadata = doc.getMetadata();
-
             Double score = doc.getScore();
-
-            Object documentIdObj = metadata.get("documentId");
-            if (documentIdObj == null) {
-                continue;
-            }
-
-            Long documentId = ParamUtils.parseDocumentId(documentIdObj);
-            if (documentId == null) {
-                continue;
-            }
+            Long documentId = Long.parseLong(doc.getId());
 
             // 精确过滤：分数更小 或 (分数相同且ID更大)
             boolean shouldInclude = score < lastExactScore ||
@@ -1500,8 +1472,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     private void sortDocumentsById(List<Document> docs, String direction) {
         boolean ascending = CURSOR_DIRECTION_FORWARD.equals(direction);
         docs.sort((d1, d2) -> {
-            Long id1 = ParamUtils.parseDocumentId(d1.getMetadata().get("documentId"));
-            Long id2 = ParamUtils.parseDocumentId(d2.getMetadata().get("documentId"));
+            Long id1 = Long.parseLong(d1.getId());
+            Long id2 = Long.parseLong(d2.getId());
             return ascending ? id1.compareTo(id2) : id2.compareTo(id1);
         });
     }
@@ -1916,15 +1888,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         for (Document doc : filteredDocs) {
             Map<String, Object> metadata = doc.getMetadata();
-            Object documentIdObj = metadata.get("documentId");
-            if (documentIdObj == null) {
-                continue;
-            }
-
-            Long documentId = ParamUtils.parseDocumentId(documentIdObj);
-            if (documentId == null) {
-                continue;
-            }
+            Long documentId = Long.parseLong(doc.getId());
 
             // 去重
             if (returnedIds.contains(documentId)) {
@@ -2016,15 +1980,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     private List<Document> filterDocsForForward(List<Document> vectorDocs, Set<Long> returnedIds, boolean useHybridMode) {
         List<Document> filtered = new ArrayList<>();
         for (Document doc : vectorDocs) {
-            Object documentIdObj = doc.getMetadata().get("documentId");
-            if (documentIdObj == null) {
-                continue;
-            }
-
-            Long documentId = ParamUtils.parseDocumentId(documentIdObj);
-            if (documentId == null) {
-                continue;
-            }
+            Long documentId = Long.parseLong(doc.getId());
 
             // 去重
             if (returnedIds.contains(documentId)) {
@@ -2051,20 +2007,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         if (cursorLastExactScore != null && cursorLastExactId != null) {
             for (Document doc : vectorDocs) {
                 Map<String, Object> metadata = doc.getMetadata();
-                Object documentIdObj = metadata.get("documentId");
-                if (documentIdObj == null) {
-                    continue;
-                }
-
-                Long documentId = ParamUtils.parseDocumentId(documentIdObj);
-                if (documentId == null) {
-                    continue;
-                }
-
+                Long documentId = Long.parseLong(doc.getId());
                 Double score = doc.getScore();
-                if (score == null) {
-                    continue;
-                }
 
                 // 精确过滤：分数更小 或 (分数相同且ID更大)
                 boolean shouldInclude = score < cursorLastExactScore ||
@@ -2281,12 +2225,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             List<Long> filteredIds = new ArrayList<>();
             for (Document doc : vectorDocs) {
                 Map<String, Object> metadata = doc.getMetadata();
-                Long documentId = ParamUtils.parseDocumentId(metadata.get("documentId"));
+                Long documentId = Long.parseLong(doc.getId());
                 Double score = doc.getScore();
-
-                if (score == null || documentId == null) {
-                    continue;
-                }
 
                 // 精确过滤：必须在分数范围内
                 if (score < minScore - SCORE_SAME_THRESHOLD || score > maxScore + SCORE_SAME_THRESHOLD) {
@@ -2330,7 +2270,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     // 查找对应的分数
                     Double docScore = null;
                     for (Document doc : vectorDocs) {
-                        Long docId = ParamUtils.parseDocumentId(doc.getMetadata().get("documentId"));
+                        Long docId = Long.parseLong(doc.getId());
                         if (docId != null && docId.equals(document.getId())) {
                             docScore = doc.getScore();
                             break;
@@ -2481,7 +2421,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 .map(doc -> {
                     Map<String, Object> metadata = doc.getMetadata();
                     Map<String, Object> result = new HashMap<>();
-                    result.put("id", metadata.get("documentId"));
+                    result.put("id", doc.getId());
                     result.put("title", metadata.get("title"));
                     result.put("content", doc.getText());
                     result.put("summary", metadata.get("summary"));
@@ -2617,10 +2557,9 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         try {
             // 文档元数据
             Map<String, Object> metadata = new HashMap<>();
-            metadata.put("documentId", document.getId());
             metadata.put("title", document.getTitle());
             metadata.put("summary", document.getSummary());
-            metadata.put("category", document.getCategory());
+            metadata.put("categoryId", document.getCategoryId());
             metadata.put("tags", document.getTags());
             metadata.put("keywords", document.getKeywords());
             metadata.put("priority", document.getPriority());
@@ -2629,9 +2568,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             metadata.put("updateTime", document.getUpdateTime().toString());
             metadata.put("source", "knowledge_base");
 
-            // 文档内容
-            Document vectorDoc = new Document(document.getContent());
-            vectorDoc.getMetadata().putAll(metadata);
+            // 文档内容（使用工具类自动过滤 null 值，业务代码无需判断）
+            Document vectorDoc = DocumentUtils.createDocument(document.getId().toString(), document.getContent(), metadata);
 
             // 保存到向量库
             customerKnowledgeVectorStore.add(List.of(vectorDoc));
