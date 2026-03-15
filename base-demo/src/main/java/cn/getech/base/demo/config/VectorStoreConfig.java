@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Primary;
 public class VectorStoreConfig {
 
     /**
-     * RAG向量存储
+     * RAG测试示例向量存储
      */
     @Bean("ragDocumentVectorStore")
     public VectorStore ragDocumentVectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel) {
@@ -36,12 +36,22 @@ public class VectorStoreConfig {
     }
 
     /**
-     * 售后客服工作流向量存储
+     * 售后客服工作流知识库向量存储
      */
     @Bean("customerKnowledgeVectorStore")
     public VectorStore customerKnowledgeVectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel) {
         return MilvusVectorStore.builder(milvusClient, embeddingModel)
                 .collectionName("customer_knowledge")
+                .build();
+    }
+
+    /**
+     * 售后客服工作流会话消息向量存储
+     */
+    @Bean("chatMessageVectorStore")
+    public VectorStore chatMessageVectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel) {
+        return MilvusVectorStore.builder(milvusClient, embeddingModel)
+                .collectionName("chat_message")
                 .build();
     }
 

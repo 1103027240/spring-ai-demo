@@ -17,8 +17,8 @@ import static cn.getech.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
 @Component
 public class CustomerKnowledgeBuild {
 
-    @Resource(name = "customerKnowledgeVectorStore")
-    private VectorStore customerKnowledgeVectorStore;
+    @Resource(name = "chatMessageVectorStore")
+    private VectorStore chatMessageVectorStore;
 
     @Autowired
     private MessageSyncTaskBuild messageSyncTaskBuild;
@@ -44,7 +44,7 @@ public class CustomerKnowledgeBuild {
                 log.warn("【异步同步】没有有效的文档需要同步，sessionId: {}", sessionId);
                 return true;
             }
-            customerKnowledgeVectorStore.add(documents);
+            chatMessageVectorStore.add(documents);
             return true;
         } catch (Exception e) {
             log.error("【异步同步】同步消息到Milvus失败，sessionId: {}", sessionId, e);

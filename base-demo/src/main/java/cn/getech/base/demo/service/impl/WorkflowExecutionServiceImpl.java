@@ -80,8 +80,8 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     @Autowired
     private WorkflowExecutionBuild workflowExecutionBuild;
 
-    @Resource(name = "customerKnowledgeVectorStore")
-    private VectorStore customerKnowledgeVectorStore;
+    @Resource(name = "chatMessageVectorStore")
+    private VectorStore chatMessageVectorStore;
 
     @Autowired
     private GraphCheckPointService graphCheckPointService;
@@ -245,7 +245,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
                 .build();
 
         // 执行搜索
-        List<Document> documents = customerKnowledgeVectorStore.similaritySearch(searchRequest);
+        List<Document> documents = chatMessageVectorStore.similaritySearch(searchRequest);
 
         // 手动排序
         return documents.stream()

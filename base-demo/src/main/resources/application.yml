@@ -93,6 +93,7 @@ spring:
           - long_term_chat_memory
           - rag_document
           - customer_knowledge
+          - chat_message
     # 记忆配置
     memory:
       short-term:
