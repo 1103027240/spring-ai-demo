@@ -1,5 +1,6 @@
 package cn.getech.base.demo.controller;
 
+import cn.getech.base.demo.dto.KnowledgeDocumentAddDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentSearchDto;
 import cn.getech.base.demo.entity.KnowledgeDocument;
@@ -33,8 +34,8 @@ public class KnowledgeDocumentController {
 
     @PostMapping("/documents/batch")
     @Operation(summary = "批量创建知识库文档", description = "批量创建知识库文档")
-    public void batchCreateDocuments(@Validated @RequestBody List<KnowledgeDocumentDto> list) {
-        knowledgeDocumentService.batchCreateDocuments(list);
+    public void batchCreateDocuments(@Validated @RequestBody KnowledgeDocumentAddDto dto) {
+        knowledgeDocumentService.batchCreateDocuments(dto);
     }
 
     @PutMapping("/documents")

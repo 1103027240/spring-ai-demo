@@ -1,12 +1,6 @@
 package cn.getech.base.demo.service.impl;
 
-import cn.getech.base.demo.dto.CursorInfoVO;
-import cn.getech.base.demo.dto.CursorSearchResultVO;
-import cn.getech.base.demo.dto.KnowledgeDocumentDto;
-import cn.getech.base.demo.dto.KnowledgeDocumentSearchDto;
-import cn.getech.base.demo.dto.PageInfoVO;
-import cn.getech.base.demo.dto.PaginationContextVO;
-import cn.getech.base.demo.dto.PaginationPathVO;
+import cn.getech.base.demo.dto.*;
 import cn.getech.base.demo.entity.KnowledgeCategory;
 import cn.getech.base.demo.entity.KnowledgeDocument;
 import cn.getech.base.demo.enums.KnowledgeDocumentStatusEnum;
@@ -161,18 +155,18 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
     @Transactional
     @Override
-    public void batchCreateDocuments(List<KnowledgeDocumentDto> list) {
+    public void batchCreateDocuments(KnowledgeDocumentAddDto dto) {
         List<String> categories = new ArrayList<>();
 
         // 更新文档
-        for (KnowledgeDocumentDto dto : list) {
+        for (KnowledgeDocumentDto req : dto.getDocuments()) {
             try {
-                KnowledgeDocument document = createDocument(dto);
+                KnowledgeDocument document = createDocument(req);
                 if (StrUtil.isNotBlank(document.getCategory())) {
                     categories.add(document.getCategory());
                 }
             } catch (Exception e) {
-                log.error("批量创建文档失败，标题: {}", dto.getTitle(), e);
+                log.error("批量创建文档失败，标题: {}", req.getTitle(), e);
                 // 继续处理其他文档
             }
         }

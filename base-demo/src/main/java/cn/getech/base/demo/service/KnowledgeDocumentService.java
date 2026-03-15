@@ -1,5 +1,6 @@
 package cn.getech.base.demo.service;
 
+import cn.getech.base.demo.dto.KnowledgeDocumentAddDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentSearchDto;
 import cn.getech.base.demo.entity.KnowledgeDocument;
@@ -17,7 +18,7 @@ public interface KnowledgeDocumentService {
 
     KnowledgeDocument createDocument(KnowledgeDocumentDto dto);
 
-    void batchCreateDocuments(List<KnowledgeDocumentDto> list);
+    void batchCreateDocuments(KnowledgeDocumentAddDto dto);
 
     void updateDocument(KnowledgeDocumentDto dto);
 
