@@ -26,6 +26,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -140,7 +143,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         baseMapper.insert(document);
 
         // 3. 文档向量化
-        vectorizeDocumentAsync(document);
+        registerPostCommitAddHook(document);
 
         // 4. 更新分类
         if (StrUtil.isNotBlank(dto.getCategory())) {
@@ -2579,6 +2582,23 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         redisTemplate.delete(CACHE_PREFIX + "categories:all");
     }
 
+    /**
+     * 注册事务后钩子
+     */
+    public void registerPostCommitAddHook(KnowledgeDocument document) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        vectorizeDocumentAsync(document);
+                    }
+                }
+        );
+    }
+
+    /**
+     * 异步向量化文档 (生产环境推送消息MQ处理)
+     */
     public void vectorizeDocumentAsync(KnowledgeDocument document) {
         CompletableFuture.runAsync(() -> {
             try {
