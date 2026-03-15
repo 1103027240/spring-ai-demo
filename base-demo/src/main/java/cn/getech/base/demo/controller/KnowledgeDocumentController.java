@@ -75,9 +75,12 @@ public class KnowledgeDocumentController {
             @RequestParam(defaultValue = "forward") String cursorDirection,
 
             @Parameter(description = "相似度阈值，默认0.6") @RequestParam(defaultValue = "0.6")
-            @Min(value = 0, message = "阈值不能小于0") @Max(value = 1, message = "阈值不能大于1") double similarityThreshold) {
+            @Min(value = 0, message = "阈值不能小于0") @Max(value = 1, message = "阈值不能大于1") double similarityThreshold,
+
+            @Parameter(description = "是否启用混合模式（分数连续性分析），如果文档ID有序建议设为false以提高性能，默认false") 
+            @RequestParam(defaultValue = "false") Boolean enableHybridMode) {
         
-        return knowledgeDocumentService.similaritySearch(query, limit, cursor, cursorDirection, similarityThreshold);
+        return knowledgeDocumentService.similaritySearch(query, limit, cursor, cursorDirection, similarityThreshold, enableHybridMode);
     }
 
     /**

@@ -19,12 +19,11 @@ public class CursorSearchResultVO implements Serializable {
 
     private List<KnowledgeDocument> documents;
 
-    private Double minScore;    // 最低分数（用于forward）
+    private Double minScore;    // 当前批次的最低分数（用于forward下一页）
 
-    private Double maxScore;    // 最高分数（用于backward）
+    private Double maxScore;    // 当前批次的最高分数（用于backward上一页）
 
     private Long lastId;        // 最后一个文档的ID（用于混合模式分数相同时的分页）
 
     private boolean useHybridMode; // 是否使用混合模式（向量+ID分页）
-
 }

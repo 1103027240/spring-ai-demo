@@ -46,7 +46,13 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     @Schema(description = "游标分页标识", example = "eyJkb2N1bWVudElkIjoxMjMsInNpbWlsYXJpdHlTY29yZSI6MC45fQ==")
     private String cursor;
 
+    @Schema(description = "分页路径ID（用于Redis存储分页历史，支持无限分页）", example = "abc123")
+    private String pathId;
+
     @Schema(description = "分页方向：forward(下一页), backward(上一页), first(首页)", example = "forward", allowableValues = {"forward", "backward", "first"})
     private String cursorDirection = "forward";
+
+    @Schema(description = "是否启用混合模式（分数连续性分析），默认false。如果文档ID有序，建议设为false以提高性能", example = "false")
+    private Boolean enableHybridMode = false;
 
 }

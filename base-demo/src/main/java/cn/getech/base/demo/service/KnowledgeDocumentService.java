@@ -29,5 +29,7 @@ public interface KnowledgeDocumentService {
 
     Map<String, Object> similaritySearch(String query, int limit, String cursor, String cursorDirection, double similarityThreshold);
 
+    Map<String, Object> similaritySearch(String query, int limit, String cursor, String cursorDirection, double similarityThreshold, Boolean enableHybridMode);
+
 }
 
