@@ -312,7 +312,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      */
     @Override
     public Map<String, Object> searchDocument(KnowledgeDocumentSearchDto dto) {
-        SearchModeEnum searchModeEnum = SearchModeEnum.valueOf(dto.getSearchMode());
+        SearchModeEnum searchModeEnum = SearchModeEnum.valueOf(dto.getSearchMode().toUpperCase(Locale.ROOT));
         String cacheKey = buildSearchCacheKey(dto);
 
         // KEYWORD、VECTOR和HYBRID模式首次查询都尝试从缓存获取（容错：缓存失败不影响主流程）
@@ -766,7 +766,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             for (Document doc : vectorDocs) {
                 Map<String, Object> metadata = doc.getMetadata();
                 Long documentId = ParamUtils.parseDocumentId(metadata.get("documentId"));
-                Double score = (Double) metadata.get("similarity");
+                Double score = doc.getScore();
 
                 if (score == null || documentId == null) {
                     continue;
@@ -820,7 +820,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     for (Document doc : vectorDocs) {
                         Long docId = ParamUtils.parseDocumentId(doc.getMetadata().get("documentId"));
                         if (docId != null && docId.equals(document.getId())) {
-                            document.setSimilarityScore((Double) doc.getMetadata().get("similarity"));
+                            document.setSimilarityScore(doc.getScore());
                             break;
                         }
                     }
@@ -1230,7 +1230,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 Map<Double, Integer> scoreFrequency = new HashMap<>(); // key: 分数, value: 该分数出现次数
                 
                 for (Document doc : vectorDocs) {
-                    Double score = (Double) doc.getMetadata().get("similarity");
+                    Double score = doc.getScore();
                     if (score != null) {
                         if (minScore == null || score < minScore) {
                             minScore = score;
@@ -1278,7 +1278,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             } else {
                 // 不启用混合模式时，只计算minScore和maxScore
                 for (Document doc : vectorDocs) {
-                    Double score = (Double) doc.getMetadata().get("similarity");
+                    Double score = doc.getScore();
                     if (score != null) {
                         if (minScore == null || score < minScore) {
                             minScore = score;
@@ -1320,7 +1320,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     continue;
                 }
 
-                document.setSimilarityScore((Double) metadata.get("similarity"));
+                document.setSimilarityScore(doc.getScore());
                 results.add(document);
 
                 // 记录最后一个文档的ID（用于混合模式）
@@ -1372,10 +1372,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             Map<String, Object> metadata = doc.getMetadata();
 
             // 获取分数
-            Double score = (Double) metadata.get("similarity");
-            if (score == null) {
-                continue;
-            }
+            Double score = doc.getScore();
 
             // 获取文档ID
             Object documentIdObj = metadata.get("documentId");
@@ -1422,10 +1419,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         for (Document doc : docs) {
             Map<String, Object> metadata = doc.getMetadata();
 
-            Double score = (Double) metadata.get("similarity");
-            if (score == null) {
-                continue;
-            }
+            Double score = doc.getScore();
 
             Object documentIdObj = metadata.get("documentId");
             if (documentIdObj == null) {
@@ -1493,8 +1487,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      */
     private void sortDocumentsByScore(List<Document> docs, boolean ascending) {
         docs.sort((d1, d2) -> {
-            Double s1 = (Double) d1.getMetadata().get("similarity");
-            Double s2 = (Double) d2.getMetadata().get("similarity");
+            Double s1 = (Double) d1.getScore();
+            Double s2 = (Double) d2.getScore();
             return ascending ? s1.compareTo(s2) : s2.compareTo(s1);
         });
     }
@@ -1937,7 +1931,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 continue;
             }
 
-            Double score = (Double) metadata.get("similarity");
+            Double score = doc.getScore();
             if (currentMinScore == null || score < currentMinScore) {
                 currentMinScore = score;
             }
@@ -1982,7 +1976,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         List<Double> scores = new ArrayList<>();
         for (Document doc : vectorDocs) {
-            Double score = (Double) doc.getMetadata().get("similarity");
+            Double score = doc.getScore();
             if (score != null) {
                 scores.add(score);
             }
@@ -2067,7 +2061,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     continue;
                 }
 
-                Double score = (Double) metadata.get("similarity");
+                Double score = doc.getScore();
                 if (score == null) {
                     continue;
                 }
@@ -2288,7 +2282,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             for (Document doc : vectorDocs) {
                 Map<String, Object> metadata = doc.getMetadata();
                 Long documentId = ParamUtils.parseDocumentId(metadata.get("documentId"));
-                Double score = (Double) metadata.get("similarity");
+                Double score = doc.getScore();
 
                 if (score == null || documentId == null) {
                     continue;
@@ -2338,7 +2332,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     for (Document doc : vectorDocs) {
                         Long docId = ParamUtils.parseDocumentId(doc.getMetadata().get("documentId"));
                         if (docId != null && docId.equals(document.getId())) {
-                            docScore = (Double) doc.getMetadata().get("similarity");
+                            docScore = doc.getScore();
                             break;
                         }
                     }
@@ -2493,7 +2487,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     result.put("summary", metadata.get("summary"));
                     result.put("category", metadata.get("category"));
                     result.put("tags", metadata.get("tags"));
-                    result.put("similarity_score", metadata.get("similarity"));
+                    result.put("similarity_score", doc.getScore());
                     result.put("create_time", metadata.get("create_time"));
                     return result;
                 })
