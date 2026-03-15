@@ -11,6 +11,7 @@ import cn.getech.base.demo.mapper.KnowledgeCategoryMapper;
 import cn.getech.base.demo.mapper.KnowledgeDocumentMapper;
 import cn.getech.base.demo.service.KnowledgeCategoryService;
 import cn.getech.base.demo.service.KnowledgeDocumentService;
+import cn.getech.base.demo.utils.CursorUtils;
 import cn.getech.base.demo.utils.ObjectMapperUtils;
 import cn.getech.base.demo.utils.ParamUtils;
 import cn.hutool.core.collection.CollUtil;
@@ -353,11 +354,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             Set<Long> allIds = documents.stream()
                     .map(KnowledgeDocument::getId)
                     .collect(Collectors.toSet());
-            allIds.addAll(getPreviousReturnedIds(dto.getCursor()));
+            allIds.addAll(CursorUtils.getPreviousReturnedIds(dto.getCursor()));
 
-            result.put("next_cursor", encodeCursor(cursorResult.getMinScore(), cursorResult.getMaxScore(), cursorResult.getLastId(), allIds));
+            result.put("next_cursor", CursorUtils.encodeCursor(cursorResult.getMinScore(), cursorResult.getMaxScore(), cursorResult.getLastId(), allIds));
             if (cursorResult.getMaxScore() != null) {
-                result.put("previous_cursor", encodeCursor(cursorResult.getMaxScore(), cursorResult.getMaxScore(), null, getPreviousReturnedIds(dto.getCursor())));
+                result.put("previous_cursor", CursorUtils.encodeCursor(cursorResult.getMaxScore(), cursorResult.getMaxScore(), null, CursorUtils.getPreviousReturnedIds(dto.getCursor())));
             }
             result.put("has_next", true);
         } else {
@@ -484,7 +485,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     /**
      * 向量搜索（支持游标分页 + 后端去重 + 混合模式处理大结果集）
      * 核心逻辑：
-     * 1. 普通模式：基于分数过滤 + ID去重
+     * 1. 向量模式：基于分数过滤 + ID去重
      * 2. 混合模式：基于分数 + ID双重过滤，解决大结果集相同分数的分页问题
      * 混合模式触发条件：
      * - 向量库返回大量结果（>=200条）
@@ -503,14 +504,14 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         // ========== 第一步：解码游标 ==========
         Set<Long> returnedIds = new HashSet<>();
-        Long lastCursorId = null;
         Double cursorMinScore = null;
         Double cursorMaxScore = null;
+        Long lastCursorId = null;
         boolean hybridModeFromCursor = false;
 
         if (StrUtil.isNotBlank(dto.getCursor())) {
             try {
-                String[] cursorParts = decodeCursor(dto.getCursor());
+                String[] cursorParts = CursorUtils.decodeCursor(dto.getCursor());
                 if (cursorParts != null && cursorParts.length >= 2) {
                     cursorMinScore = Double.parseDouble(cursorParts[0]);
                     cursorMaxScore = Double.parseDouble(cursorParts[1]);
@@ -880,7 +881,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
             if (StrUtil.isNotBlank(cursor)) {
                 try {
-                    String[] cursorParts = decodeCursor(cursor);
+                    String[] cursorParts = CursorUtils.decodeCursor(cursor);
                     if (cursorParts != null && cursorParts.length >= 1) {
                         cursorMinScore = Double.parseDouble(cursorParts[0]);
                         if (cursorParts.length >= 2 && StrUtil.isNotBlank(cursorParts[1])) {
@@ -993,7 +994,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             result.put("documents", documents);
 
             if (documents.size() >= limit) {
-                result.put("next_cursor", encodeCursorSimple(minScore, lastId, allIds));
+                result.put("next_cursor", CursorUtils.encodeCursorSimple(minScore, lastId, allIds));
                 result.put("has_next", true);
             } else {
                 result.put("next_cursor", null);
@@ -1336,146 +1337,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         }
 
         return response;
-    }
-
-    /**
-     * 编码游标（简化版）
-     * 格式：minScore|lastId|id1,id2,id3,...
-     */
-    private String encodeCursorSimple(Double minScore, Long lastId, Set<Long> returnedIds) {
-        try {
-            StringBuilder cursorData = new StringBuilder();
-            cursorData.append(minScore != null ? minScore : "0.0").append(CURSOR_SEPARATOR);
-            cursorData.append(lastId != null ? lastId : "").append(CURSOR_SEPARATOR);
-
-            List<Long> idList = returnedIds.stream()
-                    .skip(Math.max(0, returnedIds.size() - MAX_CURSOR_ID_COUNT))
-                    .collect(Collectors.toList());
-
-            cursorData.append(idList.stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.joining(ID_SEPARATOR)));
-
-            return Base64.getEncoder().encodeToString(cursorData.toString().getBytes());
-        } catch (Exception e) {
-            log.error("编码游标失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 编码游标
-     * 
-     * 格式：minScore|maxScore|lastId|id1,id2,id3,...
-     * - minScore: 最低分数（forward方向使用）
-     * - maxScore: 最高分数（backward方向使用）
-     * - lastId: 最后一个文档的ID（混合模式下使用，普通模式为空）
-     * - ids: 已返回的文档ID列表（用于去重）
-     * 
-     * @param minSimilarityScore 最低相似度分数
-     * @param maxSimilarityScore 最高相似度分数
-     * @param lastId 最后一个文档的ID（混合模式）
-     * @param returnedIds 已返回的文档ID集合
-     * @return Base64编码的游标字符串
-     */
-    private String encodeCursor(Double minSimilarityScore, Double maxSimilarityScore, Long lastId, Set<Long> returnedIds) {
-        try {
-            // 构建游标数据：minScore|maxScore|lastId|id1,id2,id3,...
-            StringBuilder cursorData = new StringBuilder();
-            cursorData.append(minSimilarityScore != null ? minSimilarityScore : "0.0").append(CURSOR_SEPARATOR);
-            cursorData.append(maxSimilarityScore != null ? maxSimilarityScore : "1.0").append(CURSOR_SEPARATOR);
-            cursorData.append(lastId != null ? lastId : "").append(CURSOR_SEPARATOR);
-
-            // 只保留最近的MAX_CURSOR_ID_COUNT个ID（避免游标过长）
-            List<Long> idList = returnedIds.stream()
-                    .skip(Math.max(0, returnedIds.size() - MAX_CURSOR_ID_COUNT))
-                    .collect(Collectors.toList());
-
-            cursorData.append(idList.stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.joining(ID_SEPARATOR)));
-
-            return java.util.Base64.getEncoder().encodeToString(cursorData.toString().getBytes());
-        } catch (Exception e) {
-            log.error("编码游标失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 解码游标
-     * 
-     * 支持两种格式：
-     * - 简化版（similaritySearch使用）：minScore|lastId|id1,id2,id3,...
-     * - 完整版（searchDocument使用）：minScore|maxScore|lastId|id1,id2,id3,...
-     * 
-     * @param cursor Base64编码的游标字符串
-     * @return 解码后的数组
-     */
-    private String[] decodeCursor(String cursor) {
-        try {
-            byte[] decodedBytes = Base64.getDecoder().decode(cursor);
-            String cursorData = new String(decodedBytes);
-            return cursorData.split("\\" + CURSOR_SEPARATOR);
-        } catch (Exception e) {
-            log.error("解码游标失败，cursor: {}", cursor, e);
-            return null;
-        }
-    }
-
-    /**
-     * 从游标中获取之前返回的文档ID集合
-     * 
-     * 支持格式：
-     * - 新格式：minScore|maxScore|lastId|id1,id2,id3,... （ids在索引3）
-     * - 旧格式：minScore|id1,id2,id3,... （ids在索引1）
-     * 
-     * @param cursor 游标字符串
-     * @return 已返回的文档ID集合
-     */
-    private Set<Long> getPreviousReturnedIds(String cursor) {
-        Set<Long> ids = new HashSet<>();
-        if (StrUtil.isBlank(cursor)) {
-            return ids;
-        }
-
-        try {
-            String[] cursorParts = decodeCursor(cursor);
-            if (cursorParts == null) {
-                return ids;
-            }
-
-            // 优先使用新格式
-            if (cursorParts.length >= 4) {
-                String idString = cursorParts[3];
-                if (StrUtil.isNotBlank(idString)) {
-                    ids = parseIdList(idString);
-                }
-            } 
-            // 兼容旧格式
-            else if (cursorParts.length > 1) {
-                String idString = cursorParts[1];
-                if (StrUtil.isNotBlank(idString)) {
-                    ids = parseIdList(idString);
-                }
-            }
-        } catch (Exception e) {
-            log.warn("获取已返回ID失败，cursor: {}", cursor, e);
-        }
-
-        return ids;
-    }
-
-    /**
-     * 解析ID列表字符串
-     * @param idString ID列表字符串，如"1,2,3,4"
-     * @return ID集合
-     */
-    private Set<Long> parseIdList(String idString) {
-        return Arrays.stream(idString.split("\\" + ID_SEPARATOR))
-                .filter(StrUtil::isNotBlank)
-                .map(Long::valueOf)
-                .collect(Collectors.toSet());
     }
 
 }
