@@ -1,11 +1,7 @@
 package cn.getech.base.demo.service;
 
-import cn.getech.base.demo.dto.KnowledgeDocumentAddDto;
-import cn.getech.base.demo.dto.KnowledgeDocumentDto;
-import cn.getech.base.demo.dto.KnowledgeDocumentSearchDto;
+import cn.getech.base.demo.dto.*;
 import cn.getech.base.demo.entity.KnowledgeDocument;
-import jakarta.validation.constraints.Max;
-
 import java.util.List;
 import java.util.Map;
 
@@ -26,11 +22,7 @@ public interface KnowledgeDocumentService {
 
     KnowledgeDocument getDocumentById(Long documentId);
 
-    Map<String, Object> searchDocument(KnowledgeDocumentSearchDto dto);
-
-    Map<String, Object> similaritySearch(String query, int limit, String cursor, String cursorDirection, double similarityThreshold);
-
-    Map<String, Object> similaritySearch(String query, int limit, String cursor, String cursorDirection, double similarityThreshold, Boolean enableHybridMode);
+    CursorSearchVO<KnowledgeDocumentVO> search(KnowledgeDocumentSearchDto dto);
 
 }
 

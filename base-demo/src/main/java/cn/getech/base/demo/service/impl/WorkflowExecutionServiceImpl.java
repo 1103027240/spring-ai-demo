@@ -4,7 +4,7 @@ import cn.getech.base.demo.build.CustomerServiceStateBuild;
 import cn.getech.base.demo.build.WorkflowExecutionBuild;
 import cn.getech.base.demo.dto.CustomerServiceStateDto;
 import cn.getech.base.demo.dto.MessageDocumentVO;
-import cn.getech.base.demo.dto.WorkflowRequestDto;
+import cn.getech.base.demo.dto.WorkflowDto;
 import cn.getech.base.demo.entity.ChatMessage;
 import cn.getech.base.demo.entity.WorkflowExecution;
 import cn.getech.base.demo.enums.WorkflowExecutionStatusEnum;
@@ -95,7 +95,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         long startTime = System.currentTimeMillis();
         String executionId = UUID.randomUUID().toString().replace("-", "");
         String sessionId = UUID.randomUUID().toString().replace("-", "");
-        WorkflowRequestDto dto = new WorkflowRequestDto(userInput, userId, userName);
+        WorkflowDto dto = new WorkflowDto(userInput, userId, userName);
         CustomerServiceStateDto state = null;
 
         try {
@@ -149,7 +149,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     /**
      * 执行工作流逻辑
      */
-    public CustomerServiceStateDto executeWorkflowInternal(String executionId, String sessionId, WorkflowRequestDto dto) {
+    public CustomerServiceStateDto executeWorkflowInternal(String executionId, String sessionId, WorkflowDto dto) {
         try {
             Map<String, Object> initialState = new HashMap<>();
             initialState.put(WORKFLOW_EXECUTION_ID, executionId);
@@ -188,7 +188,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     /**
      * 保存失败执行记录
      */
-    public void saveFailureRecord(String executionId, String sessionId, WorkflowRequestDto dto, Exception e) {
+    public void saveFailureRecord(String executionId, String sessionId, WorkflowDto dto, Exception e) {
         WorkflowExecution execution = workflowExecutionBuild.createBaseWorkflowExecution(executionId, sessionId, dto.getUserId(), WorkflowExecutionStatusEnum.FAILED.getId());
         execution.setInputData(workflowExecutionBuild.buildInputDataJson(dto.getUserInput(), dto.getUserId(), dto.getUserName(), sessionId));
         execution.setErrorMessage(e.getMessage());

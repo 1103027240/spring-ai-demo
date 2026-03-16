@@ -13,7 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class WorkflowRequestDto implements Serializable {
+public class WorkflowDto implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**

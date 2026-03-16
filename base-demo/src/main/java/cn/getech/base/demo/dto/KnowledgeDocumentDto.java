@@ -3,7 +3,6 @@ package cn.getech.base.demo.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +26,8 @@ public class KnowledgeDocumentDto implements Serializable {
     @Schema(description = "文档摘要", example = "7天无理由退货政策详细说明")
     private String summary;
 
-    @Schema(description = "文档分类", example = "售后政策")
-    private String category;
+    @Schema(description = "分类ID", example = "售后政策")
+    private Long categoryId;
 
     @Schema(description = "标签列表", example = "[\"退货\", \"退款\", \"七天无理由\"]")
     private List<String> tags;

@@ -125,7 +125,7 @@ public class KnowledgeDocument implements Serializable {
     private Integer uselessCount = 0;
 
     /**
-     * 是否已向量化：0-否，1-是
+     * 是否已向量化：0-未向量化，1-已向量化，2-已修改但未向量化
      */
     @TableField("is_vectorized")
     private Integer isVectorized = 0;

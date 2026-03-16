@@ -1,14 +1,14 @@
 package cn.getech.base.demo.build;
 
 import cn.getech.base.demo.dto.CustomerServiceStateDto;
-import cn.getech.base.demo.dto.WorkflowRequestDto;
+import cn.getech.base.demo.dto.WorkflowDto;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.constant.FieldConstant.AFTER_SALES_RESULT;
 import static cn.getech.base.demo.constant.FieldConstant.ORDER_RESULTS;
-import static cn.getech.base.demo.constant.FieldValueConstant.DEFAULT_AI_RESPONSE;
+import static cn.getech.base.demo.constant.FieldValueConstant.DEFAULT_CUSTOMER_AI_RESPONSE;
 import static cn.getech.base.demo.constant.PatternConstant.AI_RESPONSE_KEYS;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.AFTER_SALES;
 import static cn.getech.base.demo.enums.CustomerServiceNodeEnum.ORDER_QUERY;
@@ -20,7 +20,7 @@ public class CustomerServiceStateBuild {
     /**
      * 构建客服状态DTO
      */
-    public CustomerServiceStateDto buildCustomerServiceState(String executionId, String sessionId, WorkflowRequestDto dto, Map<String, Object> output) {
+    public CustomerServiceStateDto buildCustomerServiceState(String executionId, String sessionId, WorkflowDto dto, Map<String, Object> output) {
         CustomerServiceStateDto state = new CustomerServiceStateDto(executionId, sessionId, dto.getUserInput(), dto.getUserId(), dto.getUserName(), System.currentTimeMillis());
 
         state.setIntent((String) output.get(INTENT));
@@ -56,7 +56,7 @@ public class CustomerServiceStateBuild {
                 }
             }
         }
-        return DEFAULT_AI_RESPONSE;
+        return DEFAULT_CUSTOMER_AI_RESPONSE;
     }
 
 }

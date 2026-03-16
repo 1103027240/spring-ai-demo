@@ -67,34 +67,12 @@ public class ParamUtils {
     /**
      * 复制有效参数
      */
-    public static void copyValidParams(Map<String, Object> source, Map<String, Object> target, String[] keys) {
+    public static void putIfValid(Map<String, Object> source, Map<String, Object> target, String[] keys) {
         for (String key : keys) {
             if (source.containsKey(key) && source.get(key) != null) {
                 target.put(key, source.get(key));
             }
         }
-    }
-
-    /**
-     * 解析文档ID
-     */
-    public static Long parseDocumentId(Object documentIdObj) {
-        if (documentIdObj == null) {
-            return null;
-        }
-
-        if (documentIdObj instanceof Long) {
-            return (Long) documentIdObj;
-        } else if (documentIdObj instanceof Integer) {
-            return ((Integer) documentIdObj).longValue();
-        } else if (documentIdObj instanceof String) {
-            try {
-                return Long.parseLong((String) documentIdObj);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-        return null;
     }
 
 }

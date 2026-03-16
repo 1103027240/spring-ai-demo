@@ -11,11 +11,25 @@ import java.util.List;
 public class KnowledgeDocumentSearchDto implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    /** ====== 向量条件 ====== **/
+    @Schema(description = "文档内容", example = "文档内容")
+    private String content;
+
+    @Schema(description = "分数阈值", example = "分数阈值")
+    private Float thresholdSimilarity = 0.7f;
+
+    /** ====== 标量条件 ====== **/
+    @Schema(description = "标题", example = "标题")
+    private String title;
+
+    @Schema(description = "摘要", example = "摘要")
+    private String summary;
+
     @Schema(description = "搜索关键词", example = "退货政策")
     private String keyword;
 
-    @Schema(description = "分类名称", example = "售后政策")
-    private String category;
+    @Schema(description = "分类ID", example = "售后政策")
+    private String categoryId;
 
     @Schema(description = "标签列表", example = "[\"退货\", \"退款\"]")
     private List<String> tags;
@@ -23,36 +37,34 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     @Schema(description = "作者", example = "系统管理员")
     private String author;
 
+    @Schema(description = "文档来源", example = "平台政策")
+    private String source;
+
     @Schema(description = "状态(1:启用,0:禁用,2:待审核,3:已删除)", example = "1")
     private Integer status;
 
-    @Min(value = 1, message = "页码不能小于1")
-    @Schema(description = "当前页码，默认1", example = "1")
-    private Integer page = 1;
+    @Schema(description = "开始时间", example = "开始时间")
+    private String startTime;
+
+    @Schema(description = "结束时间", example = "结束时间")
+    private String endTime;
 
     @Min(value = 1, message = "每页记录数不能小于1")
     @Schema(description = "每页记录数，默认20", example = "20")
-    private Integer size = 20;
+    private Integer pageSize = 20;
 
-    @Schema(description = "是否按优先级排序", example = "true")
-    private Boolean orderByPriority = false;
+    /**
+     * 一级字段按score/createTime排序
+     * 二级字段按ID排序，ID一定要有序
+     */
+    @Schema(description = "排序字段", example = "score/createTime")
+    private String sortBy = "score";
 
-    @Schema(description = "是否按查看次数排序", example = "false")
-    private Boolean orderByViewCount = false;
+    @Schema(description = "排序类型", example = "DESC/ASC")
+    private String sortDirection = "DESC";
 
-    @Schema(description = "搜索模式：keyword(关键词搜索), vector(向量搜索), hybrid(混合搜索)", example = "hybrid", allowableValues = {"keyword", "vector", "hybrid"})
-    private String searchMode = "hybrid";
-
+    /** ====== 游标条件 ====== **/
     @Schema(description = "游标分页标识", example = "eyJkb2N1bWVudElkIjoxMjMsInNpbWlsYXJpdHlTY29yZSI6MC45fQ==")
     private String cursor;
-
-    @Schema(description = "分页路径ID（用于Redis存储分页历史，支持无限分页）", example = "abc123")
-    private String pathId;
-
-    @Schema(description = "分页方向：forward(下一页), backward(上一页), first(首页)", example = "forward", allowableValues = {"forward", "backward", "first"})
-    private String cursorDirection = "forward";
-
-    @Schema(description = "是否启用混合模式（分数连续性分析），默认false。如果文档ID有序，建议设为false以提高性能", example = "false")
-    private Boolean enableHybridMode = false;
 
 }

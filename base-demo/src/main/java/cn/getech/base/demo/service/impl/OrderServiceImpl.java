@@ -106,7 +106,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
         // 复制相关参数
         String[] paramKeys = {USER_ID, STATUS, ORDER_BY, ORDER_DESC, LIMIT};
-        ParamUtils.copyValidParams(queryParams, params, paramKeys);
+        ParamUtils.putIfValid(queryParams, params, paramKeys);
 
         // 处理时间范围
         //setDefaultTimeRange(params, queryParams, DEFAULT_QUERY_DAYS);
@@ -125,7 +125,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
         // 复制相关参数
         String[] paramKeys = {USER_ID, START_TIME, END_TIME, ORDER_BY, ORDER_DESC, LIMIT};
-        ParamUtils.copyValidParams(queryParams, params, paramKeys);
+        ParamUtils.putIfValid(queryParams, params, paramKeys);
 
         // 处理时间范围
         setDefaultTimeRange(params, queryParams, DEFAULT_QUERY_DAYS);
@@ -150,7 +150,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         // 复制相关参数
         Map<String, Object> params = new HashMap<>();
         String[] paramKeys = {USER_ID, PRODUCT_KEYWORD, ORDER_BY, ORDER_DESC, LIMIT};
-        ParamUtils.copyValidParams(queryParams, params, paramKeys);
+        ParamUtils.putIfValid(queryParams, params, paramKeys);
 
         // 设置时间范围
         //setDefaultTimeRange(params, queryParams, DEFAULT_PRODUCT_QUERY_DAYS);
@@ -169,7 +169,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
         // 复制相关参数
         String[] paramKeys = {USER_ID, ORDER_NUMBER, STATUS, PRODUCT_KEYWORD, START_TIME, END_TIME, ORDER_BY, ORDER_DESC, LIMIT};
-        ParamUtils.copyValidParams(queryParams, params, paramKeys);
+        ParamUtils.putIfValid(queryParams, params, paramKeys);
 
         // 设置时间范围
         //setDefaultTimeRange(params, params, DEFAULT_QUERY_DAYS);
@@ -226,7 +226,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
         // 复制相关参数
         String[] paramKeys = {USER_ID, STATUS, PRODUCT_KEYWORD, START_TIME, END_TIME, ORDER_BY, ORDER_DESC, LIMIT};
-        ParamUtils.copyValidParams(queryParams, condition, paramKeys);
+        ParamUtils.putIfValid(queryParams, condition, paramKeys);
 
         // 设置时间范围
         //setDefaultTimeRange(params, params, DEFAULT_QUERY_DAYS);

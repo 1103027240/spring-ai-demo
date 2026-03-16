@@ -1,7 +1,6 @@
 package cn.getech.base.demo.dto;
 
 import lombok.*;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -10,7 +9,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExportKnowledgeDocumentDto implements Serializable {
+public class KnowledgeDocumentExportDto implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -82,4 +81,5 @@ public class ExportKnowledgeDocumentDto implements Serializable {
      * 分页导出，每页数量
      */
     private Integer size = 1000;
+
 }

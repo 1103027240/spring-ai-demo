@@ -199,7 +199,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
 
         // 复制相关参数
         String[] paramKeys = {USER_ID, QUERY_TYPE, ORDER_NUMBER, STATUS, START_TIME, END_TIME};
-        ParamUtils.copyValidParams(extractedInfo, queryParams, paramKeys);
+        ParamUtils.putIfValid(extractedInfo, queryParams, paramKeys);
 
         // 商品信息
         if (extractedInfo.containsKey(PRODUCT_INFO) && extractedInfo.get(PRODUCT_INFO) != null) {

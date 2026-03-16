@@ -1,22 +1,15 @@
 package cn.getech.base.demo.controller;
 
-import cn.getech.base.demo.dto.KnowledgeDocumentAddDto;
-import cn.getech.base.demo.dto.KnowledgeDocumentDto;
-import cn.getech.base.demo.dto.KnowledgeDocumentSearchDto;
+import cn.getech.base.demo.dto.*;
 import cn.getech.base.demo.entity.KnowledgeDocument;
 import cn.getech.base.demo.service.KnowledgeDocumentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
-import java.util.List;
 
 @RestController
 @RequestMapping("/knowledge")
@@ -57,59 +50,9 @@ public class KnowledgeDocumentController {
     }
 
     @PostMapping("/documents/search")
-    @Operation(summary = "关键词搜索文档", description = "根据关键词、分类、标签等条件搜索知识库文档")
-    public Map<String, Object> searchDocument(@Valid @RequestBody KnowledgeDocumentSearchDto dto) {
-        return knowledgeDocumentService.searchDocument(dto);
-    }
-
-    @PostMapping("/documents/similarity")
-    @Operation(summary = "向量相似性搜索（游标分页）", description = "基于向量相似性搜索最相关的知识库文档，支持游标双向分页")
-    public Map<String, Object> similaritySearch(
-            @Parameter(description = "搜索查询", required = true) @RequestParam String query,
-
-            @Parameter(description = "返回结果数量限制，默认20") @RequestParam(defaultValue = "20")
-            @Min(value = 1, message = "结果数量不能小于1") @Max(value = 100, message = "结果数量不能大于100") int limit,
-
-            @Parameter(description = "游标字符串，用于分页") @RequestParam(required = false) String cursor,
-
-            @Parameter(description = "分页方向：forward(下一页), backward(上一页), first(首页)，默认forward") 
-            @RequestParam(defaultValue = "forward") String cursorDirection,
-
-            @Parameter(description = "相似度阈值，默认0.6") @RequestParam(defaultValue = "0.6")
-            @Min(value = 0, message = "阈值不能小于0") @Max(value = 1, message = "阈值不能大于1") double similarityThreshold,
-
-            @Parameter(description = "是否启用混合模式（分数连续性分析），如果文档ID有序建议设为false以提高性能，默认false") 
-            @RequestParam(defaultValue = "false") Boolean enableHybridMode) {
-        
-        return knowledgeDocumentService.similaritySearch(query, limit, cursor, cursorDirection, similarityThreshold, enableHybridMode);
-    }
-
-    /**
-     * 获取文档列表（分页）
-     */
-    @GetMapping("/documents")
-    @Operation(summary = "获取文档列表", description = "分页获取知识库文档列表，支持按分类、状态过滤")
-    public ResponseEntity<Map<String, Object>> getDocuments(
-            @Parameter(description = "当前页码，默认1")
-            @RequestParam(defaultValue = "1")
-            @Min(value = 1, message = "页码不能小于1")
-            int page,
-
-            @Parameter(description = "每页记录数，默认20")
-            @RequestParam(defaultValue = "20")
-            @Min(value = 1, message = "每页记录数不能小于1")
-            @Max(value = 100, message = "每页记录数不能大于100")
-            int size,
-
-            @Parameter(description = "分类名称过滤")
-            @RequestParam(required = false) String category,
-
-            @Parameter(description = "状态过滤(1:启用,0:禁用,2:待审核,3:已删除)")
-            @RequestParam(required = false) Integer status,
-
-            @Parameter(description = "按优先级排序")
-            @RequestParam(required = false) Boolean orderByPriority) {
-        return null;
+    @Operation(summary = "向量 + 标量搜索知识库文档", description = "向量 + 标量搜索知识库文档")
+    public CursorSearchVO<KnowledgeDocumentVO> search(@Valid @RequestBody KnowledgeDocumentSearchDto dto) {
+        return knowledgeDocumentService.search(dto);
     }
 
 }
