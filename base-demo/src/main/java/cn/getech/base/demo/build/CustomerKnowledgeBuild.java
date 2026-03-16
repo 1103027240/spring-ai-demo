@@ -13,6 +13,8 @@ import cn.getech.base.demo.service.ChatMessageService;
 import cn.getech.base.demo.utils.ObjectMapperUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.google.gson.JsonObject;
 import io.milvus.response.SearchResultsWrapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
 
 @Slf4j
@@ -92,17 +95,14 @@ public class CustomerKnowledgeBuild {
             KnowledgeDocumentVO doc = new KnowledgeDocumentVO();
 
             Map<String, Object> record = wrapper.getRowRecords().get(i).getFieldValues();
-            doc.setId(Long.parseLong(record.get("id").toString()));
-            doc.setContent((String) record.get("content"));
+            doc.setId(Long.parseLong(record.get(DOC_ID).toString()));
+            doc.setContent((String) record.get(CONTENT));
+            doc.setScore((Float) record.get(SCORE));
 
-            if (record.get("metadata") instanceof Map) {
-                Map<String, Object> metadata = (Map<String, Object>) record.get("metadata");
-                doc.setMetadata(metadata);
-            }
-
-            // 设置相似度分数
-            if (i < wrapper.getIDScore(0).size()) {
-                doc.setScore(wrapper.getIDScore(0).get(i).getScore());
+            if (record.get(METADATA) != null) {
+                JsonObject metadataJson = (JsonObject) record.get(METADATA);
+                Map<String, Object> metadataMap = JSONUtil.toBean(metadataJson.toString(), Map.class);
+                doc.setMetadata(metadataMap);
             }
 
             documents.add(doc);
@@ -129,7 +129,7 @@ public class CustomerKnowledgeBuild {
 
         if (StrUtil.isNotBlank(dto.getKeyword()) && StrUtil.isNotBlank(dto.getKeyword().trim())) {
             String keyword = dto.getKeyword().trim();
-            conditions.add(String.format("(metadata['keywords'] like '%%%s%%')", keyword, keyword));
+            conditions.add(String.format("json_contains(metadata['keywords'], '%s')", keyword, keyword));
         }
 
         if (dto.getCategoryId() != null) {
@@ -201,7 +201,7 @@ public class CustomerKnowledgeBuild {
         List<String> validFilters = Arrays.stream(filters)
                 .filter(f -> StrUtil.isNotBlank(f) && StrUtil.isNotBlank(f.trim()))
                 .collect(Collectors.toList());
-        if (CollUtil.isNotEmpty(validFilters)) {
+        if (CollUtil.isEmpty(validFilters)) {
             return "";
         }
         return String.join(" and ", validFilters);

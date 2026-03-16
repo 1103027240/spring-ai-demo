@@ -149,8 +149,10 @@ public class FieldConstant {
 
     public static final String DOC_ID = "doc_id";
 
-    public static final String VECTOR = "vector";
+    public static final String EMBEDDING = "embedding";
 
     public static final String METADATA = "metadata";
+
+    public static final String SCORE = "score";
 
 }

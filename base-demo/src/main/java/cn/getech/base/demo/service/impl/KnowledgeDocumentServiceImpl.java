@@ -52,7 +52,7 @@ import static cn.getech.base.demo.constant.FieldValueConstant.*;
 public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentMapper, KnowledgeDocument> implements KnowledgeDocumentService {
 
     @Value("${customer.knowledge.similarity-threshold:0.7}")
-    private Long similarityThreshold;
+    private Double similarityThreshold;
 
     @Value("${customer.milvus.search.nprobe:32}")
     private Integer nprobe;
@@ -275,11 +275,15 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         String orderByExpr = customerKnowledgeBuild.buildOrderByExpression(dto);
 
         // 5. 执行向量搜索
+        List<Float> embeds = new ArrayList<>();
+        for(float f : embed){
+            embeds.add(f);
+        }
         SearchParam searchParam = SearchParam.newBuilder()
                 .withCollectionName(CUSTOMER_COLLECTION_NAME)
                 .withMetricType(MetricType.COSINE)
-                .withVectorFieldName(VECTOR)
-                .withVectors(Collections.singletonList(embed))
+                .withVectorFieldName(EMBEDDING)
+                .withVectors(Collections.singletonList(embeds))
                 .withTopK(dto.getPageSize())
                 .withExpr(finalFilter)
                 .withOutFields(Arrays.asList(DOC_ID, CONTENT, METADATA))
@@ -333,103 +337,86 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 估算总数据量
      */
     private Long estimateTotalSize(KnowledgeDocumentSearchDto dto) {
-        try {
-            String filterExpr = customerKnowledgeBuild.buildAdvancedFilterExpression(dto);
-            QueryParam queryParam = QueryParam.newBuilder()
-                    .withCollectionName(CUSTOMER_COLLECTION_NAME)
-                    .withExpr(filterExpr)
-                    .withOutFields(Collections.singletonList("id"))
-                    .withLimit(1L)
-                    .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
-                    .build();
-            R<QueryResults> queryResult = milvusClient.query(queryParam);
-            return queryResult.getData().getFieldsDataList().size() > 0 ? 10000L : 0L;
-        } catch (Exception e) {
-            log.error("估算总数据量失败", e);
-            return null;
-        }
+        String filterExpr = customerKnowledgeBuild.buildAdvancedFilterExpression(dto);
+        QueryParam queryParam = QueryParam.newBuilder()
+                .withCollectionName(CUSTOMER_COLLECTION_NAME)
+                .withExpr(filterExpr)
+                .withOutFields(Collections.singletonList(DOC_ID))
+                .withLimit(1L)
+                .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
+                .build();
+        R<QueryResults> queryResult = milvusClient.query(queryParam);
+        return queryResult.getData().getFieldsDataList().size() > 0 ? 10000L : 0L;
     }
 
     /**
      * 检查是否有更多数据
      */
     private boolean checkHasMoreData(KnowledgeDocumentVO lastDoc, KnowledgeDocumentSearchDto dto) {
-        try {
-            String cacheKey = CUSTOMER_CURSOR_PREFIX + "hasnext:" + lastDoc.getId() + ":" + dto.hashCode();
-            Boolean cached = (Boolean) redisTemplate.opsForValue().get(cacheKey);
-            if (cached != null) {
-                return cached;
-            }
+//        String cacheKey = CUSTOMER_CURSOR_PREFIX + "hasnext:" + lastDoc.getId() + ":" + dto.hashCode();
+//        Boolean cached = (Boolean) redisTemplate.opsForValue().get(cacheKey);
+//        if (cached != null) {
+//            return cached;
+//        }
 
-            // 构建游标过滤条件
-            CompositeCursorDto cursorDto = lastDoc.toCursor(dto.getSortBy(), dto.getSortDirection());
-            String cursorFilter = customerKnowledgeBuild.buildCursorFilterForCheck(cursorDto, dto);
+        // 构建游标过滤条件
+        CompositeCursorDto cursorDto = lastDoc.toCursor(dto.getSortBy(), dto.getSortDirection());
+        String cursorFilter = customerKnowledgeBuild.buildCursorFilterForCheck(cursorDto, dto);
 
-            // 合并所有过滤条件
-            String filterExpr = customerKnowledgeBuild.buildAdvancedFilterExpression(dto);
-            String finalFilter = customerKnowledgeBuild.mergeFilters(filterExpr, cursorFilter);
+        // 合并所有过滤条件
+        String filterExpr = customerKnowledgeBuild.buildAdvancedFilterExpression(dto);
+        String finalFilter = customerKnowledgeBuild.mergeFilters(filterExpr, cursorFilter);
 
-            // 查询一条数据检查
-            QueryParam queryParam = QueryParam.newBuilder()
-                    .withCollectionName(CUSTOMER_COLLECTION_NAME)
-                    .withExpr(finalFilter)
-                    .withOutFields(Collections.singletonList("id"))
-                    .withLimit(1L)
-                    .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
-                    .build();
-            R<QueryResults> queryResult = milvusClient.query(queryParam);
+        // 查询一条数据检查
+        QueryParam queryParam = QueryParam.newBuilder()
+                .withCollectionName(CUSTOMER_COLLECTION_NAME)
+                .withExpr(finalFilter)
+                .withOutFields(Collections.singletonList(DOC_ID))
+                .withLimit(1L)
+                .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
+                .build();
+        R<QueryResults> queryResult = milvusClient.query(queryParam);
 
-            // 缓存
-            boolean hasMore = queryResult.getData().getFieldsDataList().size() > 0;
-            redisTemplate.opsForValue().set(cacheKey, hasMore, Long.parseLong(cursorCacheTtl), TimeUnit.SECONDS);
-
-            return hasMore;
-        } catch (Exception e) {
-            log.error("检查是否有更多数据失败", e);
-            return false;
-        }
+        // 缓存
+        boolean hasMore = queryResult.getData().getFieldsDataList().size() > 0;
+        //redisTemplate.opsForValue().set(cacheKey, hasMore, Long.parseLong(cursorCacheTtl), TimeUnit.SECONDS);
+        return hasMore;
     }
 
     /**
      * 检查是否有上一页数据
      */
     private boolean checkHasPrevData(KnowledgeDocumentVO firstDoc, KnowledgeDocumentSearchDto dto) {
-        try {
-            String cacheKey = CUSTOMER_CURSOR_PREFIX + "hasprev:" + firstDoc.getId() + ":" + dto.hashCode();
-            Boolean cached = (Boolean) redisTemplate.opsForValue().get(cacheKey);
-            if (cached != null) {
-                return cached;
-            }
+//        String cacheKey = CUSTOMER_CURSOR_PREFIX + "hasprev:" + firstDoc.getId() + ":" + dto.hashCode();
+//        Boolean cached = (Boolean) redisTemplate.opsForValue().get(cacheKey);
+//        if (cached != null) {
+//            return cached;
+//        }
 
-            // 构建反向游标过滤条件
-            CompositeCursorDto cursor = firstDoc.toCursor(dto.getSortBy(), dto.getSortDirection());
-            String reversedDirection = CursorSortDirectionEnum.DESC.getId().equals(cursor.getSortDirection()) ? CursorSortDirectionEnum.ASC.getId() : CursorSortDirectionEnum.DESC.getId();
-            cursor.setSortDirection(reversedDirection);
-            String cursorFilter = customerKnowledgeBuild.buildCursorFilterForCheck(cursor, dto);
+        // 构建反向游标过滤条件
+        CompositeCursorDto cursor = firstDoc.toCursor(dto.getSortBy(), dto.getSortDirection());
+        String reversedDirection = CursorSortDirectionEnum.DESC.getId().equals(cursor.getSortDirection()) ? CursorSortDirectionEnum.ASC.getId() : CursorSortDirectionEnum.DESC.getId();
+        cursor.setSortDirection(reversedDirection);
+        String cursorFilter = customerKnowledgeBuild.buildCursorFilterForCheck(cursor, dto);
 
-            // 合并所有过滤条件
-            String filterExpr = customerKnowledgeBuild.buildAdvancedFilterExpression(dto);
-            String finalFilter = customerKnowledgeBuild.mergeFilters(filterExpr, cursorFilter);
+        // 合并所有过滤条件
+        String filterExpr = customerKnowledgeBuild.buildAdvancedFilterExpression(dto);
+        String finalFilter = customerKnowledgeBuild.mergeFilters(filterExpr, cursorFilter);
 
-            // 查询一条数据检查
-            QueryParam queryParam = QueryParam.newBuilder()
-                    .withCollectionName(CUSTOMER_COLLECTION_NAME)
-                    .withExpr(finalFilter)
-                    .withOutFields(Collections.singletonList("id"))
-                    .withLimit(1L)
-                    .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
-                    .build();
-            R<QueryResults> queryResult = milvusClient.query(queryParam);
+        // 查询一条数据检查
+        QueryParam queryParam = QueryParam.newBuilder()
+                .withCollectionName(CUSTOMER_COLLECTION_NAME)
+                .withExpr(finalFilter)
+                .withOutFields(Collections.singletonList(DOC_ID))
+                .withLimit(1L)
+                .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
+                .build();
+        R<QueryResults> queryResult = milvusClient.query(queryParam);
 
-            // 缓存
-            boolean hasMore = queryResult.getData().getFieldsDataList().size() > 0;
-            redisTemplate.opsForValue().set(cacheKey, hasMore, Long.parseLong(cursorCacheTtl), TimeUnit.SECONDS);
-
-            return hasMore;
-        } catch (Exception e) {
-            log.error("检查是否有上一页数据失败", e);
-            return false;
-        }
+        // 缓存
+        boolean hasMore = queryResult.getData().getFieldsDataList().size() > 0;
+        //redisTemplate.opsForValue().set(cacheKey, hasMore, Long.parseLong(cursorCacheTtl), TimeUnit.SECONDS);
+        return hasMore;
     }
 
     /**
