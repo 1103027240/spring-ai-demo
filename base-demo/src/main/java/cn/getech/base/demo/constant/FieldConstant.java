@@ -147,7 +147,7 @@ public class FieldConstant {
 
     public static final String SOLUTION = "solution";
 
-    public static final String ID = "id";
+    public static final String DOC_ID = "doc_id";
 
     public static final String VECTOR = "vector";
 

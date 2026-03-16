@@ -52,10 +52,10 @@ import static cn.getech.base.demo.constant.FieldValueConstant.*;
 public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentMapper, KnowledgeDocument> implements KnowledgeDocumentService {
 
     @Value("${customer.knowledge.similarity-threshold:0.7}")
-    private String similarityThreshold;
+    private Long similarityThreshold;
 
     @Value("${customer.milvus.search.nprobe:32}")
-    private String nprobe;
+    private Integer nprobe;
 
     @Value("${customer.cursor.ttl:300}")
     private String cursorCacheTtl;
@@ -90,7 +90,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             SearchRequest request = SearchRequest.builder()
                     .query(query)
                     .topK(limit)
-                    .similarityThreshold(Double.parseDouble(similarityThreshold))
+                    .similarityThreshold(similarityThreshold)
                     .build();
 
             List<Document> documents = customerKnowledgeVectorStore.similaritySearch(request);
@@ -282,7 +282,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 .withVectors(Collections.singletonList(embed))
                 .withTopK(dto.getPageSize())
                 .withExpr(finalFilter)
-                .withOutFields(Arrays.asList(ID, CONTENT, METADATA))
+                .withOutFields(Arrays.asList(DOC_ID, CONTENT, METADATA))
                 .withParams(String.format("{\"nprobe\": %d}", nprobe))
                 .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
                 .build();
