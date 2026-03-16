@@ -119,41 +119,51 @@ public class CustomerKnowledgeBuild {
 
         if (StrUtil.isNotBlank(dto.getTitle()) && StrUtil.isNotBlank(dto.getTitle().trim())) {
             String title = dto.getTitle().trim();
-            conditions.add(String.format("(metadata['title'] like '%%%s%%')", title));
+            String titleExpr = "metadata[\"title\"] like \"%" + title + "%\"";
+            conditions.add(titleExpr);
         }
 
         if (StrUtil.isNotBlank(dto.getSummary()) && StrUtil.isNotBlank(dto.getSummary().trim())) {
             String summary = dto.getSummary().trim();
-            conditions.add(String.format("(metadata['summary'] like '%%%s%%')", summary));
+            String summaryExpr = "metadata[\"summary\"] like \"%" + summary + "%\"";
+            conditions.add(summaryExpr);
         }
 
         if (StrUtil.isNotBlank(dto.getKeyword()) && StrUtil.isNotBlank(dto.getKeyword().trim())) {
             String keyword = dto.getKeyword().trim();
-            conditions.add(String.format("json_contains(metadata['keywords'], '%s')", keyword, keyword));
+            String keywordExpr = "json_contains(metadata[\"keywords\"], \"" + keyword + "\")";
+            conditions.add(keywordExpr);
         }
 
         if (dto.getCategoryId() != null) {
-            conditions.add(String.format("metadata['categoryId'] = '%s'", dto.getCategoryId()));
+            Long categoryId = dto.getCategoryId();
+            String categoryIdExpr = "metadata[\"categoryId\"] == " + categoryId;
+            conditions.add(categoryIdExpr);
         }
 
         if (StrUtil.isNotBlank(dto.getStartTime()) && StrUtil.isNotBlank(dto.getStartTime().trim())) {
-            conditions.add(String.format("metadata['created_at'] >= '%s'", dto.getStartTime()));
+            String startTime = dto.getStartTime().trim();
+            String startTimeExpr = "metadata[\"createdTime\"] >= \"" + startTime + "\"";
+            conditions.add(startTimeExpr);
         }
 
         if (StrUtil.isNotBlank(dto.getEndTime()) && StrUtil.isNotBlank(dto.getEndTime().trim())) {
-            conditions.add(String.format("metadata['created_at'] <= '%s'", dto.getEndTime()));
+            String endTime = dto.getEndTime().trim();
+            String endTimeExpr = "metadata[\"createdTime\"] <= \"" + endTime + "\"";
+            conditions.add(endTimeExpr);
         }
 
         if (CollUtil.isNotEmpty(dto.getTags())) {
             String tagsCondition = dto.getTags().stream()
-                    .map(tag -> String.format("array_contains(metadata['tags'], '%s')", tag))
+                    .map(tag -> "array_contains(metadata[\"tags\"], \"" + tag + "\")")
                     .collect(Collectors.joining(" and "));
             conditions.add("(" + tagsCondition + ")");
         }
 
-        if (dto.getThresholdSimilarity() != null && dto.getThresholdSimilarity() > 0) {
-            conditions.add(String.format("score >= %f", dto.getThresholdSimilarity()));
-        }
+//        if (dto.getThresholdSimilarity() != null && dto.getThresholdSimilarity() > 0) {
+//            String thresholdSimilarityExpr = "metadata[\"score\"] >= " + dto.getThresholdSimilarity();
+//            conditions.add(thresholdSimilarityExpr);
+//        }
 
         return CollUtil.isEmpty(conditions) ? "" : String.join(" and ", conditions);
     }
@@ -175,11 +185,11 @@ public class CustomerKnowledgeBuild {
     public String buildCursorFilterForCheck(CompositeCursorDto cursorDto, KnowledgeDocumentSearchDto dto) {
         String primaryField;
         if (CursorSortByEnum.SCORE.getId().equals(dto.getSortBy())) {
-            primaryField = CursorSortByEnum.SCORE.getId();
+            primaryField = "metadata[\\\"score\\\"]";
         } else if (CursorSortByEnum.CREATE_TIME.getId().equals(dto.getSortBy())) {
-            primaryField = "metadata['createTime']";
+            primaryField = "metadata[\\\"createTime\\\"]";
         } else {
-            primaryField = CursorSortByEnum.SCORE.getId();
+            primaryField = "metadata[\\\"score\\\"]";
         }
 
         // 构建复合游标过滤条件
@@ -187,7 +197,7 @@ public class CustomerKnowledgeBuild {
                 ? CursorSortDirectionEnum.DESC.getText() : CursorSortDirectionEnum.ASC.getText();
 
         // 例如按score降序：score < cursor.getPrimaryValue() or (score = cursor.getPrimaryValue() and id < cursor.getSecondaryValue())
-        return String.format("(%s %s '%s' or (%s = '%s' and id %s %d))",
+        return String.format("(%s %s %s or (%s = %s and id %s %d))",
                 primaryField, operator, cursorDto.getPrimaryValue(),
                 primaryField, cursorDto.getPrimaryValue(),
                 operator, cursorDto.getSecondaryValue()

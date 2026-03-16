@@ -29,7 +29,7 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     private String keyword;
 
     @Schema(description = "分类ID", example = "售后政策")
-    private String categoryId;
+    private Long categoryId;
 
     @Schema(description = "标签列表", example = "[\"退货\", \"退款\"]")
     private List<String> tags;
