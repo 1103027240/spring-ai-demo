@@ -4,8 +4,6 @@ import cn.getech.base.demo.memory.HierarchicalChatMemory;
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
-import com.alibaba.cloud.ai.dashscope.embedding.DashScopeEmbeddingModel;
-import com.alibaba.cloud.ai.dashscope.embedding.DashScopeEmbeddingOptions;
 import com.alibaba.cloud.ai.memory.redis.BaseRedisChatMemoryRepository;
 import com.alibaba.cloud.ai.memory.redis.LettuceRedisChatMemoryRepository;
 import com.github.xiaoymin.knife4j.core.util.StrUtil;
@@ -15,7 +13,6 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -41,9 +38,6 @@ public class SaaLLMConfig {
 
     @Value("${spring.ai.dashscope.deepseek.model:deepseek-chat}")
     private String deepseekModel;
-
-    @Value("${spring.ai.dashscope.embedding.options.model:text-embedding-v3}")
-    private String embeddingModel;
 
     // Redis配置
     @Value("${spring.data.redis.host:localhost}")
@@ -98,11 +92,6 @@ public class SaaLLMConfig {
                         .maxToken(2048)
                         .build())
                 .build();
-    }
-
-    @Bean
-    public EmbeddingModel qwenEmbeddingModel(DashScopeApi dashScopeApi) {
-        return new DashScopeEmbeddingModel(dashScopeApi);
     }
 
     /**

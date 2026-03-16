@@ -103,12 +103,6 @@ public class FieldConstant {
 
     public static final String TITLE = "title";
 
-    public static final String SCORE = "score";
-
-    public static final String CATEGORY = "category";
-
-    public static final String TAGS = "tags";
-
     public static final String THREAD_ID = "thread_id";
 
     public static final String ORDER_STATUS = "orderStatus";
@@ -152,5 +146,11 @@ public class FieldConstant {
     public static final String REFUND_AMOUNT = "refundAmount";
 
     public static final String SOLUTION = "solution";
+
+    public static final String ID = "id";
+
+    public static final String VECTOR = "vector";
+
+    public static final String METADATA = "metadata";
 
 }

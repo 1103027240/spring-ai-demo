@@ -60,8 +60,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     @Value("${customer.cursor.ttl:300}")
     private String cursorCacheTtl;
 
-    @Resource(name = "qwenEmbeddingModel")
-    private EmbeddingModel qwenEmbeddingModel;
+    @Autowired
+    private EmbeddingModel embeddingModel;
 
     @Resource(name = "customerKnowledgeVectorStore")
     private VectorStore customerKnowledgeVectorStore;
@@ -260,7 +260,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     @Override
     public CursorSearchVO<KnowledgeDocumentVO> search(KnowledgeDocumentSearchDto dto) {
         // 生成查询向量
-        float[] embed = qwenEmbeddingModel.embed(dto.getContent());
+        float[] embed = embeddingModel.embed(dto.getContent());
 
         // 1. 构建标量过滤条件
         String filterExpr = customerKnowledgeBuild.buildAdvancedFilterExpression(dto);
@@ -278,11 +278,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         SearchParam searchParam = SearchParam.newBuilder()
                 .withCollectionName(CUSTOMER_COLLECTION_NAME)
                 .withMetricType(MetricType.COSINE)
-                .withVectorFieldName("vector")
-                .withVectors(Collections.singletonList(floatVector))
+                .withVectorFieldName(VECTOR)
+                .withVectors(Collections.singletonList(embed))
                 .withTopK(dto.getPageSize())
                 .withExpr(finalFilter)
-                .withOutFields(Arrays.asList("id", "content", "metadata"))
+                .withOutFields(Arrays.asList(ID, CONTENT, METADATA))
                 .withParams(String.format("{\"nprobe\": %d}", nprobe))
                 .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
                 .build();
