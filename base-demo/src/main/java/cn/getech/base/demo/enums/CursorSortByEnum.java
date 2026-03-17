@@ -27,4 +27,11 @@ public enum CursorSortByEnum {
         return Arrays.asList(SCORE.id, CREATE_TIME.id, DOC_ID.id).contains(id);
     }
 
+    public static CursorSortByEnum getCursorSort(String id){
+        return Arrays.stream(CursorSortByEnum.values())
+                .filter(e -> e.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
 }

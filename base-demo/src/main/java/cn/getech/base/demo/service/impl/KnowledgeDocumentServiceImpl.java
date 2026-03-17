@@ -347,7 +347,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     private Comparator<KnowledgeDocumentVO> createComparator(String field, String direction) {
         Comparator<KnowledgeDocumentVO> comparator = null;
 
-        CursorSortByEnum cursorSortByEnum = CursorSortByEnum.valueOf(field.toUpperCase(Locale.ROOT));
+        CursorSortByEnum cursorSortByEnum = CursorSortByEnum.getCursorSort(field);
         switch (field) {
             case SCORE:
                 comparator = Comparator.comparing(KnowledgeDocumentVO::getScore, Comparator.nullsLast(Float::compareTo));
