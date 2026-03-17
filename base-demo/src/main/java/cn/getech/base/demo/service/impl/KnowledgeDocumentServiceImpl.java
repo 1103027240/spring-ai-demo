@@ -233,8 +233,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         result.setSortInfoVO(SortInfoVO.builder()
                 .primaryField(dto.getSortField())
                 .primaryDirection(dto.getSortDirection())
-                .secondaryField(dto.getSecondSortField())
-                .secondaryDirection(dto.getSecondSortDirection())
+                .secondField(dto.getSecondSortField())
+                .secondDirection(dto.getSecondSortDirection())
                 .build());
         return result;
     }

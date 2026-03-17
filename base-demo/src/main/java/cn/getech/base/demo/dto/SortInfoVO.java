@@ -15,8 +15,8 @@ public class SortInfoVO implements Serializable {
 
     private String primaryDirection;
 
-    private String secondaryField;
+    private String secondField;
 
-    private String secondaryDirection;
+    private String secondDirection;
 
 }
