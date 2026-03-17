@@ -146,7 +146,6 @@ public class CustomerServiceStateDto implements Serializable {
     /**
      * 获取节点执行结果
      */
-    @SuppressWarnings("unchecked")
     public <T> T getNodeResult(String nodeName, String key, Class<T> clazz) {
         Map<String, Object> result = (Map<String, Object>) nodeResults.get(nodeName);
         if (result != null && result.containsKey(key)) {

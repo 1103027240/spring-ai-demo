@@ -1,36 +1,23 @@
 package cn.getech.base.demo.build;
 
-import cn.getech.base.demo.dto.CompositeCursorDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentSearchDto;
-import cn.getech.base.demo.dto.KnowledgeDocumentVO;
 import cn.getech.base.demo.entity.ChatMessage;
 import cn.getech.base.demo.entity.KnowledgeDocument;
-import cn.getech.base.demo.enums.CursorSortByEnum;
-import cn.getech.base.demo.enums.CursorSortDirectionEnum;
 import cn.getech.base.demo.enums.MessageTaskSyncTypeEnum;
 import cn.getech.base.demo.service.ChatMessageService;
 import cn.getech.base.demo.utils.ObjectMapperUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
-import com.google.gson.JsonObject;
-import io.milvus.response.SearchResultsWrapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
 
 @Slf4j
@@ -86,70 +73,38 @@ public class CustomerKnowledgeBuild {
     }
 
     /**
-     * 转换高级搜索结果
-     */
-    public List<KnowledgeDocumentVO> convertAdvancedSearchResults(SearchResultsWrapper wrapper) {
-        List<KnowledgeDocumentVO> documents = new ArrayList<>();
-
-        for (int i = 0; i < wrapper.getRowRecords().size(); i++) {
-            KnowledgeDocumentVO doc = new KnowledgeDocumentVO();
-
-            Map<String, Object> record = wrapper.getRowRecords().get(i).getFieldValues();
-            doc.setId(Long.parseLong(record.get(DOC_ID).toString()));
-            doc.setContent((String) record.get(CONTENT));
-            doc.setScore((Float) record.get(SCORE));
-
-            if (record.get(METADATA) != null) {
-                JsonObject metadataJson = (JsonObject) record.get(METADATA);
-                Map<String, Object> metadataMap = JSONUtil.toBean(metadataJson.toString(), Map.class);
-                doc.setMetadata(metadataMap);
-            }
-
-            documents.add(doc);
-        }
-
-        return documents;
-    }
-
-    /**
      * 标量过滤条件
      */
     public String buildAdvancedFilterExpression(KnowledgeDocumentSearchDto dto) {
         List<String> conditions = new ArrayList<>();
 
         if (StrUtil.isNotBlank(dto.getTitle()) && StrUtil.isNotBlank(dto.getTitle().trim())) {
-            String title = dto.getTitle().trim();
-            String titleExpr = "metadata[\"title\"] like \"%" + title + "%\"";
+            String titleExpr = "metadata[\"title\"] like \"%" + dto.getTitle().trim() + "%\"";
             conditions.add(titleExpr);
         }
 
         if (StrUtil.isNotBlank(dto.getSummary()) && StrUtil.isNotBlank(dto.getSummary().trim())) {
-            String summary = dto.getSummary().trim();
-            String summaryExpr = "metadata[\"summary\"] like \"%" + summary + "%\"";
+            String summaryExpr = "metadata[\"summary\"] like \"%" + dto.getSummary().trim() + "%\"";
             conditions.add(summaryExpr);
         }
 
         if (StrUtil.isNotBlank(dto.getKeyword()) && StrUtil.isNotBlank(dto.getKeyword().trim())) {
-            String keyword = dto.getKeyword().trim();
-            String keywordExpr = "json_contains(metadata[\"keywords\"], \"" + keyword + "\")";
+            String keywordExpr = "array_contains(metadata[\"keywords\"], \"" + dto.getKeyword().trim() + "\")";
             conditions.add(keywordExpr);
         }
 
         if (dto.getCategoryId() != null) {
-            Long categoryId = dto.getCategoryId();
-            String categoryIdExpr = "metadata[\"categoryId\"] == " + categoryId;
+            String categoryIdExpr = "metadata[\"categoryId\"] == " + dto.getCategoryId();
             conditions.add(categoryIdExpr);
         }
 
-        if (StrUtil.isNotBlank(dto.getStartTime()) && StrUtil.isNotBlank(dto.getStartTime().trim())) {
-            String startTime = dto.getStartTime().trim();
-            String startTimeExpr = "metadata[\"createdTime\"] >= \"" + startTime + "\"";
+        if (dto.getStartTime() != null) {
+            String startTimeExpr = "metadata[\"createdTime\"] >= \"" + dto.getStartTime() + "\"";
             conditions.add(startTimeExpr);
         }
 
-        if (StrUtil.isNotBlank(dto.getEndTime()) && StrUtil.isNotBlank(dto.getEndTime().trim())) {
-            String endTime = dto.getEndTime().trim();
-            String endTimeExpr = "metadata[\"createdTime\"] <= \"" + endTime + "\"";
+        if (dto.getEndTime() != null) {
+            String endTimeExpr = "metadata[\"createdTime\"] <= \"" + dto.getEndTime() + "\"";
             conditions.add(endTimeExpr);
         }
 
@@ -160,73 +115,7 @@ public class CustomerKnowledgeBuild {
             conditions.add("(" + tagsCondition + ")");
         }
 
-//        if (dto.getThresholdSimilarity() != null && dto.getThresholdSimilarity() > 0) {
-//            String thresholdSimilarityExpr = "metadata[\"score\"] >= " + dto.getThresholdSimilarity();
-//            conditions.add(thresholdSimilarityExpr);
-//        }
-
         return CollUtil.isEmpty(conditions) ? "" : String.join(" and ", conditions);
-    }
-
-    /**
-     * 游标过滤条件
-     */
-    public String buildCursorFilter(KnowledgeDocumentSearchDto dto) {
-        CompositeCursorDto cursorDto = CompositeCursorDto.decodeCursor(dto.getCursor());
-        if (cursorDto == null) {
-            return "";
-        }
-        return buildCursorFilterForCheck(cursorDto, dto);
-    }
-
-    /**
-     * 构建检查用的游标过滤条件
-     */
-    public String buildCursorFilterForCheck(CompositeCursorDto cursorDto, KnowledgeDocumentSearchDto dto) {
-        String primaryField;
-        if (CursorSortByEnum.SCORE.getId().equals(dto.getSortBy())) {
-            primaryField = "metadata[\\\"score\\\"]";
-        } else if (CursorSortByEnum.CREATE_TIME.getId().equals(dto.getSortBy())) {
-            primaryField = "metadata[\\\"createTime\\\"]";
-        } else {
-            primaryField = "metadata[\\\"score\\\"]";
-        }
-
-        // 构建复合游标过滤条件
-        String operator = CursorSortDirectionEnum.DESC.getId().equals(cursorDto.getSortDirection())
-                ? CursorSortDirectionEnum.DESC.getText() : CursorSortDirectionEnum.ASC.getText();
-
-        // 例如按score降序：score < cursor.getPrimaryValue() or (score = cursor.getPrimaryValue() and id < cursor.getSecondaryValue())
-        return String.format("(%s %s %s or (%s = %s and id %s %d))",
-                primaryField, operator, cursorDto.getPrimaryValue(),
-                primaryField, cursorDto.getPrimaryValue(),
-                operator, cursorDto.getSecondaryValue()
-        );
-    }
-
-    /**
-     * 合并过滤条件
-     */
-    public String mergeFilters(String... filters) {
-        List<String> validFilters = Arrays.stream(filters)
-                .filter(f -> StrUtil.isNotBlank(f) && StrUtil.isNotBlank(f.trim()))
-                .collect(Collectors.toList());
-        if (CollUtil.isEmpty(validFilters)) {
-            return "";
-        }
-        return String.join(" and ", validFilters);
-    }
-
-    /**
-     * 构建排序表达式
-     */
-    public String buildOrderByExpression(KnowledgeDocumentSearchDto dto) {
-        if (CursorSortByEnum.SCORE.getId().equals(dto.getSortBy())) {
-            return String.format("score %s, id %s", dto.getSortDirection(), dto.getSortDirection());
-        } else if (CursorSortByEnum.CREATE_TIME.getId().equals(dto.getSortBy())) {
-            return String.format("metadata['createTime'] %s, id %s", dto.getSortDirection(), dto.getSortDirection());
-        }
-        return "score DESC, id DESC";
     }
 
     public KnowledgeDocument buildAddKnowledgeDocument(KnowledgeDocumentDto dto){
@@ -255,6 +144,61 @@ public class CustomerKnowledgeBuild {
         }
 
         return document;
+    }
+
+    public boolean buildUpdateKnowledgeDocument(KnowledgeDocument document, KnowledgeDocumentDto dto){
+        boolean contentChanged = false;
+
+        if (StrUtil.isNotBlank(dto.getTitle()) && !dto.getTitle().equals(document.getTitle())) {
+            document.setTitle(dto.getTitle());
+            contentChanged = true;
+        }
+
+        if (StrUtil.isNotBlank(dto.getContent()) && !dto.getContent().equals(document.getContent())) {
+            document.setContent(dto.getContent());
+            contentChanged = true;
+        }
+
+        if (StrUtil.isNotBlank(dto.getSummary()) && !dto.getSummary().equals(document.getSummary())) {
+            document.setSummary(dto.getSummary());
+            contentChanged = true;
+        }
+
+        if (dto.getCategoryId() != null && !dto.getCategoryId().equals(document.getCategoryId())) {
+            document.setCategoryId(dto.getCategoryId());
+            contentChanged = true;
+        }
+
+        if (CollUtil.isNotEmpty(dto.getTags())) {
+            document.setTags(objectMapperUtils.convertToJson(dto.getTags()));
+            contentChanged = true;
+        }
+
+        if (CollUtil.isNotEmpty(dto.getKeywords())) {
+            document.setKeywords(objectMapperUtils.convertToJson(dto.getKeywords()));
+            contentChanged = true;
+        }
+
+        if (StrUtil.isNotBlank(dto.getSource()) && !dto.getSource().equals(document.getSource())) {
+            document.setSource(dto.getSource());
+            contentChanged = true;
+        }
+
+        if (dto.getPriority() != null && !dto.getPriority().equals(document.getPriority())) {
+            document.setPriority(dto.getPriority());
+            contentChanged = true;
+        }
+
+        if (dto.getStatus() != null && !dto.getStatus().equals(document.getStatus())) {
+            document.setStatus(dto.getStatus());
+            contentChanged = true;
+        }
+
+        document.setIsVectorized(2); // 标记为已修改但未向量化
+        document.setVersion(document.getVersion() + 1);
+        document.setUpdateTime(LocalDateTime.now());
+
+        return contentChanged;
     }
 
 }

@@ -11,18 +11,18 @@ import lombok.experimental.SuperBuilder;
 public class MilvusDocument {
 
     /**
-     * 文档唯一ID（Milvus自动生成）
+     * 文档ID
      */
     private String docId;
 
     /**
-     * 记忆摘要文本内容
+     * 文本内容
      */
     private String content;
 
     /**
-     * 1024维向量（由EmbeddingModel自动生成）
+     * 向量
      */
-    private float[] embedding;
+    private Float[] embedding;
 
 }

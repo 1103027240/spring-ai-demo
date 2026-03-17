@@ -110,6 +110,18 @@
             <artifactId>spring-ai-starter-vector-store-milvus</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.dromara.milvus-plus</groupId>
+            <artifactId>milvus-plus-core</artifactId>
+            <version>${milvus-plus}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara.milvus-plus</groupId>
+            <artifactId>milvus-plus-solon-plugin</artifactId>
+            <version>${milvus-plus}</version>
+        </dependency>
+
         <!-- Mysql驱动，版本8.4.7-->
         <dependency>
             <groupId>com.mysql</groupId>

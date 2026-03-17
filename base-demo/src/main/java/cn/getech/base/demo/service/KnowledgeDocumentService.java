@@ -12,7 +12,7 @@ public interface KnowledgeDocumentService {
 
     List<Map<String, Object>> searchKnowledge(String query, int limit);
 
-    KnowledgeDocument createDocument(KnowledgeDocumentDto dto);
+    void createDocument(KnowledgeDocumentDto dto);
 
     void batchCreateDocuments(KnowledgeDocumentAddDto dto);
 
