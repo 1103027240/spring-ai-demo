@@ -230,7 +230,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             // 1. 执行搜索
             SearchResp searchResp = executeVectorSearch(dto);
             if (searchResp == null || CollUtil.isEmpty(searchResp.getSearchResults())) {
-                log.debug("向量搜索无结果: content={}, threshold={}", dto.getContent(), dto.getThresholdSimilarity());
+                log.debug("搜索无结果: content={}, threshold={}", dto.getContent(), dto.getThresholdSimilarity());
                 return CursorSearchVO.empty();
             }
 
@@ -266,7 +266,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     public SearchResp executeVectorSearch(KnowledgeDocumentSearchDto dto) {
         try {
             if (StrUtil.isBlank(dto.getContent())) {
-                log.warn("向量搜索失败：查询内容为空");
+                log.warn("搜索失败：查询内容为空");
                 return null;
             }
 
@@ -301,45 +301,42 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     false
             );
         } catch (Exception e) {
-            log.error("向量搜索失败: content={}, topK={}, threshold={}, error={}",
+            log.error("搜索失败: content={}, topK={}, threshold={}, error={}",
                     dto.getContent(), dto.getTopK(), dto.getThresholdSimilarity(), e.getMessage(), e);
             return null;
         }
     }
 
     public List<KnowledgeDocumentVO> convertSearchResults(SearchResp searchResp) {
-        return searchResp.getSearchResults().get(0).stream().map(hit -> {
-            KnowledgeDocumentVO doc = new KnowledgeDocumentVO();
-                doc.setDocId(Long.parseLong((String) hit.getId()));
-                doc.setScore(hit.getScore());
+        return searchResp.getSearchResults().get(0).stream()
+                .map(hit -> {
+                    KnowledgeDocumentVO doc = new KnowledgeDocumentVO();
+                    doc.setDocId(Long.parseLong((String) hit.getId()));
+                    doc.setScore(hit.getScore());
 
-                Map<String, Object> entityData = hit.getEntity();
-                if (entityData != null) {
-                    doc.setContent((String) entityData.get(CONTENT));
+                    Map<String, Object> entityData = hit.getEntity();
+                    if (entityData != null) {
+                        doc.setContent((String) entityData.get(CONTENT));
 
-                    Object metadataObj = entityData.get(METADATA);
-                    if (metadataObj != null) {
-                        Map<String, Object> metadata = JSONUtil.toBean(metadataObj.toString(), Map.class);
-                        doc.setMetadata(metadata);
+                        Object metadataObj = entityData.get(METADATA);
+                        if (metadataObj != null) {
+                            Map<String, Object> metadata = JSONUtil.toBean(metadataObj.toString(), Map.class);
+                            doc.setMetadata(metadata);
 
-                        Object createTimeObj = metadata.get(CREATE_TIME);
-                        if (createTimeObj != null) {
-                            doc.setCreateTime((Long) createTimeObj);
+                            Object createTimeObj = metadata.get(CREATE_TIME);
+                            if (createTimeObj != null) {
+                                doc.setCreateTime((Long) createTimeObj);
+                            }
                         }
                     }
-                }
-                return doc;
-            }).collect(Collectors.toList());
+                    return doc;
+                }).collect(Collectors.toList());
     }
 
     /**
      * 排序
      */
     private List<KnowledgeDocumentVO> multiLevelSort(List<KnowledgeDocumentVO> documents, KnowledgeDocumentSearchDto dto) {
-        if (CollUtil.isEmpty(documents)) {
-            return documents;
-        }
-
         // 创建比较器链
         Comparator<KnowledgeDocumentVO> comparator = buildComparatorChain(dto);
 
@@ -396,10 +393,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 应用双向游标分页
      */
     public CursorSearchVO<KnowledgeDocumentVO> applyCursorPagination(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto) {
-        if (CollUtil.isEmpty(sortedResults)) {
-            return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
-        }
-
         // 1. 首页查询
         if (dto.isFirstPage()) {
             return getFirstPage(sortedResults, dto);
