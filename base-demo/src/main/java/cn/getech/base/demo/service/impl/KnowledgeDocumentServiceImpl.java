@@ -253,7 +253,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         Map<String, Object> searchParams = new HashMap<>();
         searchParams.put("nprobe", nprobe);
         searchParams.put("metric_type", "COSINE");
-        searchParams.put("radius", 0.7);           // 最小相似度阈值
+        searchParams.put("radius", dto.getThresholdSimilarity());           // 最小相似度阈值
         searchParams.put("range_filter", 1.0);     // 最大相似度上限
 
         return vecMService.search(
