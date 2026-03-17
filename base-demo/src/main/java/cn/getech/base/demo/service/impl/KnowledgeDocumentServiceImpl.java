@@ -444,7 +444,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         boolean hasNext = sortedResults.size() > pageSize;
         String prevCursor = null;
         String nextCursor = hasNext && CollUtil.isNotEmpty(currentPage)
-                ? buildCursor(dto, sortedResults.get(pageSize), 1)
+                ? buildCursor(dto, sortedResults.get(Math.min(pageSize, sortedResults.size() - 1)), 1)
                 : null;
 
         return CursorSearchVO.success(currentPage, nextCursor, prevCursor, hasNext, false, pageSize);
@@ -548,14 +548,44 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
-     * 查找游标位置（精确匹配）
+     * 查找游标位置（精确匹配，使用二分查找优化）
      */
     private int findCursorIndex(List<KnowledgeDocumentVO> sortedResults, String primaryCursor, String secondCursor, KnowledgeDocumentSearchDto dto) {
         if (CollUtil.isEmpty(sortedResults)) {
             return -1;
         }
 
-        for (int i = 0; i < sortedResults.size(); i++) {
+        int low = 0;
+        int high = sortedResults.size() - 1;
+
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            KnowledgeDocumentVO doc = sortedResults.get(mid);
+
+            String docPrimarySortKey = doc.getSortKey(dto.getSortField());
+            String docSecondSortKey = doc.getSortKey(dto.getSecondSortField());
+
+            int primaryCompare = compareSortKey(docPrimarySortKey, primaryCursor, dto.getSortField());
+
+            if (primaryCompare == 0) {
+                // 主排序字段匹配，比较次排序字段
+                int secondCompare = compareSortKey(docSecondSortKey, secondCursor, dto.getSecondSortField());
+                if (secondCompare == 0) {
+                    return mid;
+                } else if (secondCompare < 0) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            } else if (primaryCompare < 0) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        // 二分查找未找到，使用线性查找兜底（处理重复值情况）
+        for (int i = Math.max(0, high - 10); i < Math.min(sortedResults.size(), high + 10); i++) {
             KnowledgeDocumentVO doc = sortedResults.get(i);
             if (doc.getSortKey(dto.getSortField()).equals(primaryCursor)
                     && doc.getSortKey(dto.getSecondSortField()).equals(secondCursor)) {
@@ -564,6 +594,26 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         }
 
         return -1;
+    }
+
+    /**
+     * 比较排序键值（支持不同字段类型）
+     */
+    private int compareSortKey(String key1, String key2, String field) {
+        if ("score".equals(field)) {
+            // 分数字段：转换为浮点数比较
+            float score1 = Float.parseFloat(key1);
+            float score2 = Float.parseFloat(key2);
+            return Float.compare(score1, score2);
+        } else if ("createTime".equals(field) || "docId".equals(field)) {
+            // 时间和ID字段：转换为长整型比较
+            long value1 = Long.parseLong(key1);
+            long value2 = Long.parseLong(key2);
+            return Long.compare(value1, value2);
+        } else {
+            // 其他字段：字符串比较
+            return key1.compareTo(key2);
+        }
     }
 
     /**

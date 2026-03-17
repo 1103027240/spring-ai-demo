@@ -163,7 +163,7 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     }
 
     /**
-     * 计算需要的 topK 值
+     * 计算需要的 topK 值（分阶段查询优化策略）
      */
     public int calculateTopK() {
         // 确保 pageSize 有效
@@ -171,33 +171,32 @@ public class KnowledgeDocumentSearchDto implements Serializable {
             pageSize = DEFAULT_PAGE_SIZE;
         }
 
-        int topK;
-        if (isFirstPage()) {
-            // 首页：只需要pageSize条（索引0到pageSize-1）
-            topK = pageSize;
-        } else if (isNextPage()) {
-            // 下一页：游标页码表示"目标页码"
-            // 例如：游标页码=1，表示要查询第2页
-            // 第2页从索引pageSize开始，需要查询 2 * pageSize 条
-            int targetPageNum = getPageFromCursor(backwardCursor);
-            topK = (targetPageNum + 1) * pageSize;
-        } else if (isPrevPage()) {
-            // 上一页：游标页码表示"当前页码"
-            // 例如：从第3页返回第2页，游标页码=2
-            // 第2页从索引pageSize开始，需要查询 2 * pageSize 条
-            int currentPageNum = getPageFromCursor(forwardCursor);
-            topK = currentPageNum * pageSize;
+        int currentPageNum = getCurrentPageNum();
+
+        if (currentPageNum <= 50) {
+            // 前50页：累进式查询，保证数据准确性
+            return (currentPageNum + 1) * pageSize;
+        } else if (currentPageNum <= 200) {
+            // 51-200页：固定窗口查询（1000条），通过游标定位
+            return Math.min((currentPageNum + 1) * pageSize, 5000);
         } else {
-            topK = pageSize;
+            // 200页以后：查询 10000 条（topK上限）
+            return Math.min(topK, 10000);
         }
+    }
 
-        // 限制最大 topK，防止性能问题（支持无限分页，使用topK默认值作为上限）
-        topK = Math.min(topK, this.topK);
-
-        // 确保至少返回 pageSize 条数据
-        topK = Math.max(topK, pageSize);
-
-        return topK;
+    /**
+     * 获取当前页码
+     */
+    private int getCurrentPageNum() {
+        if (isFirstPage()) {
+            return 0;
+        } else if (isNextPage()) {
+            return getPageFromCursor(backwardCursor);
+        } else if (isPrevPage()) {
+            return getPageFromCursor(forwardCursor) - 1;
+        }
+        return 0;
     }
 
 }
