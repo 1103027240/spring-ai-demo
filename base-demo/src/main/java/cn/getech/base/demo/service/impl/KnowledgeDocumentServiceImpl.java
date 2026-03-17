@@ -4,6 +4,7 @@ import cn.getech.base.demo.build.CustomerKnowledgeBuild;
 import cn.getech.base.demo.check.CustomerKnowledgeCheck;
 import cn.getech.base.demo.dto.*;
 import cn.getech.base.demo.entity.KnowledgeDocument;
+import cn.getech.base.demo.enums.CursorSortByEnum;
 import cn.getech.base.demo.enums.KnowledgeDocumentStatusEnum;
 import cn.getech.base.demo.mapper.KnowledgeDocumentMapper;
 import cn.getech.base.demo.service.KnowledgeCategoryService;
@@ -38,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.constant.FieldValueConstant.*;
+import static cn.getech.base.demo.enums.SortDirectionEnum.DESC;
 
 /**
  * @author 11030
@@ -48,9 +50,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
     @Value("${customer.knowledge.similarity-threshold:0.7}")
     private Double similarityThreshold;
-
-    @Value("${customer.milvus.search.nprobe:128}")
-    private Integer nprobe;
 
     @Value("${customer.cursor.ttl:300}")
     private Long cursorCacheTtl; // 游标缓存时间（秒），未来可用于游标缓存优化
@@ -127,18 +126,16 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     @Transactional
     @Override
     public void createDocument(KnowledgeDocumentDto dto) {
-        // 校验分类ID是否存在
         knowledgeCategoryService.validateCategoryId(dto.getCategoryId());
 
+        // 保存文档
         KnowledgeDocument document = customerKnowledgeBuild.buildAddKnowledgeDocument(dto);
-
-        // 1. 保存文档
         baseMapper.insert(document);
 
-        // 2. 文档向量化
+        // 文档向量化
         registerPostCommitAddHook(document, dto);
 
-        // 3. 清理缓存
+        // 删除缓存
         clearCategoryCache(dto.getCategoryId());
     }
 
@@ -157,7 +154,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     @Transactional
     @Override
     public void updateDocument(KnowledgeDocumentDto dto) {
-        // 校验文档
         if (dto.getId() == null) {
             throw new RuntimeException("文档ID不能为空");
         }
@@ -167,18 +163,17 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             throw new RuntimeException("文档ID不存在" + dto.getId());
         }
 
+        // 修改文档
         Long oldCategoryId = document.getCategoryId();
         boolean contentChanged = customerKnowledgeBuild.buildUpdateKnowledgeDocument(document, dto);
-
-        // 1. 更新文档
         baseMapper.updateById(document);
 
-        // 2. 如果内容有变化，重新向量化
+        // 文档向量化修改
         if (contentChanged) {
             vectorizeDocumentAsync(document, dto);
         }
 
-        // 3. 清理缓存
+        // 删除缓存
         clearDocumentCache(document.getId());
         clearCategoryCache(oldCategoryId);
         clearCategoryCache(document.getCategoryId());
@@ -187,110 +182,128 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     @Transactional
     @Override
     public void deleteDocument(Long documentId) {
-        // 校验文档
         KnowledgeDocument document = baseMapper.selectById(documentId);
         if (document == null) {
             throw new RuntimeException("文档ID不存在" + documentId);
         }
 
-        // 1. 逻辑删除
+        // 修改文档状态
         document.setStatus(KnowledgeDocumentStatusEnum.DELETED.getId());
         document.setUpdateTime(System.currentTimeMillis());
         baseMapper.updateById(document);
 
-        // 2. 异步删除向量
+        // 删除文档向量化
         deleteDocumentVectorAsync(document);
 
-        // 3. 清理缓存
+        // 删除缓存
         clearDocumentCache(documentId);
         clearCategoryCache(document.getCategoryId());
     }
 
     @Override
     public KnowledgeDocument getDocumentById(Long documentId) {
-        // 先从缓存获取
         String cacheKey = CUSTOMER_KNOWLEDGE_PREFIX + "documentId:" + documentId;
         KnowledgeDocument cachedDocument = (KnowledgeDocument) redisTemplate.opsForValue().get(cacheKey);
         if (cachedDocument != null) {
             return cachedDocument;
         }
 
-        // 再从数据库获取
         KnowledgeDocument document = baseMapper.selectById(documentId);
-        if (document != null && document.getStatus() != KnowledgeDocumentStatusEnum.DELETED.getId()) { // 非删除状态
-            // 存入缓存
+        if (document != null && document.getStatus() != KnowledgeDocumentStatusEnum.DELETED.getId()) {
             redisTemplate.opsForValue().set(cacheKey, document, CACHE_TTL, TimeUnit.SECONDS);
         }
         return document;
     }
 
+    /**
+     * 搜索知识库文档（向量 + 标量混合查询、游标无限分页）
+     * - 游标无限分页：topK 动态计算
+     * - 混合查询：向量相似度 + 标量过滤
+     */
     @Override
     public CursorSearchVO<KnowledgeDocumentVO> search(KnowledgeDocumentSearchDto dto) {
-        try {
-            if (StrUtil.isBlank(dto.getContent())) {
-                return CursorSearchVO.empty();
-            }
-
-            // 1.校验参数
-            customerKnowledgeCheck.validateSearchParams(dto);
-            dto.setTopK(dto.calculateTopK());
-
-            // 2.执行搜索并重排
-            List<KnowledgeDocumentVO> sortedResults = doSearchAndSort(dto);
-            if (CollUtil.isEmpty(sortedResults)) {
-                return CursorSearchVO.empty();
-            }
-
-            // 3.封装返回结果
-            CursorSearchVO<KnowledgeDocumentVO> result = applyCursorPagination(sortedResults, dto);
-
-            // 4.封装其他信息
-            result.setSortInfoVO(SortInfoVO.builder()
-                    .primaryField(dto.getSortField())
-                    .primaryDirection(dto.getSortDirection())
-                    .secondField(dto.getSecondSortField())
-                    .secondDirection(dto.getSecondSortDirection())
-                    .build());
-            return result;
-        } catch (Exception e) {
-            log.error("搜索异常: content={}, error={}", dto.getContent(), e.getMessage(), e);
+        if (StrUtil.isBlank(dto.getContent())) {
             return CursorSearchVO.empty();
         }
+
+        // 校验参数
+        customerKnowledgeCheck.validateSearchParams(dto);
+
+        // 搜索并排序
+        List<KnowledgeDocumentVO> sortedResults = doSearchAndSort(dto);
+        if (CollUtil.isEmpty(sortedResults)) {
+            return CursorSearchVO.empty();
+        }
+
+        // 封装返回结果
+        CursorSearchVO<KnowledgeDocumentVO> result = applyCursorPagination(sortedResults, dto);
+
+        // 封装其他信息
+        result.setSortInfoVO(SortInfoVO.builder()
+                .primaryField(dto.getSortField())
+                .primaryDirection(dto.getSortDirection())
+                .secondField(dto.getSecondSortField())
+                .secondDirection(dto.getSecondSortDirection())
+                .build());
+        return result;
     }
 
     /**
      * 执行搜索并排序
+     * 1. 向量搜索（content 字段向量化） + 标量过滤
+     * 2. 结果转换
+     * 3. 多级排序
      */
     private List<KnowledgeDocumentVO> doSearchAndSort(KnowledgeDocumentSearchDto dto) {
+        // 执行向量搜索 + 标量过滤
         SearchResp searchResp = executeVectorSearch(dto);
         if (searchResp == null || CollUtil.isEmpty(searchResp.getSearchResults())) {
             return Collections.emptyList();
         }
 
-        List<KnowledgeDocumentVO> results = convertSearchResults(searchResp);
+        // 转换搜索结果
+        List<KnowledgeDocumentVO> results = customerKnowledgeBuild.convertSearchResults(searchResp);
+
+        // 验证查询结果（深分页时）
+        int currentPageNum = dto.getCurrentPageNum();
+        int pageSize = dto.getPageSize();
+        int requiredDataSize = (currentPageNum + 1) * pageSize + pageSize;
+
+        if (currentPageNum > 100 && results.size() < requiredDataSize) {
+            log.warn("深分页查询结果可能不完整: 当前页={}, 页面大小={}, 查询结果={}, 建议结果={}",
+                     currentPageNum, pageSize, results.size(), requiredDataSize);
+        }
+
+        // 多级排序
         return multiLevelSort(results, dto);
     }
 
     /**
-     * 执行向量搜索
+     * 执行向量搜索（向量 + 标量混合查询、无限分页）
      */
     public SearchResp executeVectorSearch(KnowledgeDocumentSearchDto dto) {
         try {
+            // 向量化查询内容
             float[] embed = embeddingModel.embed(dto.getContent());
             FloatVec floatVec = new FloatVec(embed);
 
-            Map<String, Object> searchParams = buildSearchParams(dto);
+            // 构建搜索参数
+            Map<String, Object> searchParams = customerKnowledgeBuild.buildSearchParams(dto);
 
+            // 计算动态 topK 值
+            int dynamicTopK = customerKnowledgeBuild.calculateDynamicTopK(dto);
+
+            // 执行向量搜索 + 标量过滤
             return vecMService.search(
                     CUSTOMER_COLLECTION_NAME,
                     Collections.emptyList(),
                     EMBEDDING,
-                    calculateEffectiveTopK(dto),
+                    dynamicTopK,
                     customerKnowledgeBuild.buildAdvancedFilterExpression(dto),
                     Arrays.asList(DOC_ID, CONTENT, METADATA),
                     Collections.singletonList(floatVec),
                     0L,
-                    (long) calculateEffectiveTopK(dto),
+                    (long) dynamicTopK,
                     -1,
                     searchParams,
                     0L,
@@ -305,64 +318,10 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
-     * 构建搜索参数
-     */
-    private Map<String, Object> buildSearchParams(KnowledgeDocumentSearchDto dto) {
-        Map<String, Object> searchParams = new HashMap<>();
-        searchParams.put("nprobe", nprobe);
-        searchParams.put("metric_type", "COSINE");
-        searchParams.put("radius", 1.0 - dto.getThresholdSimilarity());
-        searchParams.put("range_filter", 1.0);
-        return searchParams;
-    }
-
-    /**
-     * 计算有效的topK（考虑冗余查询）
-     */
-    private int calculateEffectiveTopK(KnowledgeDocumentSearchDto dto) {
-        int effectiveTopK = dto.getTopK();
-        if (enableSearchRedundancy && !dto.isFirstPage()) {
-            int requestedTopK = dto.getTopK();
-            effectiveTopK = (int) Math.ceil(requestedTopK * searchRedundancyFactor);
-            effectiveTopK = Math.min(effectiveTopK, requestedTopK + searchRedundancyMaxExtra);
-        }
-        return effectiveTopK;
-    }
-
-    public List<KnowledgeDocumentVO> convertSearchResults(SearchResp searchResp) {
-        return searchResp.getSearchResults().get(0).stream()
-                .map(hit -> {
-                    KnowledgeDocumentVO doc = new KnowledgeDocumentVO();
-                    doc.setDocId(Long.parseLong((String) hit.getId()));
-                    doc.setScore(hit.getScore());
-
-                    Map<String, Object> entityData = hit.getEntity();
-                    if (entityData != null) {
-                        doc.setContent((String) entityData.get(CONTENT));
-
-                        Object metadataObj = entityData.get(METADATA);
-                        if (metadataObj != null) {
-                            Map<String, Object> metadata = JSONUtil.toBean(metadataObj.toString(), Map.class);
-                            doc.setMetadata(metadata);
-
-                            Object createTimeObj = metadata.get(CREATE_TIME);
-                            if (createTimeObj != null) {
-                                doc.setCreateTime((Long) createTimeObj);
-                            }
-                        }
-                    }
-                    return doc;
-                }).collect(Collectors.toList());
-    }
-
-    /**
-     * 排序
+     * 多级排序
      */
     private List<KnowledgeDocumentVO> multiLevelSort(List<KnowledgeDocumentVO> documents, KnowledgeDocumentSearchDto dto) {
-        // 创建比较器链
         Comparator<KnowledgeDocumentVO> comparator = buildComparatorChain(dto);
-
-        // 执行排序
         return documents.stream().sorted(comparator).collect(Collectors.toList());
     }
 
@@ -370,17 +329,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 构建比较器链
      */
     private Comparator<KnowledgeDocumentVO> buildComparatorChain(KnowledgeDocumentSearchDto dto) {
-        Comparator<KnowledgeDocumentVO> comparator = null;
-
-        // 1. 主排序
-        comparator = createComparator(dto.getSortField(), dto.getSortDirection());
-
-        // 2. 次排序（主排序相同时使用）
+        Comparator<KnowledgeDocumentVO> comparator = createComparator(dto.getSortField(), dto.getSortDirection());
         if (StrUtil.isNotBlank(dto.getSecondSortField())) {
             Comparator<KnowledgeDocumentVO> secondaryComparator = createComparator(dto.getSecondSortField(), dto.getSecondSortDirection());
             comparator = comparator.thenComparing(secondaryComparator);
         }
-
         return comparator;
     }
 
@@ -390,24 +343,23 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     private Comparator<KnowledgeDocumentVO> createComparator(String field, String direction) {
         Comparator<KnowledgeDocumentVO> comparator = null;
 
+        CursorSortByEnum cursorSortByEnum = CursorSortByEnum.valueOf(field.toUpperCase(Locale.ROOT));
         switch (field) {
-            case "score":
+            case SCORE:
                 comparator = Comparator.comparing(KnowledgeDocumentVO::getScore, Comparator.nullsLast(Float::compareTo));
                 break;
-            case "createTime":
+            case CREATE_TIME:
                 comparator = Comparator.comparing(KnowledgeDocumentVO::getCreateTime, Comparator.nullsLast(Long::compareTo));
                 break;
-            case "docId":
+            case DOC_ID:
             default:
                 comparator = Comparator.comparing(KnowledgeDocumentVO::getDocId, Comparator.nullsLast(Long::compareTo));
                 break;
         }
 
-        // 处理排序方向
-        if ("desc".equalsIgnoreCase(direction)) {
+        if (DESC.getId().equalsIgnoreCase(direction)) {
             comparator = comparator.reversed();
         }
-
         return comparator;
     }
 
@@ -415,10 +367,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 应用双向游标分页
      */
     public CursorSearchVO<KnowledgeDocumentVO> applyCursorPagination(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto) {
-        if (CollUtil.isEmpty(sortedResults)) {
-            return CursorSearchVO.empty();
-        }
-
         if (dto.isFirstPage()) {
             return getFirstPage(sortedResults, dto);
         }
@@ -444,7 +392,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         boolean hasNext = sortedResults.size() > pageSize;
         String prevCursor = null;
         String nextCursor = hasNext && CollUtil.isNotEmpty(currentPage)
-                ? buildCursor(dto, sortedResults.get(Math.min(pageSize, sortedResults.size() - 1)), 1)
+                ? customerKnowledgeBuild.buildCursor(dto, currentPage.get(currentPage.size() - 1), 1)
                 : null;
 
         return CursorSearchVO.success(currentPage, nextCursor, prevCursor, hasNext, false, pageSize);
@@ -458,20 +406,15 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             return CursorSearchVO.success(Collections.emptyList(), null, null, false, true, dto.getPageSize());
         }
 
-        try {
-            String[] cursorValues = dto.decodeCursor(dto.getBackwardCursor());
-            int currentPageNum = Integer.parseInt(cursorValues[0]);
+        String[] cursorValues = dto.decodeCursor(dto.getBackwardCursor());
+        int currentPageNum = Integer.parseInt(cursorValues[0]);
 
-            int cursorIndex = findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
-            if (cursorIndex < 0) {
-                return CursorSearchVO.success(Collections.emptyList(), null, null, false, true, dto.getPageSize());
-            }
-
-            return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, true);
-        } catch (Exception e) {
-            log.error("获取下一页异常", e);
-            return CursorSearchVO.success(Collections.emptyList(), null, null, false, true, dto.getPageSize());
+        int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
+        if (cursorIndex < 0) {
+            throw new RuntimeException(String.format("游标定位失败 - 下一页: 当前页=%d, 查询结果=%d", currentPageNum, sortedResults.size()));
         }
+
+        return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, true);
     }
 
     /**
@@ -482,30 +425,22 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             return CursorSearchVO.success(Collections.emptyList(), null, null, true, false, dto.getPageSize());
         }
 
-        try {
-            String[] cursorValues = dto.decodeCursor(dto.getForwardCursor());
-            int currentPageNum = Integer.parseInt(cursorValues[0]);
+        String[] cursorValues = dto.decodeCursor(dto.getForwardCursor());
+        int currentPageNum = Integer.parseInt(cursorValues[0]);
 
-            int cursorIndex = findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
-            if (cursorIndex < 0) {
-                return CursorSearchVO.success(Collections.emptyList(), null, null, true, false, dto.getPageSize());
-            }
-
-            return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, false);
-        } catch (Exception e) {
-            log.error("获取上一页异常", e);
-            return CursorSearchVO.success(Collections.emptyList(), null, null, true, false, dto.getPageSize());
+        int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
+        if (cursorIndex < 0) {
+            throw new RuntimeException(String.format("游标定位失败 - 上一页: 当前页=%d, 查询结果=%d", currentPageNum, sortedResults.size()));
         }
+
+        return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, false);
     }
 
     /**
      * 构建分页结果
      */
-    private CursorSearchVO<KnowledgeDocumentVO> buildPagedResult(List<KnowledgeDocumentVO> sortedResults,
-                                                              KnowledgeDocumentSearchDto dto,
-                                                              int cursorIndex,
-                                                              int currentPageNum,
-                                                              boolean isNext) {
+    private CursorSearchVO<KnowledgeDocumentVO> buildPagedResult(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto,
+                                                                 int cursorIndex, int currentPageNum, boolean isNext) {
         int startIndex, endIndex;
         if (isNext) {
             startIndex = cursorIndex;
@@ -515,11 +450,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             endIndex = cursorIndex;
         }
 
-        // 检查数据完整性
-        if (startIndex >= endIndex || (endIndex - startIndex) < dto.getPageSize()) {
-            return isNext
-                    ? CursorSearchVO.success(Collections.emptyList(), null, null, false, true, dto.getPageSize())
-                    : CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
+        if (startIndex >= sortedResults.size() || endIndex > sortedResults.size()) {
+            throw new RuntimeException("分页索引超出范围: page=" + currentPageNum + ", size=" + sortedResults.size());
         }
 
         List<KnowledgeDocumentVO> currentPage = sortedResults.subList(startIndex, endIndex);
@@ -527,93 +459,13 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         boolean hasNext = endIndex < sortedResults.size();
 
         String prevCursor = hasPrev && !currentPage.isEmpty()
-                ? buildCursor(dto, sortedResults.get(startIndex), currentPageNum - 1)
+                ? customerKnowledgeBuild.buildCursor(dto, sortedResults.get(startIndex), currentPageNum - 1)
                 : null;
         String nextCursor = hasNext && !currentPage.isEmpty()
-                ? buildCursor(dto, sortedResults.get(endIndex), currentPageNum + 1)
+                ? customerKnowledgeBuild.buildCursor(dto, sortedResults.get(endIndex - 1), currentPageNum + 1)
                 : null;
 
         return CursorSearchVO.success(currentPage, nextCursor, prevCursor, hasNext, hasPrev, dto.getPageSize());
-    }
-
-    /**
-     * 构建游标
-     */
-    private String buildCursor(KnowledgeDocumentSearchDto dto, KnowledgeDocumentVO doc, int pageNum) {
-        return dto.encodeCursor(
-                pageNum,
-                doc.getSortKey(dto.getSortField()),
-                doc.getSortKey(dto.getSecondSortField())
-        );
-    }
-
-    /**
-     * 查找游标位置（精确匹配，使用二分查找优化）
-     */
-    private int findCursorIndex(List<KnowledgeDocumentVO> sortedResults, String primaryCursor, String secondCursor, KnowledgeDocumentSearchDto dto) {
-        if (CollUtil.isEmpty(sortedResults)) {
-            return -1;
-        }
-
-        int low = 0;
-        int high = sortedResults.size() - 1;
-
-        while (low <= high) {
-            int mid = (low + high) >>> 1;
-            KnowledgeDocumentVO doc = sortedResults.get(mid);
-
-            String docPrimarySortKey = doc.getSortKey(dto.getSortField());
-            String docSecondSortKey = doc.getSortKey(dto.getSecondSortField());
-
-            int primaryCompare = compareSortKey(docPrimarySortKey, primaryCursor, dto.getSortField());
-
-            if (primaryCompare == 0) {
-                // 主排序字段匹配，比较次排序字段
-                int secondCompare = compareSortKey(docSecondSortKey, secondCursor, dto.getSecondSortField());
-                if (secondCompare == 0) {
-                    return mid;
-                } else if (secondCompare < 0) {
-                    low = mid + 1;
-                } else {
-                    high = mid - 1;
-                }
-            } else if (primaryCompare < 0) {
-                low = mid + 1;
-            } else {
-                high = mid - 1;
-            }
-        }
-
-        // 二分查找未找到，使用线性查找兜底（处理重复值情况）
-        for (int i = Math.max(0, high - 10); i < Math.min(sortedResults.size(), high + 10); i++) {
-            KnowledgeDocumentVO doc = sortedResults.get(i);
-            if (doc.getSortKey(dto.getSortField()).equals(primaryCursor)
-                    && doc.getSortKey(dto.getSecondSortField()).equals(secondCursor)) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    /**
-     * 比较排序键值（支持不同字段类型）
-     */
-    private int compareSortKey(String key1, String key2, String field) {
-        if ("score".equals(field)) {
-            // 分数字段：转换为浮点数比较
-            float score1 = Float.parseFloat(key1);
-            float score2 = Float.parseFloat(key2);
-            return Float.compare(score1, score2);
-        } else if ("createTime".equals(field) || "docId".equals(field)) {
-            // 时间和ID字段：转换为长整型比较
-            long value1 = Long.parseLong(key1);
-            long value2 = Long.parseLong(key2);
-            return Long.compare(value1, value2);
-        } else {
-            // 其他字段：字符串比较
-            return key1.compareTo(key2);
-        }
     }
 
     /**
@@ -650,7 +502,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
-     * 异步向量化文档 (生产环境推送消息MQ处理)
+     * 异步向量化文档
      */
     public void vectorizeDocumentAsync(KnowledgeDocument document, KnowledgeDocumentDto dto) {
         CompletableFuture.runAsync(() -> {
@@ -667,12 +519,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      */
     public void vectorizeDocument(KnowledgeDocument document, KnowledgeDocumentDto dto) {
         try {
-            // 文档元数据
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("title", document.getTitle());
             metadata.put("summary", document.getSummary());
             metadata.put("categoryId", document.getCategoryId());
-            metadata.put("tags", new Gson().toJsonTree(document.getTags())); //不能转成数组字符串
+            metadata.put("tags", new Gson().toJsonTree(document.getTags()));
             metadata.put("keywords", new Gson().toJsonTree(dto.getKeywords()));
             metadata.put("author", document.getAuthor());
             metadata.put("source", document.getSource());
@@ -680,15 +531,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             metadata.put("status", document.getStatus());
             metadata.put("createTime", document.getCreateTime());
 
-            // 文档内容
             Document vectorDoc = DocumentUtils.createDocument(document.getId().toString(), document.getContent(), metadata);
-
-            // 保存到向量库
             customerKnowledgeVectorStore.add(List.of(vectorDoc));
 
-            // 更新向量化状态
             document.setIsVectorized(1);
-            document.setVectorId(document.getId().toString()); // 使用文档ID作为向量ID
+            document.setVectorId(document.getId().toString());
             baseMapper.updateById(document);
         } catch (Exception e) {
             log.error("文档向量化失败，ID: {}", document.getId(), e);
@@ -701,6 +548,5 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             customerKnowledgeVectorStore.delete(List.of(document.getId().toString()));
         });
     }
-
 
 }

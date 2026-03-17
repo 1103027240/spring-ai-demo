@@ -38,4 +38,21 @@ public class CustomerKnowledgeCheck {
         }
     }
 
+    /**
+     * 比较排序键值
+     */
+    public int compareSortKey(String key1, String key2, String field) {
+        if (CursorSortByEnum.SCORE.getId().equals(field)) {
+            float score1 = Float.parseFloat(key1);
+            float score2 = Float.parseFloat(key2);
+            return Float.compare(score1, score2);
+        } else if (CursorSortByEnum.CREATE_TIME.getId().equals(field) || CursorSortByEnum.DOC_ID.getId().equals(field)) {
+            long value1 = Long.parseLong(key1);
+            long value2 = Long.parseLong(key2);
+            return Long.compare(value1, value2);
+        } else {
+            return key1.compareTo(key2);
+        }
+    }
+
 }

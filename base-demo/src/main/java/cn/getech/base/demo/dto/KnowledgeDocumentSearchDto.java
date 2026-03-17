@@ -1,7 +1,6 @@
 package cn.getech.base.demo.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -10,7 +9,6 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
-
 import static cn.getech.base.demo.enums.CursorDirectionEnum.*;
 
 @Data
@@ -141,10 +139,8 @@ public class KnowledgeDocumentSearchDto implements Serializable {
             if (parts.length == 3) {
                 return parts;
             }
-            log.warn("游标格式错误: {}", cursor);
             return new String[]{"0", "0", "0"};
         } catch (Exception e) {
-            log.error("游标解码失败: {}", cursor, e);
             return new String[]{"0", "0", "0"};
         }
     }
@@ -157,38 +153,14 @@ public class KnowledgeDocumentSearchDto implements Serializable {
             String[] parts = decodeCursor(cursor);
             return Integer.parseInt(parts[0]);
         } catch (Exception e) {
-            log.error("提取页码失败: {}", cursor, e);
             return 0;
         }
     }
 
     /**
-     * 计算需要的 topK 值（分阶段查询优化策略）
+     * 获取当前页码（供服务层使用）
      */
-    public int calculateTopK() {
-        // 确保 pageSize 有效
-        if (pageSize == null || pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE) {
-            pageSize = DEFAULT_PAGE_SIZE;
-        }
-
-        int currentPageNum = getCurrentPageNum();
-
-        if (currentPageNum <= 50) {
-            // 前50页：累进式查询，保证数据准确性
-            return (currentPageNum + 1) * pageSize;
-        } else if (currentPageNum <= 200) {
-            // 51-200页：固定窗口查询（1000条），通过游标定位
-            return Math.min((currentPageNum + 1) * pageSize, 5000);
-        } else {
-            // 200页以后：查询 10000 条（topK上限）
-            return Math.min(topK, 10000);
-        }
-    }
-
-    /**
-     * 获取当前页码
-     */
-    private int getCurrentPageNum() {
+    public int getCurrentPageNum() {
         if (isFirstPage()) {
             return 0;
         } else if (isNextPage()) {

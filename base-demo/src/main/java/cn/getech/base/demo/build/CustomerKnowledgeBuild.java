@@ -1,27 +1,37 @@
 package cn.getech.base.demo.build;
 
+import cn.getech.base.demo.check.CustomerKnowledgeCheck;
 import cn.getech.base.demo.dto.KnowledgeDocumentDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentSearchDto;
+import cn.getech.base.demo.dto.KnowledgeDocumentVO;
 import cn.getech.base.demo.entity.ChatMessage;
 import cn.getech.base.demo.entity.KnowledgeDocument;
 import cn.getech.base.demo.enums.MessageTaskSyncTypeEnum;
 import cn.getech.base.demo.service.ChatMessageService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.google.gson.Gson;
+import io.milvus.v2.service.vector.response.SearchResp;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
 
 @Slf4j
 @Component
 public class CustomerKnowledgeBuild {
+
+    @Value("${customer.milvus.search.nprobe:128}")
+    private Integer nprobe;
 
     @Resource(name = "chatMessageVectorStore")
     private VectorStore chatMessageVectorStore;
@@ -31,6 +41,9 @@ public class CustomerKnowledgeBuild {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private CustomerKnowledgeCheck customerKnowledgeCheck;
 
     /**
      * 同步消息到Milvus
@@ -69,7 +82,7 @@ public class CustomerKnowledgeBuild {
     }
 
     /**
-     * 标量过滤条件
+     * 构建标量过滤表达式（向量+标量混合查询）
      */
     public String buildAdvancedFilterExpression(KnowledgeDocumentSearchDto dto) {
         List<String> conditions = new ArrayList<>();
@@ -95,13 +108,28 @@ public class CustomerKnowledgeBuild {
         }
 
         if (dto.getStartTime() != null) {
-            String startTimeExpr = "metadata[\"createdTime\"] >= \"" + dto.getStartTime() + "\"";
+            String startTimeExpr = "metadata[\"createTime\"] >= " + dto.getStartTime();
             conditions.add(startTimeExpr);
         }
 
         if (dto.getEndTime() != null) {
-            String endTimeExpr = "metadata[\"createdTime\"] <= \"" + dto.getEndTime() + "\"";
+            String endTimeExpr = "metadata[\"createTime\"] <= " + dto.getEndTime();
             conditions.add(endTimeExpr);
+        }
+
+        if (dto.getAuthor() != null && StrUtil.isNotBlank(dto.getAuthor().trim())) {
+            String authorExpr = "metadata[\"author\"] like \"%" + dto.getAuthor().trim() + "%\"";
+            conditions.add(authorExpr);
+        }
+
+        if (dto.getSource() != null && StrUtil.isNotBlank(dto.getSource().trim())) {
+            String sourceExpr = "metadata[\"source\"] like \"%" + dto.getSource().trim() + "%\"";
+            conditions.add(sourceExpr);
+        }
+
+        if (dto.getStatus() != null) {
+            String statusExpr = "metadata[\"status\"] == " + dto.getStatus();
+            conditions.add(statusExpr);
         }
 
         if (CollUtil.isNotEmpty(dto.getTags())) {
@@ -190,6 +218,108 @@ public class CustomerKnowledgeBuild {
         document.setVersion(document.getVersion() + 1);
 
         return contentChanged;
+    }
+
+    /**
+     * 查找游标位置（二分查找，没有找到时，不降级成线性查询）
+     */
+    public int findCursorIndex(List<KnowledgeDocumentVO> sortedResults, String primaryCursor, String secondCursor, KnowledgeDocumentSearchDto dto) {
+        if (CollUtil.isEmpty(sortedResults)) {
+            return -1;
+        }
+
+        int low = 0;
+        int high = sortedResults.size() - 1;
+
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            KnowledgeDocumentVO doc = sortedResults.get(mid);
+
+            String docPrimarySortKey = doc.getSortKey(dto.getSortField());
+            String docSecondSortKey = doc.getSortKey(dto.getSecondSortField());
+
+            int primaryCompare = customerKnowledgeCheck.compareSortKey(docPrimarySortKey, primaryCursor, dto.getSortField());
+
+            if (primaryCompare == 0) {
+                int secondCompare = customerKnowledgeCheck.compareSortKey(docSecondSortKey, secondCursor, dto.getSecondSortField());
+                if (secondCompare == 0) {
+                    return mid;
+                } else if (secondCompare < 0) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            } else if (primaryCompare < 0) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * 构建游标
+     */
+    public String buildCursor(KnowledgeDocumentSearchDto dto, KnowledgeDocumentVO doc, int pageNum) {
+        return dto.encodeCursor(
+                pageNum,
+                doc.getSortKey(dto.getSortField()),
+                doc.getSortKey(dto.getSecondSortField())
+        );
+    }
+
+    public List<KnowledgeDocumentVO> convertSearchResults(SearchResp searchResp) {
+        return searchResp.getSearchResults().get(0).stream()
+                .map(hit -> {
+                    KnowledgeDocumentVO doc = new KnowledgeDocumentVO();
+                    doc.setDocId(Long.parseLong((String) hit.getId()));
+                    doc.setScore(hit.getScore());
+
+                    Map<String, Object> entityData = hit.getEntity();
+                    if (entityData != null) {
+                        doc.setContent((String) entityData.get(CONTENT));
+
+                        Object metadataObj = entityData.get(METADATA);
+                        if (metadataObj != null) {
+                            Map<String, Object> metadata = JSONUtil.toBean(metadataObj.toString(), Map.class);
+                            doc.setMetadata(metadata);
+
+                            Object createTimeObj = metadata.get(CREATE_TIME);
+                            if (createTimeObj != null) {
+                                doc.setCreateTime((Long) createTimeObj);
+                            }
+                        }
+                    }
+                    return doc;
+                }).collect(Collectors.toList());
+    }
+
+    /**
+     * 计算动态 topK 值（支持无限分页）
+     * 计算逻辑：(页码 + 1) * 页面大小 + 页面大小*3（预留空间）
+     */
+    public int calculateDynamicTopK(KnowledgeDocumentSearchDto dto) {
+        int pageSize = dto.getPageSize() != null ? dto.getPageSize() : 20;
+        int currentPageNum = dto.getCurrentPageNum();
+
+        int baseQuerySize = (currentPageNum + 1) * pageSize;
+        int extraBuffer = pageSize * 3;
+
+        return baseQuerySize + extraBuffer;
+    }
+
+    /**
+     * 构建搜索参数
+     */
+    public Map<String, Object> buildSearchParams(KnowledgeDocumentSearchDto dto) {
+        Map<String, Object> searchParams = new HashMap<>();
+        searchParams.put("nprobe", nprobe);
+        searchParams.put("metric_type", "COSINE");
+        searchParams.put("radius", 1.0 - dto.getThresholdSimilarity());
+        searchParams.put("range_filter", 1.0);
+        return searchParams;
     }
 
 }
