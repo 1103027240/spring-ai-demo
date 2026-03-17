@@ -1,5 +1,6 @@
 package cn.getech.base.demo.dto;
 
+import cn.getech.base.demo.enums.CursorSortByEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import java.io.Serializable;
@@ -30,12 +31,13 @@ public class KnowledgeDocumentVO implements Serializable {
 
     // 获取排序键值（用于游标分页）
     public String getSortKey(String sortField) {
-        switch (sortField) {
-            case "createTime":
+        CursorSortByEnum cursorSortEnum = CursorSortByEnum.getCursorSort(sortField);
+        switch (cursorSortEnum) {
+            case CREATE_TIME:
                 return String.valueOf(createTime);
-            case "score":
+            case SCORE:
                 return String.format("%.6f", score != null ? score : 0.0f);
-            case "docId":
+            case DOC_ID:
             default:
                 return String.valueOf(docId);
         }

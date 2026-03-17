@@ -115,7 +115,7 @@ public class KnowledgeDocumentSearchDto implements Serializable {
 
     /**
      * 构建游标值 (使用Base64编码避免特殊字符冲突)
-     * 格式：page|primary|secondary
+     * 格式：page|primaryValue|secondaryValue
      */
     public String encodeCursor(int page, String primaryValue, String secondaryValue) {
         if (primaryValue == null) primaryValue = "0";

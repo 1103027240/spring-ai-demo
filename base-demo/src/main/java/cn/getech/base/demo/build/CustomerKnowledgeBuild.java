@@ -139,7 +139,7 @@ public class CustomerKnowledgeBuild {
     }
 
     /**
-     * 查找游标位置（二分查找，没有找到时，不降级成线性查询）
+     * 查找游标位置（二分查找，没有找到时，不降级成线性查询），找不到精确匹配时返回最接近的位置
      */
     public int findCursorIndex(List<KnowledgeDocumentVO> sortedResults, String primaryCursor, String secondCursor, KnowledgeDocumentSearchDto dto) {
         if (CollUtil.isEmpty(sortedResults)) {
@@ -174,7 +174,7 @@ public class CustomerKnowledgeBuild {
             }
         }
 
-        return -1;
+        return low;
     }
 
     /**

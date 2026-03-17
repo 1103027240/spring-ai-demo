@@ -382,12 +382,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 .collect(Collectors.toList());
 
         boolean hasNext = sortedResults.size() > pageSize;
-        String prevCursor = null;
-        String nextCursor = hasNext && CollUtil.isNotEmpty(currentPage)
+        String nextCursor = hasNext
                 ? customerKnowledgeBuild.buildCursor(dto, currentPage.get(currentPage.size() - 1), 1)
                 : null;
 
-        return CursorSearchVO.success(currentPage, nextCursor, prevCursor, hasNext, false, pageSize);
+        return CursorSearchVO.success(currentPage, nextCursor, null, hasNext, false, pageSize);
     }
 
     /**
@@ -402,8 +401,9 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         int currentPageNum = Integer.parseInt(cursorValues[0]);
 
         int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
-        if (cursorIndex < 0) {
-            throw new RuntimeException(String.format("游标定位失败 - 下一页: 当前页=%d, 查询结果=%d", currentPageNum, sortedResults.size()));
+
+        if (cursorIndex >= sortedResults.size()) {
+            return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
 
         return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, true);
@@ -421,8 +421,9 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         int currentPageNum = Integer.parseInt(cursorValues[0]);
 
         int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
-        if (cursorIndex < 0) {
-            throw new RuntimeException(String.format("游标定位失败 - 上一页: 当前页=%d, 查询结果=%d", currentPageNum, sortedResults.size()));
+
+        if (cursorIndex <= 0) {
+            return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
 
         return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, false);
@@ -442,18 +443,18 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             endIndex = cursorIndex;
         }
 
-        if (startIndex >= sortedResults.size() || endIndex > sortedResults.size()) {
-            throw new RuntimeException("分页索引超出范围: page=" + currentPageNum + ", size=" + sortedResults.size());
+        if (startIndex >= endIndex || startIndex >= sortedResults.size() || endIndex > sortedResults.size()) {
+            return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
 
         List<KnowledgeDocumentVO> currentPage = sortedResults.subList(startIndex, endIndex);
         boolean hasPrev = startIndex > 0;
         boolean hasNext = endIndex < sortedResults.size();
 
-        String prevCursor = hasPrev && !currentPage.isEmpty()
+        String prevCursor = hasPrev
                 ? customerKnowledgeBuild.buildCursor(dto, sortedResults.get(startIndex), currentPageNum - 1)
                 : null;
-        String nextCursor = hasNext && !currentPage.isEmpty()
+        String nextCursor = hasNext
                 ? customerKnowledgeBuild.buildCursor(dto, sortedResults.get(endIndex - 1), currentPageNum + 1)
                 : null;
 
