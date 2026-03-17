@@ -406,11 +406,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 获取下一页数据
      */
     private CursorSearchVO<KnowledgeDocumentVO> getNextPage(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto) {
-        if (StrUtil.isBlank(dto.getBackwardCursor())) {
+        if (StrUtil.isBlank(dto.getNextCursor())) {
             return CursorSearchVO.success(Collections.emptyList(), null, null, false, true, dto.getPageSize());
         }
 
-        String[] cursorValues = dto.decodeCursor(dto.getBackwardCursor());
+        String[] cursorValues = dto.decodeCursor(dto.getNextCursor());
         int currentPageNum = Integer.parseInt(cursorValues[0]);
 
         int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
@@ -425,11 +425,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 获取上一页数据
      */
     private CursorSearchVO<KnowledgeDocumentVO> getPrevPage(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto) {
-        if (StrUtil.isBlank(dto.getForwardCursor())) {
+        if (StrUtil.isBlank(dto.getPrevCursor())) {
             return CursorSearchVO.success(Collections.emptyList(), null, null, true, false, dto.getPageSize());
         }
 
-        String[] cursorValues = dto.decodeCursor(dto.getForwardCursor());
+        String[] cursorValues = dto.decodeCursor(dto.getPrevCursor());
         int currentPageNum = Integer.parseInt(cursorValues[0]);
 
         int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);

@@ -92,25 +92,25 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     private String cursorDirection = "first";
 
     @Schema(description = "向前游标值 (用于上一页)", example = "向前游标值 (用于上一页)")
-    private String forwardCursor;
+    private String prevCursor;
 
     @Schema(description = "向后游标值 (用于下一页)", example = "向后游标值 (用于下一页)")
-    private String backwardCursor;
+    private String nextCursor;
 
     @Schema(description = "最大分页数限制（防止topK过大）", example = "1000")
     private Integer maxPageLimit = 1000; // 支持无限分页，设置较大值
 
     // 辅助方法
     public boolean isFirstPage() {
-        return FIRST.getId().equals(cursorDirection) || (forwardCursor == null && backwardCursor == null);
+        return FIRST.getId().equals(cursorDirection) || (prevCursor == null && nextCursor == null);
     }
 
     public boolean isNextPage() {
-        return NEXT.getId().equals(cursorDirection) && backwardCursor != null;
+        return NEXT.getId().equals(cursorDirection) && nextCursor != null;
     }
 
     public boolean isPrevPage() {
-        return PREV.getId().equals(cursorDirection) && forwardCursor != null;
+        return PREV.getId().equals(cursorDirection) && prevCursor != null;
     }
 
     /**
@@ -164,9 +164,9 @@ public class KnowledgeDocumentSearchDto implements Serializable {
         if (isFirstPage()) {
             return 0;
         } else if (isNextPage()) {
-            return getPageFromCursor(backwardCursor);
+            return getPageFromCursor(nextCursor);
         } else if (isPrevPage()) {
-            return getPageFromCursor(forwardCursor) - 1;
+            return getPageFromCursor(prevCursor) - 1;
         }
         return 0;
     }
