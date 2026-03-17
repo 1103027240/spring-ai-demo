@@ -15,7 +15,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.time.LocalDateTime;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import static cn.getech.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
@@ -129,7 +129,7 @@ public class CustomerKnowledgeBuild {
         document.setPriority(dto.getPriority() != null ? dto.getPriority() : 0);
         document.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
         document.setIsVectorized(0);
-        document.setCreateTime(LocalDateTime.now());
+        document.setCreateTime(System.currentTimeMillis());
 
         if (CollUtil.isNotEmpty(dto.getTags())) {
             document.setTags(objectMapperUtils.convertToJson(dto.getTags()));
@@ -196,7 +196,6 @@ public class CustomerKnowledgeBuild {
 
         document.setIsVectorized(2); // 标记为已修改但未向量化
         document.setVersion(document.getVersion() + 1);
-        document.setUpdateTime(LocalDateTime.now());
 
         return contentChanged;
     }

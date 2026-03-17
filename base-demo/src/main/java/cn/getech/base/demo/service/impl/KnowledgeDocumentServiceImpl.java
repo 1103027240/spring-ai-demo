@@ -13,6 +13,7 @@ import cn.getech.base.demo.utils.DocumentUtils;
 import cn.getech.base.demo.utils.ObjectMapperUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.milvus.client.MilvusServiceClient;
 import io.milvus.common.clientenum.ConsistencyLevelEnum;
@@ -182,7 +183,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         // 1. 逻辑删除
         document.setStatus(KnowledgeDocumentStatusEnum.DELETED.getId());
-        document.setUpdateTime(LocalDateTime.now());
+        document.setUpdateTime(System.currentTimeMillis());
         baseMapper.updateById(document);
 
         // 2. 异步删除向量
@@ -249,10 +250,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         // 设置搜索参数
         Map<String, Object> searchParams = new HashMap<>();
-        searchParams = new HashMap<>();
         searchParams.put("nprobe", nprobe);
-        searchParams.put("radius", dto.getThresholdSimilarity());
-        searchParams.put("range_filter", 1.0);
+        searchParams.put("range_filter", dto.getThresholdSimilarity());
 
         // 执行搜索
         return vecMService.search(
@@ -264,7 +263,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 outputFields,                  // outputFields
                 Collections.singletonList(floatVec), // data - 修正：使用 FloatVec
                 0L,                            // offset
-                0L,                            // limit
+                (long) dto.getTopK(),          // limit - 应该设置为 topK 的值
                 -1,                            // roundDecimal
                 searchParams,                  // searchParams
                 0L,                            // guaranteeTimestamp
@@ -277,21 +276,22 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     public List<KnowledgeDocumentVO> convertSearchResults(SearchResp searchResp) {
         return searchResp.getSearchResults().get(0).stream().map(hit -> {
             KnowledgeDocumentVO doc = new KnowledgeDocumentVO();
-            doc.setDocId(Long.parseLong(hit.getId().toString()));
+            doc.setDocId(Long.parseLong((String) hit.getId()));
             doc.setScore(hit.getScore());
 
             Map<String, Object> entityData = hit.getEntity();
             if (entityData != null) {
                 doc.setContent((String) entityData.get(CONTENT));
 
-                Object createTimeObj = entityData.get(CREATE_TIME);
-                if (createTimeObj != null) {
-                    doc.setCreateTime(Long.parseLong(createTimeObj.toString()));
-                }
-
                 Object metadataObj = entityData.get(METADATA);
                 if (metadataObj != null) {
-                    doc.setMetadata((Map<String, Object>) metadataObj);
+                    Map<String, Object> metadata = JSONUtil.toBean(metadataObj.toString(), Map.class);
+                    doc.setMetadata(metadata);
+
+                    Object createTimeObj = metadata.get(CREATE_TIME);
+                    if (createTimeObj != null) {
+                        doc.setCreateTime((Long) createTimeObj);
+                    }
                 }
             }
             return doc;
@@ -565,7 +565,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             metadata.put("source", document.getSource());
             metadata.put("priority", document.getPriority());
             metadata.put("status", document.getStatus());
-            metadata.put("createTime", document.getCreateTime().toString());
+            metadata.put("createTime", document.getCreateTime());
 
             // 文档内容
             Document vectorDoc = DocumentUtils.createDocument(document.getId().toString(), document.getContent(), metadata);

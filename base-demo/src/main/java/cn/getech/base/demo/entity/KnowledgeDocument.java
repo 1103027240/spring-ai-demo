@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
@@ -15,7 +14,6 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -163,9 +161,8 @@ public class KnowledgeDocument implements Serializable {
     /**
      * 创建时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField("create_time")
-    private LocalDateTime createTime;
+    private Long createTime;
 
     /**
      * 更新人ID
@@ -182,9 +179,8 @@ public class KnowledgeDocument implements Serializable {
     /**
      * 更新时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField("update_time")
-    private LocalDateTime updateTime;
+    private Long updateTime;
 
     /**
      * 逻辑删除标识：0-未删除，1-已删除
@@ -199,8 +195,8 @@ public class KnowledgeDocument implements Serializable {
     private Double similarityScore;
 
     public KnowledgeDocument() {
-        this.createTime = LocalDateTime.now();
-        this.updateTime = LocalDateTime.now();
+        this.createTime = System.currentTimeMillis();
+        this.updateTime = System.currentTimeMillis();
     }
 
     public KnowledgeDocument(String title, String content, String category) {
