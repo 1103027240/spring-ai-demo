@@ -52,18 +52,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     @Value("${customer.knowledge.similarity-threshold:0.7}")
     private Double similarityThreshold;
 
-    @Value("${customer.cursor.ttl:300}")
-    private Long cursorCacheTtl; // 游标缓存时间（秒），未来可用于游标缓存优化
-
-    @Value("${customer.search.redundancy.enabled:true}")
-    private Boolean enableSearchRedundancy; // 是否启用搜索冗余（提高游标命中率）
-
-    @Value("${customer.search.redundancy.factor:1.2}")
-    private Double searchRedundancyFactor; // 搜索冗余因子（1.2表示多查20%）
-
-    @Value("${customer.search.redundancy.maxExtra:100}")
-    private Integer searchRedundancyMaxExtra; // 搜索冗余最大额外条数
-
     @Autowired
     private EmbeddingModel embeddingModel;
 

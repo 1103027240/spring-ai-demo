@@ -187,7 +187,7 @@ customer:
     similarity-threshold: 0.7
   milvus:
     search:
-      nprobe: 32
+      nprobe: 128
   cursor:
     ttl: 300
 
