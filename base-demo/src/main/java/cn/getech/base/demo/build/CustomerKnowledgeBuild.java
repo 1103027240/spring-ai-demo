@@ -6,16 +6,15 @@ import cn.getech.base.demo.entity.ChatMessage;
 import cn.getech.base.demo.entity.KnowledgeDocument;
 import cn.getech.base.demo.enums.MessageTaskSyncTypeEnum;
 import cn.getech.base.demo.service.ChatMessageService;
-import cn.getech.base.demo.utils.ObjectMapperUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.google.gson.Gson;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import static cn.getech.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
@@ -32,9 +31,6 @@ public class CustomerKnowledgeBuild {
 
     @Autowired
     private ChatMessageService chatMessageService;
-
-    @Autowired
-    private ObjectMapperUtils objectMapperUtils;
 
     /**
      * 同步消息到Milvus
@@ -132,15 +128,11 @@ public class CustomerKnowledgeBuild {
         document.setCreateTime(System.currentTimeMillis());
 
         if (CollUtil.isNotEmpty(dto.getTags())) {
-            document.setTags(objectMapperUtils.convertToJson(dto.getTags()));
+            document.setTags(String.valueOf(new Gson().toJsonTree(dto.getTags())));
         }
 
         if (CollUtil.isNotEmpty(dto.getKeywords())) {
-            document.setKeywords(objectMapperUtils.convertToJson(dto.getKeywords()));
-        }
-
-        if (CollUtil.isNotEmpty(dto.getMetadata())) {
-            document.setMetadata(objectMapperUtils.convertToJson(dto.getMetadata()));
+            document.setKeywords(String.valueOf(new Gson().toJsonTree(dto.getKeywords())));
         }
 
         return document;
@@ -170,12 +162,12 @@ public class CustomerKnowledgeBuild {
         }
 
         if (CollUtil.isNotEmpty(dto.getTags())) {
-            document.setTags(objectMapperUtils.convertToJson(dto.getTags()));
+            document.setTags(String.valueOf(new Gson().toJsonTree(dto.getTags())));
             contentChanged = true;
         }
 
         if (CollUtil.isNotEmpty(dto.getKeywords())) {
-            document.setKeywords(objectMapperUtils.convertToJson(dto.getKeywords()));
+            document.setKeywords(String.valueOf(new Gson().toJsonTree(dto.getKeywords())));
             contentChanged = true;
         }
 

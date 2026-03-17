@@ -15,6 +15,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
 import io.milvus.client.MilvusServiceClient;
 import io.milvus.common.clientenum.ConsistencyLevelEnum;
 import io.milvus.grpc.QueryResults;
@@ -60,7 +61,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     @Value("${customer.knowledge.similarity-threshold:0.7}")
     private Double similarityThreshold;
 
-    @Value("${customer.milvus.search.nprobe:32}")
+    @Value("${customer.milvus.search.nprobe:128}")
     private Integer nprobe;
 
     @Value("${customer.cursor.ttl:300}")
@@ -124,7 +125,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         baseMapper.insert(document);
 
         // 2. 文档向量化
-        registerPostCommitAddHook(document);
+        registerPostCommitAddHook(document, dto);
 
         // 3. 清理缓存
         clearCategoryCache(dto.getCategoryId());
@@ -163,7 +164,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         // 2. 如果内容有变化，重新向量化
         if (contentChanged) {
-            vectorizeDocumentAsync(document);
+            vectorizeDocumentAsync(document, dto);
         }
 
         // 3. 清理缓存
@@ -251,25 +252,26 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         // 设置搜索参数
         Map<String, Object> searchParams = new HashMap<>();
         searchParams.put("nprobe", nprobe);
-        searchParams.put("range_filter", dto.getThresholdSimilarity());
+        searchParams.put("metric_type", "COSINE");
+        searchParams.put("radius", 0.7);           // 最小相似度阈值
+        searchParams.put("range_filter", 1.0);     // 最大相似度上限
 
-        // 执行搜索
         return vecMService.search(
-                CUSTOMER_COLLECTION_NAME,      // collectionName
-                Collections.emptyList(),       // partitionNames
-                EMBEDDING,                     // annsField
-                dto.getTopK(),                 // topK
-                filterExpr,                    // filter
-                outputFields,                  // outputFields
-                Collections.singletonList(floatVec), // data - 修正：使用 FloatVec
-                0L,                            // offset
-                (long) dto.getTopK(),          // limit - 应该设置为 topK 的值
-                -1,                            // roundDecimal
-                searchParams,                  // searchParams
-                0L,                            // guaranteeTimestamp
-                0L,                            // gracefulTime
-                ConsistencyLevel.BOUNDED,      // consistencyLevel
-                false                          // ignoreGrowing
+                CUSTOMER_COLLECTION_NAME,
+                Collections.emptyList(),
+                EMBEDDING,
+                dto.getTopK(),
+                filterExpr,
+                outputFields,
+                Collections.singletonList(floatVec),
+                0L,
+                (long) dto.getTopK(),
+                -1,
+                searchParams,
+                0L,
+                0L,
+                ConsistencyLevel.BOUNDED,
+                false
         );
     }
 
@@ -525,12 +527,12 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     /**
      * 注册事务后钩子
      */
-    public void registerPostCommitAddHook(KnowledgeDocument document) {
+    public void registerPostCommitAddHook(KnowledgeDocument document, KnowledgeDocumentDto dto) {
         TransactionSynchronizationManager.registerSynchronization(
                 new TransactionSynchronization() {
                     @Override
                     public void afterCommit() {
-                        vectorizeDocumentAsync(document);
+                        vectorizeDocumentAsync(document, dto);
                     }
                 }
         );
@@ -539,10 +541,10 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     /**
      * 异步向量化文档 (生产环境推送消息MQ处理)
      */
-    public void vectorizeDocumentAsync(KnowledgeDocument document) {
+    public void vectorizeDocumentAsync(KnowledgeDocument document, KnowledgeDocumentDto dto) {
         CompletableFuture.runAsync(() -> {
             try {
-                vectorizeDocument(document);
+                vectorizeDocument(document, dto);
             } catch (Exception e) {
                 log.error("异步向量化文档失败，ID: {}", document.getId(), e);
             }
@@ -552,15 +554,15 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     /**
      * 向量化文档
      */
-    public void vectorizeDocument(KnowledgeDocument document) {
+    public void vectorizeDocument(KnowledgeDocument document, KnowledgeDocumentDto dto) {
         try {
             // 文档元数据
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("title", document.getTitle());
             metadata.put("summary", document.getSummary());
             metadata.put("categoryId", document.getCategoryId());
-            metadata.put("tags", document.getTags());
-            metadata.put("keywords", document.getKeywords());
+            metadata.put("tags", new Gson().toJsonTree(document.getTags())); //不能转成数组字符串
+            metadata.put("keywords", new Gson().toJsonTree(dto.getKeywords()));
             metadata.put("author", document.getAuthor());
             metadata.put("source", document.getSource());
             metadata.put("priority", document.getPriority());

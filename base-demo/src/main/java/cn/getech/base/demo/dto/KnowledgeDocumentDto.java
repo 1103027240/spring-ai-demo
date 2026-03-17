@@ -47,7 +47,4 @@ public class KnowledgeDocumentDto implements Serializable {
     @Schema(description = "状态：1-启用，0-禁用，2-待审核，3-已删除", example = "1")
     private Integer status = 1;
 
-    @Schema(description = "扩展元数据")
-    private Map<String, Object> metadata;
-
 }
