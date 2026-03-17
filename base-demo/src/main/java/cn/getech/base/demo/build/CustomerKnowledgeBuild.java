@@ -5,6 +5,7 @@ import cn.getech.base.demo.dto.KnowledgeDocumentSearchDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentVO;
 import cn.getech.base.demo.entity.ChatMessage;
 import cn.getech.base.demo.enums.MessageTaskSyncTypeEnum;
+import cn.getech.base.demo.enums.SortDirectionEnum;
 import cn.getech.base.demo.service.ChatMessageService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
@@ -148,6 +149,7 @@ public class CustomerKnowledgeBuild {
 
         int low = 0;
         int high = sortedResults.size() - 1;
+        boolean isDesc = SortDirectionEnum.DESC.getId().equalsIgnoreCase(dto.getSortDirection());
 
         while (low <= high) {
             int mid = (low + high) >>> 1;
@@ -162,15 +164,34 @@ public class CustomerKnowledgeBuild {
                 int secondCompare = customerKnowledgeCheck.compareSortKey(docSecondSortKey, secondCursor, dto.getSecondSortField());
                 if (secondCompare == 0) {
                     return mid;
-                } else if (secondCompare < 0) {
-                    low = mid + 1;
-                } else {
-                    high = mid - 1;
                 }
-            } else if (primaryCompare < 0) {
-                low = mid + 1;
+                if (isDesc) {
+                    if (secondCompare > 0) {
+                        low = mid + 1;
+                    } else {
+                        high = mid - 1;
+                    }
+                } else {
+                    if (secondCompare < 0) {
+                        low = mid + 1;
+                    } else {
+                        high = mid - 1;
+                    }
+                }
             } else {
-                high = mid - 1;
+                if (isDesc) {
+                    if (primaryCompare > 0) {
+                        low = mid + 1;
+                    } else {
+                        high = mid - 1;
+                    }
+                } else {
+                    if (primaryCompare < 0) {
+                        low = mid + 1;
+                    } else {
+                        high = mid - 1;
+                    }
+                }
             }
         }
 

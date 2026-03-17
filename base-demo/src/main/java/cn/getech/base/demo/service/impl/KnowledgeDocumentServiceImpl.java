@@ -368,7 +368,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         if (dto.isPrevPage()) {
             return getPrevPage(sortedResults, dto);
         }
-
         return getFirstPage(sortedResults, dto);
     }
 
