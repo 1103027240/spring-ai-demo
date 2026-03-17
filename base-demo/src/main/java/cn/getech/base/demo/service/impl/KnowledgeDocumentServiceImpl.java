@@ -249,12 +249,10 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         // 设置搜索参数
         Map<String, Object> searchParams = new HashMap<>();
-        if (searchParams == null) {
-            searchParams = new HashMap<>();
-            searchParams.put("nprobe", nprobe);
-            searchParams.put("radius", dto.getThresholdSimilarity());
-            searchParams.put("range_filter", 1.0);
-        }
+        searchParams = new HashMap<>();
+        searchParams.put("nprobe", nprobe);
+        searchParams.put("radius", dto.getThresholdSimilarity());
+        searchParams.put("range_filter", 1.0);
 
         // 执行搜索
         return vecMService.search(
