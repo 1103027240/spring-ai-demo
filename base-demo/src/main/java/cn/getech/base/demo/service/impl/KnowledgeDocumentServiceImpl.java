@@ -1,6 +1,7 @@
 package cn.getech.base.demo.service.impl;
 
 import cn.getech.base.demo.build.CustomerKnowledgeBuild;
+import cn.getech.base.demo.build.KnowledgeDocumentBuild;
 import cn.getech.base.demo.check.CustomerKnowledgeCheck;
 import cn.getech.base.demo.dto.*;
 import cn.getech.base.demo.entity.KnowledgeDocument;
@@ -87,6 +88,9 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     @Autowired
     private CustomerKnowledgeCheck customerKnowledgeCheck;
 
+    @Autowired
+    private KnowledgeDocumentBuild knowledgeDocumentBuild;
+
     /**
      * 搜索相关知识
      */
@@ -129,7 +133,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         knowledgeCategoryService.validateCategoryId(dto.getCategoryId());
 
         // 保存文档
-        KnowledgeDocument document = customerKnowledgeBuild.buildAddKnowledgeDocument(dto);
+        KnowledgeDocument document = knowledgeDocumentBuild.buildAddKnowledgeDocument(dto);
         baseMapper.insert(document);
 
         // 文档向量化
@@ -165,7 +169,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         // 修改文档
         Long oldCategoryId = document.getCategoryId();
-        boolean contentChanged = customerKnowledgeBuild.buildUpdateKnowledgeDocument(document, dto);
+        boolean contentChanged = knowledgeDocumentBuild.buildUpdateKnowledgeDocument(document, dto);
         baseMapper.updateById(document);
 
         // 文档向量化修改

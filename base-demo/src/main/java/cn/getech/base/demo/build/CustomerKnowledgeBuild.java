@@ -1,17 +1,14 @@
 package cn.getech.base.demo.build;
 
 import cn.getech.base.demo.check.CustomerKnowledgeCheck;
-import cn.getech.base.demo.dto.KnowledgeDocumentDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentSearchDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentVO;
 import cn.getech.base.demo.entity.ChatMessage;
-import cn.getech.base.demo.entity.KnowledgeDocument;
 import cn.getech.base.demo.enums.MessageTaskSyncTypeEnum;
 import cn.getech.base.demo.service.ChatMessageService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.google.gson.Gson;
 import io.milvus.v2.service.vector.response.SearchResp;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import static cn.getech.base.demo.constant.FieldConstant.*;
 import static cn.getech.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
 
@@ -87,137 +83,59 @@ public class CustomerKnowledgeBuild {
     public String buildAdvancedFilterExpression(KnowledgeDocumentSearchDto dto) {
         List<String> conditions = new ArrayList<>();
 
-        if (StrUtil.isNotBlank(dto.getTitle()) && StrUtil.isNotBlank(dto.getTitle().trim())) {
-            String titleExpr = "metadata[\"title\"] like \"%" + dto.getTitle().trim() + "%\"";
-            conditions.add(titleExpr);
-        }
-
-        if (StrUtil.isNotBlank(dto.getSummary()) && StrUtil.isNotBlank(dto.getSummary().trim())) {
-            String summaryExpr = "metadata[\"summary\"] like \"%" + dto.getSummary().trim() + "%\"";
-            conditions.add(summaryExpr);
-        }
-
-        if (StrUtil.isNotBlank(dto.getKeyword()) && StrUtil.isNotBlank(dto.getKeyword().trim())) {
-            String keywordExpr = "array_contains(metadata[\"keywords\"], \"" + dto.getKeyword().trim() + "\")";
-            conditions.add(keywordExpr);
-        }
-
-        if (dto.getCategoryId() != null) {
-            String categoryIdExpr = "metadata[\"categoryId\"] == " + dto.getCategoryId();
-            conditions.add(categoryIdExpr);
-        }
-
-        if (dto.getStartTime() != null) {
-            String startTimeExpr = "metadata[\"createTime\"] >= " + dto.getStartTime();
-            conditions.add(startTimeExpr);
-        }
-
-        if (dto.getEndTime() != null) {
-            String endTimeExpr = "metadata[\"createTime\"] <= " + dto.getEndTime();
-            conditions.add(endTimeExpr);
-        }
-
-        if (dto.getAuthor() != null && StrUtil.isNotBlank(dto.getAuthor().trim())) {
-            String authorExpr = "metadata[\"author\"] like \"%" + dto.getAuthor().trim() + "%\"";
-            conditions.add(authorExpr);
-        }
-
-        if (dto.getSource() != null && StrUtil.isNotBlank(dto.getSource().trim())) {
-            String sourceExpr = "metadata[\"source\"] like \"%" + dto.getSource().trim() + "%\"";
-            conditions.add(sourceExpr);
-        }
-
-        if (dto.getStatus() != null) {
-            String statusExpr = "metadata[\"status\"] == " + dto.getStatus();
-            conditions.add(statusExpr);
-        }
-
-        if (CollUtil.isNotEmpty(dto.getTags())) {
-            String tagsCondition = dto.getTags().stream()
-                    .map(tag -> "array_contains(metadata[\"tags\"], \"" + tag + "\")")
-                    .collect(Collectors.joining(" and "));
-            conditions.add("(" + tagsCondition + ")");
-        }
+        addLikeCondition(conditions, "title", dto.getTitle());
+        addLikeCondition(conditions, "summary", dto.getSummary());
+        addLikeCondition(conditions, "author", dto.getAuthor());
+        addLikeCondition(conditions, "source", dto.getSource());
+        addArrayContainsCondition(conditions, "keywords", dto.getKeyword());
+        addEqualCondition(conditions, "categoryId", dto.getCategoryId());
+        addEqualCondition(conditions, "status", dto.getStatus());
+        addTimeRangeCondition(conditions, dto.getStartTime(), dto.getEndTime());
+        addTagsCondition(conditions, dto.getTags());
 
         return CollUtil.isEmpty(conditions) ? "" : String.join(" and ", conditions);
     }
 
-    public KnowledgeDocument buildAddKnowledgeDocument(KnowledgeDocumentDto dto){
-        KnowledgeDocument document = new KnowledgeDocument();
-        document.setTitle(dto.getTitle());
-        document.setContent(dto.getContent());
-        document.setSummary(dto.getSummary());
-        document.setCategoryId(dto.getCategoryId());
-        document.setSource(dto.getSource());
-        document.setAuthor(dto.getAuthor());
-        document.setPriority(dto.getPriority() != null ? dto.getPriority() : 0);
-        document.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
-        document.setIsVectorized(0);
-        document.setCreateTime(System.currentTimeMillis());
-
-        if (CollUtil.isNotEmpty(dto.getTags())) {
-            document.setTags(String.valueOf(new Gson().toJsonTree(dto.getTags())));
+    private void addLikeCondition(List<String> conditions, String field, String value) {
+        if (StrUtil.isNotBlank(value)) {
+            String trimmedValue = value.trim();
+            if (StrUtil.isNotBlank(trimmedValue)) {
+                conditions.add("metadata[\"" + field + "\"] like \"%" + trimmedValue + "%\"");
+            }
         }
-
-        if (CollUtil.isNotEmpty(dto.getKeywords())) {
-            document.setKeywords(String.valueOf(new Gson().toJsonTree(dto.getKeywords())));
-        }
-
-        return document;
     }
 
-    public boolean buildUpdateKnowledgeDocument(KnowledgeDocument document, KnowledgeDocumentDto dto){
-        boolean contentChanged = false;
-
-        if (StrUtil.isNotBlank(dto.getTitle()) && !dto.getTitle().equals(document.getTitle())) {
-            document.setTitle(dto.getTitle());
-            contentChanged = true;
+    private void addArrayContainsCondition(List<String> conditions, String field, String value) {
+        if (StrUtil.isNotBlank(value)) {
+            String trimmedValue = value.trim();
+            if (StrUtil.isNotBlank(trimmedValue)) {
+                conditions.add("array_contains(metadata[\"" + field + "\"], \"" + trimmedValue + "\")");
+            }
         }
+    }
 
-        if (StrUtil.isNotBlank(dto.getContent()) && !dto.getContent().equals(document.getContent())) {
-            document.setContent(dto.getContent());
-            contentChanged = true;
+    private void addTimeRangeCondition(List<String> conditions, Long startTime, Long endTime) {
+        if (startTime != null) {
+            conditions.add("metadata[\"createTime\"] >= " + startTime);
         }
-
-        if (StrUtil.isNotBlank(dto.getSummary()) && !dto.getSummary().equals(document.getSummary())) {
-            document.setSummary(dto.getSummary());
-            contentChanged = true;
+        if (endTime != null) {
+            conditions.add("metadata[\"createTime\"] <= " + endTime);
         }
+    }
 
-        if (dto.getCategoryId() != null && !dto.getCategoryId().equals(document.getCategoryId())) {
-            document.setCategoryId(dto.getCategoryId());
-            contentChanged = true;
+    private void addEqualCondition(List<String> conditions, String field, Object value) {
+        if (value != null) {
+            conditions.add("metadata[\"" + field + "\"] == " + value);
         }
+    }
 
-        if (CollUtil.isNotEmpty(dto.getTags())) {
-            document.setTags(String.valueOf(new Gson().toJsonTree(dto.getTags())));
-            contentChanged = true;
+    private void addTagsCondition(List<String> conditions, List<String> tags) {
+        if (CollUtil.isNotEmpty(tags)) {
+            String tagsCondition = tags.stream()
+                    .map(tag -> "array_contains(metadata[\"tags\"], \"" + tag + "\")")
+                    .collect(Collectors.joining(" and "));
+            conditions.add("(" + tagsCondition + ")");
         }
-
-        if (CollUtil.isNotEmpty(dto.getKeywords())) {
-            document.setKeywords(String.valueOf(new Gson().toJsonTree(dto.getKeywords())));
-            contentChanged = true;
-        }
-
-        if (StrUtil.isNotBlank(dto.getSource()) && !dto.getSource().equals(document.getSource())) {
-            document.setSource(dto.getSource());
-            contentChanged = true;
-        }
-
-        if (dto.getPriority() != null && !dto.getPriority().equals(document.getPriority())) {
-            document.setPriority(dto.getPriority());
-            contentChanged = true;
-        }
-
-        if (dto.getStatus() != null && !dto.getStatus().equals(document.getStatus())) {
-            document.setStatus(dto.getStatus());
-            contentChanged = true;
-        }
-
-        document.setIsVectorized(2); // 标记为已修改但未向量化
-        document.setVersion(document.getVersion() + 1);
-
-        return contentChanged;
     }
 
     /**
