@@ -5,10 +5,14 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 @Data
+@Slf4j
 @Schema(description = "知识库文档搜索请求参数")
 public class KnowledgeDocumentSearchDto implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -103,10 +107,13 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     }
 
     /**
-     * 构建游标值
+     * 构建游标值 (使用Base64编码避免特殊字符冲突)
      */
     public String encodeCursor(String primaryValue, String secondaryValue) {
-        return primaryValue + "|" + secondaryValue;
+        if (primaryValue == null) primaryValue = "0";
+        if (secondaryValue == null) secondaryValue = "0";
+        String combined = primaryValue + "|" + secondaryValue;
+        return Base64.getEncoder().encodeToString(combined.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -117,7 +124,19 @@ public class KnowledgeDocumentSearchDto implements Serializable {
         if (cursor == null || cursor.isEmpty()) {
             return new String[]{"0", "0"};
         }
-        return cursor.split("\\|");
+        try {
+            byte[] decodedBytes = Base64.getDecoder().decode(cursor);
+            String decoded = new String(decodedBytes, StandardCharsets.UTF_8);
+            String[] parts = decoded.split("\\|");
+            if (parts.length == 2) {
+                return parts;
+            }
+            log.warn("游标格式错误: {}", cursor);
+            return new String[]{"0", "0"};
+        } catch (Exception e) {
+            log.error("游标解码失败: {}", cursor, e);
+            return new String[]{"0", "0"};
+        }
     }
 
 }

@@ -65,7 +65,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     private Integer nprobe;
 
     @Value("${customer.cursor.ttl:300}")
-    private String cursorCacheTtl;
+    private Long cursorCacheTtl; // 游标缓存时间（秒），未来可用于游标缓存优化
 
     @Autowired
     private EmbeddingModel embeddingModel;
@@ -94,6 +94,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     @Override
     public List<Map<String, Object>> searchKnowledge(String query, int limit) {
         try {
+            if (StrUtil.isBlank(query)) {
+                log.warn("搜索知识失败：查询内容为空");
+                return Collections.emptyList();
+            }
+
             SearchRequest request = SearchRequest.builder()
                     .query(query)
                     .topK(limit)
@@ -102,6 +107,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
             List<Document> documents = customerKnowledgeVectorStore.similaritySearch(request);
 
+            if (CollUtil.isEmpty(documents)) {
+                log.debug("知识搜索无结果: query={}, threshold={}", query, similarityThreshold);
+                return Collections.emptyList();
+            }
+
             return documents.stream()
                     .map(doc -> {
                         Map<String, Object> result = new HashMap<>(doc.getMetadata());
@@ -109,7 +119,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                         return result;
                     }).collect(Collectors.toList());
         } catch (Exception e) {
-            return new ArrayList<>();
+            log.error("搜索知识失败: query={}, limit={}, error={}", query, limit, e.getMessage(), e);
+            return Collections.emptyList();
         }
     }
 
@@ -215,89 +226,110 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
     @Override
     public CursorSearchVO<KnowledgeDocumentVO> search(KnowledgeDocumentSearchDto dto) {
-        // 1. 执行搜索
-        SearchResp searchResp = executeVectorSearch(dto);
-        if (searchResp == null || CollUtil.isEmpty(searchResp.getSearchResults())) {
+        try {
+            // 1. 执行搜索
+            SearchResp searchResp = executeVectorSearch(dto);
+            if (searchResp == null || CollUtil.isEmpty(searchResp.getSearchResults())) {
+                log.debug("向量搜索无结果: content={}, threshold={}", dto.getContent(), dto.getThresholdSimilarity());
+                return CursorSearchVO.empty();
+            }
+
+            List<KnowledgeDocumentVO> allResults = convertSearchResults(searchResp);
+            if (CollUtil.isEmpty(allResults)) {
+                log.debug("搜索结果转换后为空");
+                return CursorSearchVO.empty();
+            }
+
+            // 2. 排序
+            List<KnowledgeDocumentVO> sortedResults = multiLevelSort(allResults, dto);
+
+            // 3. 双向游标分页
+            CursorSearchVO<KnowledgeDocumentVO> result = applyCursorPagination(sortedResults, dto);
+
+            // 4. 设置排序信息
+            result.setSortInfoVO(SortInfoVO.builder()
+                    .primaryField(dto.getSortField())
+                    .primaryDirection(dto.getSortDirection())
+                    .secondField(dto.getSecondSortField())
+                    .secondDirection(dto.getSecondSortDirection())
+                    .build());
+            return result;
+        } catch (Exception e) {
+            log.error("搜索异常: content={}, error={}", dto.getContent(), e.getMessage(), e);
             return CursorSearchVO.empty();
         }
-
-        List<KnowledgeDocumentVO> allResults = convertSearchResults(searchResp);
-
-        // 2. 排序
-        List<KnowledgeDocumentVO> sortedResults = multiLevelSort(allResults, dto);
-
-        // 3. 双向游标分页
-        CursorSearchVO<KnowledgeDocumentVO> result = applyCursorPagination(sortedResults, dto);
-
-        // 4. 设置排序信息
-        result.setSortInfoVO(SortInfoVO.builder()
-                .primaryField(dto.getSortField())
-                .primaryDirection(dto.getSortDirection())
-                .secondField(dto.getSecondSortField())
-                .secondDirection(dto.getSecondSortDirection())
-                .build());
-        return result;
     }
 
     /**
      * 执行搜索
      */
     public SearchResp executeVectorSearch(KnowledgeDocumentSearchDto dto) {
-        float[] embed = embeddingModel.embed(dto.getContent());
-        FloatVec floatVec = new FloatVec(embed);
+        try {
+            if (StrUtil.isBlank(dto.getContent())) {
+                log.warn("向量搜索失败：查询内容为空");
+                return null;
+            }
 
-        String filterExpr = customerKnowledgeBuild.buildAdvancedFilterExpression(dto);
-        List<String> outputFields = Arrays.asList(DOC_ID, CONTENT, METADATA);
+            float[] embed = embeddingModel.embed(dto.getContent());
+            FloatVec floatVec = new FloatVec(embed);
 
-        // 设置搜索参数
-        Map<String, Object> searchParams = new HashMap<>();
-        searchParams.put("nprobe", nprobe);
-        searchParams.put("metric_type", "COSINE");
-        searchParams.put("radius", dto.getThresholdSimilarity());           // 最小相似度阈值
-        searchParams.put("range_filter", 1.0);     // 最大相似度上限
+            String filterExpr = customerKnowledgeBuild.buildAdvancedFilterExpression(dto);
+            List<String> outputFields = Arrays.asList(DOC_ID, CONTENT, METADATA);
 
-        return vecMService.search(
-                CUSTOMER_COLLECTION_NAME,
-                Collections.emptyList(),
-                EMBEDDING,
-                dto.getTopK(),
-                filterExpr,
-                outputFields,
-                Collections.singletonList(floatVec),
-                0L,
-                (long) dto.getTopK(),
-                -1,
-                searchParams,
-                0L,
-                0L,
-                ConsistencyLevel.BOUNDED,
-                false
-        );
+            // 设置搜索参数
+            Map<String, Object> searchParams = new HashMap<>();
+            searchParams.put("nprobe", nprobe);
+            searchParams.put("metric_type", "COSINE");
+            searchParams.put("radius", dto.getThresholdSimilarity());  // 最小相似度阈值
+            searchParams.put("range_filter", 1.0);                     // 最大相似度上限
+
+            return vecMService.search(
+                    CUSTOMER_COLLECTION_NAME,
+                    Collections.emptyList(),
+                    EMBEDDING,
+                    dto.getTopK(),
+                    filterExpr,
+                    outputFields,
+                    Collections.singletonList(floatVec),
+                    0L,
+                    (long) dto.getTopK(),
+                    -1,
+                    searchParams,
+                    0L,
+                    0L,
+                    ConsistencyLevel.BOUNDED,
+                    false
+            );
+        } catch (Exception e) {
+            log.error("向量搜索失败: content={}, topK={}, threshold={}, error={}",
+                    dto.getContent(), dto.getTopK(), dto.getThresholdSimilarity(), e.getMessage(), e);
+            return null;
+        }
     }
 
     public List<KnowledgeDocumentVO> convertSearchResults(SearchResp searchResp) {
         return searchResp.getSearchResults().get(0).stream().map(hit -> {
             KnowledgeDocumentVO doc = new KnowledgeDocumentVO();
-            doc.setDocId(Long.parseLong((String) hit.getId()));
-            doc.setScore(hit.getScore());
+                doc.setDocId(Long.parseLong((String) hit.getId()));
+                doc.setScore(hit.getScore());
 
-            Map<String, Object> entityData = hit.getEntity();
-            if (entityData != null) {
-                doc.setContent((String) entityData.get(CONTENT));
+                Map<String, Object> entityData = hit.getEntity();
+                if (entityData != null) {
+                    doc.setContent((String) entityData.get(CONTENT));
 
-                Object metadataObj = entityData.get(METADATA);
-                if (metadataObj != null) {
-                    Map<String, Object> metadata = JSONUtil.toBean(metadataObj.toString(), Map.class);
-                    doc.setMetadata(metadata);
+                    Object metadataObj = entityData.get(METADATA);
+                    if (metadataObj != null) {
+                        Map<String, Object> metadata = JSONUtil.toBean(metadataObj.toString(), Map.class);
+                        doc.setMetadata(metadata);
 
-                    Object createTimeObj = metadata.get(CREATE_TIME);
-                    if (createTimeObj != null) {
-                        doc.setCreateTime((Long) createTimeObj);
+                        Object createTimeObj = metadata.get(CREATE_TIME);
+                        if (createTimeObj != null) {
+                            doc.setCreateTime((Long) createTimeObj);
+                        }
                     }
                 }
-            }
-            return doc;
-        }).collect(Collectors.toList());
+                return doc;
+            }).collect(Collectors.toList());
     }
 
     /**
@@ -418,6 +450,12 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 获取下一页数据
      */
     private CursorSearchVO<KnowledgeDocumentVO> getNextPage(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto) {
+        // 游标空值校验
+        if (StrUtil.isBlank(dto.getBackwardCursor())) {
+            log.warn("获取下一页失败：向后游标为空");
+            return CursorSearchVO.success(Collections.emptyList(), null, null, false, true, dto.getPageSize());
+        }
+
         String[] cursorValues = dto.decodeCursor(dto.getBackwardCursor());
         String primaryCursor = cursorValues[0];
         String secondCursor = cursorValues[1];
@@ -425,7 +463,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         // 找到游标位置
         int cursorIndex = findCursorIndex(sortedResults, primaryCursor, secondCursor, dto);
         if (cursorIndex < 0) {
-            return CursorSearchVO.success(Collections.emptyList(), null, null,false, true,  dto.getPageSize());
+            log.warn("获取下一页失败：游标未找到, primaryCursor={}, secondCursor={}", primaryCursor, secondCursor);
+            return CursorSearchVO.success(Collections.emptyList(), null, null, false, true, dto.getPageSize());
         }
 
         // 获取下一页数据（从游标后一位开始）
@@ -456,6 +495,12 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      * 获取上一页数据
      */
     private CursorSearchVO<KnowledgeDocumentVO> getPrevPage(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto) {
+        // 游标空值校验
+        if (StrUtil.isBlank(dto.getForwardCursor())) {
+            log.warn("获取上一页失败：向前游标为空");
+            return CursorSearchVO.success(Collections.emptyList(), null, null, true, false, dto.getPageSize());
+        }
+
         String[] cursorValues = dto.decodeCursor(dto.getForwardCursor());
         String primaryCursor = cursorValues[0];
         String secondCursor = cursorValues[1];
@@ -463,7 +508,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         // 找到游标位置
         int cursorIndex = findCursorIndex(sortedResults, primaryCursor, secondCursor, dto);
         if (cursorIndex < 0) {
-            return CursorSearchVO.success(Collections.emptyList(), null, null,true, false, dto.getPageSize());
+            log.warn("获取上一页失败：游标未找到, primaryCursor={}, secondCursor={}", primaryCursor, secondCursor);
+            return CursorSearchVO.success(Collections.emptyList(), null, null, true, false, dto.getPageSize());
         }
 
         // 获取上一页数据（从游标前pageSize个开始）
