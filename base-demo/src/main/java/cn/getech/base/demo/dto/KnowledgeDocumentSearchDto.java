@@ -17,6 +17,12 @@ import java.util.List;
 public class KnowledgeDocumentSearchDto implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    /** ====== 常量 ====== **/
+
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 100;
+    private static final int MIN_PAGE_SIZE = 1;
+
     /** ====== 向量搜索参数 ====== **/
 
     @Schema(description = "文档内容", example = "文档内容")
@@ -93,6 +99,9 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     @Schema(description = "向后游标值 (用于下一页)", example = "向后游标值 (用于下一页)")
     private String backwardCursor;
 
+    @Schema(description = "最大分页数限制（防止topK过大）", example = "10")
+    private Integer maxPageLimit = 10;
+
     // 辅助方法
     public boolean isFirstPage() {
         return "first".equals(cursorDirection) || (forwardCursor == null && backwardCursor == null);
@@ -108,35 +117,91 @@ public class KnowledgeDocumentSearchDto implements Serializable {
 
     /**
      * 构建游标值 (使用Base64编码避免特殊字符冲突)
+     * 格式：page|primary|secondary
      */
-    public String encodeCursor(String primaryValue, String secondaryValue) {
+    public String encodeCursor(int page, String primaryValue, String secondaryValue) {
         if (primaryValue == null) primaryValue = "0";
         if (secondaryValue == null) secondaryValue = "0";
-        String combined = primaryValue + "|" + secondaryValue;
+        String combined = page + "|" + primaryValue + "|" + secondaryValue;
         return Base64.getEncoder().encodeToString(combined.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
      * 解析游标值
-     * @return [primaryValue, secondaryValue]
+     * @return [page, primaryValue, secondaryValue]
      */
     public String[] decodeCursor(String cursor) {
         if (cursor == null || cursor.isEmpty()) {
-            return new String[]{"0", "0"};
+            return new String[]{"0", "0", "0"};
         }
         try {
             byte[] decodedBytes = Base64.getDecoder().decode(cursor);
             String decoded = new String(decodedBytes, StandardCharsets.UTF_8);
             String[] parts = decoded.split("\\|");
-            if (parts.length == 2) {
+            if (parts.length == 3) {
                 return parts;
             }
             log.warn("游标格式错误: {}", cursor);
-            return new String[]{"0", "0"};
+            return new String[]{"0", "0", "0"};
         } catch (Exception e) {
             log.error("游标解码失败: {}", cursor, e);
-            return new String[]{"0", "0"};
+            return new String[]{"0", "0", "0"};
         }
+    }
+
+    /**
+     * 从游标中提取页码
+     */
+    public int getPageFromCursor(String cursor) {
+        try {
+            String[] parts = decodeCursor(cursor);
+            return Integer.parseInt(parts[0]);
+        } catch (Exception e) {
+            log.error("提取页码失败: {}", cursor, e);
+            return 0;
+        }
+    }
+
+    /**
+     * 计算需要的 topK 值
+     */
+    public int calculateTopK() {
+        // 确保 pageSize 有效
+        if (pageSize == null || pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+
+        int topK;
+        if (isFirstPage()) {
+            // 首页：只需要pageSize条（索引0到pageSize-1）
+            topK = pageSize;
+        } else if (isNextPage()) {
+            // 下一页：游标页码表示"目标页码"
+            // 例如：游标页码=1，表示要查询第2页
+            // 第2页从索引pageSize开始，需要查询 2 * pageSize 条
+            int targetPageNum = getPageFromCursor(backwardCursor);
+            topK = (targetPageNum + 1) * pageSize;
+        } else if (isPrevPage()) {
+            // 上一页：游标页码表示"当前页码"
+            // 例如：从第3页返回第2页，游标页码=2
+            // 第2页从索引pageSize开始，需要查询 2 * pageSize 条
+            int currentPageNum = getPageFromCursor(forwardCursor);
+            topK = currentPageNum * pageSize;
+        } else {
+            topK = pageSize;
+        }
+
+        // 限制最大 topK，防止性能问题
+        int maxTopK = maxPageLimit * pageSize;
+        topK = Math.min(topK, maxTopK);
+
+        // 不超过配置的 topK 上限
+        topK = Math.min(topK, this.topK);
+
+        // 确保至少返回 pageSize 条数据
+        topK = Math.max(topK, pageSize);
+
+        return topK;
     }
 
 }
