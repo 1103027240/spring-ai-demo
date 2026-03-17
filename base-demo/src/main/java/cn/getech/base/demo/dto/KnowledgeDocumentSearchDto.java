@@ -11,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
+import static cn.getech.base.demo.enums.CursorDirectionEnum.*;
+
 @Data
 @Slf4j
 @Schema(description = "知识库文档搜索请求参数")
@@ -31,10 +33,8 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     @Schema(description = "相似度分数阈值", example = "相似度分数阈值")
     private Float thresholdSimilarity = 0.7f;
 
-    @Min(value = 1, message = "topK至少为1")
-    @Max(value = 1000, message = "topK最大为1000")
     @Schema(description = "向量搜索返回数量", example = "向量搜索返回数量")
-    private Integer topK = 100;
+    private Integer topK = 10000; // 支持无限分页，设置较大值
 
     /** ====== 标量搜素参数 ====== **/
 
@@ -99,20 +99,20 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     @Schema(description = "向后游标值 (用于下一页)", example = "向后游标值 (用于下一页)")
     private String backwardCursor;
 
-    @Schema(description = "最大分页数限制（防止topK过大）", example = "10")
-    private Integer maxPageLimit = 10;
+    @Schema(description = "最大分页数限制（防止topK过大）", example = "1000")
+    private Integer maxPageLimit = 1000; // 支持无限分页，设置较大值
 
     // 辅助方法
     public boolean isFirstPage() {
-        return "first".equals(cursorDirection) || (forwardCursor == null && backwardCursor == null);
+        return FIRST.getId().equals(cursorDirection) || (forwardCursor == null && backwardCursor == null);
     }
 
     public boolean isNextPage() {
-        return "next".equals(cursorDirection) && backwardCursor != null;
+        return NEXT.getId().equals(cursorDirection) && backwardCursor != null;
     }
 
     public boolean isPrevPage() {
-        return "prev".equals(cursorDirection) && forwardCursor != null;
+        return PREV.getId().equals(cursorDirection) && forwardCursor != null;
     }
 
     /**
@@ -191,11 +191,7 @@ public class KnowledgeDocumentSearchDto implements Serializable {
             topK = pageSize;
         }
 
-        // 限制最大 topK，防止性能问题
-        int maxTopK = maxPageLimit * pageSize;
-        topK = Math.min(topK, maxTopK);
-
-        // 不超过配置的 topK 上限
+        // 限制最大 topK，防止性能问题（支持无限分页，使用topK默认值作为上限）
         topK = Math.min(topK, this.topK);
 
         // 确保至少返回 pageSize 条数据

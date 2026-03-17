@@ -231,15 +231,20 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                 return CursorSearchVO.empty();
             }
 
+            // 1.校验参数
             customerKnowledgeCheck.validateSearchParams(dto);
             dto.setTopK(dto.calculateTopK());
 
+            // 2.执行搜索并重排
             List<KnowledgeDocumentVO> sortedResults = doSearchAndSort(dto);
             if (CollUtil.isEmpty(sortedResults)) {
                 return CursorSearchVO.empty();
             }
 
+            // 3.封装返回结果
             CursorSearchVO<KnowledgeDocumentVO> result = applyCursorPagination(sortedResults, dto);
+
+            // 4.封装其他信息
             result.setSortInfoVO(SortInfoVO.builder()
                     .primaryField(dto.getSortField())
                     .primaryDirection(dto.getSortDirection())
