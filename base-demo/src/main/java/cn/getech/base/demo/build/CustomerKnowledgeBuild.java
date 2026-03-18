@@ -237,6 +237,7 @@ public class CustomerKnowledgeBuild {
     /**
      * 计算动态 topK 值（支持无限分页）
      * 计算逻辑：(页码 + 1) * 页面大小 + 页面大小 * 3（预留空间）
+     * 限制：不能超过16384
      */
     public int calculateDynamicTopK(KnowledgeDocumentSearchDto dto) {
         int pageSize = dto.getPageSize() != null ? dto.getPageSize() : 20;
@@ -244,8 +245,13 @@ public class CustomerKnowledgeBuild {
 
         int baseQuerySize = (currentPageNum + 1) * pageSize;
         int extraBuffer = pageSize * 3;
+        int calculatedTopK = baseQuerySize + extraBuffer;
 
-        return baseQuerySize + extraBuffer;
+        // 取用户设置的topK和计算值中的最大值，但不超过16384
+        int userTopK = dto.getTopK() != null ? dto.getTopK() : 10000;
+        int finalTopK = Math.max(userTopK, calculatedTopK);
+
+        return Math.min(finalTopK, 16384);
     }
 
     /**

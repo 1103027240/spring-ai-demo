@@ -256,16 +256,6 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         // 转换搜索结果
         List<KnowledgeDocumentVO> results = customerKnowledgeBuild.convertSearchResults(searchResp);
 
-        // 校验查询结果（深分页时）
-        int currentPageNum = dto.getCurrentPageNum();
-        int pageSize = dto.getPageSize();
-        int requiredDataSize = (currentPageNum + 1) * pageSize + pageSize;
-
-        if (currentPageNum > 100 && results.size() < requiredDataSize) {
-            log.warn("深分页查询结果可能不完整: 当前页={}, 页面大小={}, 查询结果={}, 建议结果={}",
-                     currentPageNum, pageSize, results.size(), requiredDataSize);
-        }
-
         // 多级排序
         return multiLevelSort(results, dto);
     }
@@ -400,7 +390,8 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         int currentPageNum = Integer.parseInt(cursorValues[0]);
 
         int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
-        if (cursorIndex >= sortedResults.size()) {
+        // 游标索引必须有效（存在且在范围内）
+        if (cursorIndex < 0 || cursorIndex >= sortedResults.size()) {
             return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
         return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, true);
@@ -426,14 +417,19 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
     /**
      * 构建分页结果
+     * 游标分页逻辑：
+     * - 下一页：从游标位置+1开始（游标代表上一页的最后一项）
+     * - 上一页：到游标位置结束（游标代表当前页的最后一项）
      */
     private CursorSearchVO<KnowledgeDocumentVO> buildPagedResult(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto,
                                                                  int cursorIndex, int currentPageNum, boolean isNext) {
         int startIndex, endIndex;
         if (isNext) {
-            startIndex = cursorIndex;
+            // 下一页：从游标位置+1开始，因为游标是上一页的最后一项
+            startIndex = cursorIndex + 1;
             endIndex = Math.min(startIndex + dto.getPageSize(), sortedResults.size());
         } else {
+            // 上一页：从当前页大小的前一页开始，到游标位置结束
             startIndex = Math.max(0, cursorIndex - dto.getPageSize());
             endIndex = cursorIndex;
         }
