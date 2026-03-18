@@ -20,6 +20,7 @@ public class JsonExportWriter extends ExportWriter {
     private final Writer writer;
     private final ObjectMapper objectMapper;
     private boolean firstItem = true;
+    private volatile boolean closed = false;
 
     public JsonExportWriter(OutputStream outputStream, KnowledgeDocumentExportDto dto) {
         super(dto);
@@ -31,13 +32,24 @@ public class JsonExportWriter extends ExportWriter {
 
     @Override
     public void init() throws IOException {
+        if (closed) {
+            throw new IOException("Writer已关闭，无法初始化");
+        }
         // 写入JSON数组开始符号
-        writer.write("[\n");
-        log.debug("JSON导出写入器初始化完成");
+        try {
+            writer.write("[\n");
+            log.debug("JSON导出写入器初始化完成");
+        } catch (IOException e) {
+            closed = true;
+            throw e;
+        }
     }
 
     @Override
     public void writeBatch(List<KnowledgeDocumentVO> documents) throws IOException {
+        if (closed) {
+            throw new IOException("Writer已关闭，无法写入数据");
+        }
         if (documents == null || documents.isEmpty()) {
             return;
         }
@@ -48,36 +60,71 @@ public class JsonExportWriter extends ExportWriter {
                 .collect(Collectors.toList());
 
         // 写入数据
-        for (KnowledgeDocumentSearchVO data : exportData) {
-            if (!firstItem) {
-                writer.write(",\n");
+        try {
+            for (KnowledgeDocumentSearchVO data : exportData) {
+                if (!firstItem) {
+                    writer.write(",\n");
+                }
+
+                String jsonStr = objectMapper.writeValueAsString(data);
+                writer.write("  " + jsonStr);
+
+                firstItem = false;
             }
 
-            String jsonStr = objectMapper.writeValueAsString(data);
-            writer.write("  " + jsonStr);
-
-            firstItem = false;
+            // 刷新缓冲区
+            if (writer != null && !closed) {
+                writer.flush();
+            }
+        } catch (IOException e) {
+            closed = true;
+            throw e;
         }
-
-        // 刷新缓冲区
-        writer.flush();
 
         log.debug("写入JSON批次数据: {}条", exportData.size());
     }
 
     @Override
     public void finish() throws IOException {
+        if (closed) {
+            log.warn("Writer已关闭，无法完成导出");
+            return;
+        }
         if (writer != null) {
-            writer.write("\n]");
-            writer.flush();
-            log.debug("JSON导出完成");
+            try {
+                writer.write("\n]");
+                writer.flush();
+                log.debug("JSON导出完成");
+            } catch (IOException e) {
+                // 注意：这里不设置 closed 标志，让 close() 方法来处理
+                throw e;
+            }
         }
     }
 
     @Override
     public void close() throws IOException {
+        if (closed) {
+            log.debug("Writer已经关闭，无需重复关闭");
+            return;
+        }
+        
+        // 在关闭前确保调用 finish()，保证 JSON 格式完整（写入结尾的 ]）
+        try {
+            finish();
+        } catch (IOException e) {
+            log.warn("在关闭时完成导出失败，将继续关闭流", e);
+        }
+        
         if (writer != null) {
-            writer.close();
+            closed = true;
+            try {
+                writer.close();
+                log.debug("JSON写入器已关闭");
+            } catch (IOException e) {
+                log.error("关闭JSON写入器失败", e);
+                throw e;
+            }
         }
     }
 
