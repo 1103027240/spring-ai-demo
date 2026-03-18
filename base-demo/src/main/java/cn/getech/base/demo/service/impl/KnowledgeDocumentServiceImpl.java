@@ -514,7 +514,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             metadata.put("summary", document.getSummary());
             metadata.put("categoryId", document.getCategoryId());
             metadata.put("tags", new Gson().toJsonTree(document.getTags()));
-            metadata.put("keywords", new Gson().toJsonTree(dto.getKeywords()));
+            metadata.put("keywords", new Gson().toJsonTree(document.getKeywords()));
             metadata.put("author", document.getAuthor());
             metadata.put("source", document.getSource());
             metadata.put("priority", document.getPriority());
