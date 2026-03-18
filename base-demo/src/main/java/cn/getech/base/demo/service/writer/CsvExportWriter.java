@@ -23,8 +23,8 @@ public class CsvExportWriter extends ExportWriter {
     private final ObjectWriter csvWriter;
     private boolean headerWritten = false;
 
-    public CsvExportWriter(OutputStream outputStream, KnowledgeDocumentExportDto exportDto) {
-        super(exportDto);
+    public CsvExportWriter(OutputStream outputStream, KnowledgeDocumentExportDto dto) {
+        super(dto);
 
         this.writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
 
@@ -45,10 +45,10 @@ public class CsvExportWriter extends ExportWriter {
                 .addColumn("source")
                 .addColumn("author")
                 .addColumn("score")
-                .addColumn("createTimeStr")
+                .addColumn("createTime")
                 .build();
 
-        if (Boolean.TRUE.equals(exportDto.getIncludeHeader())) {
+        if (Boolean.TRUE.equals(dto.getIncludeHeader())) {
             schema = schema.withHeader();
         }
 

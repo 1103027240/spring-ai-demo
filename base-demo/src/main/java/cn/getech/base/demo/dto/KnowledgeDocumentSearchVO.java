@@ -7,6 +7,7 @@ import com.alibaba.excel.annotation.write.style.HeadRowHeight;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -18,7 +19,8 @@ import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
 @HeadRowHeight(20)
 @ContentRowHeight(15)
 @Schema(description = "知识库文档导出字段映射")
-public class KnowledgeDocumentSearchVO {
+public class KnowledgeDocumentSearchVO implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @ExcelProperty(value = "文档ID", index = 0)
     @ColumnWidth(15)

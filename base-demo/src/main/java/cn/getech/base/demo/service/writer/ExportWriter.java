@@ -11,10 +11,10 @@ import java.util.List;
  */
 public abstract class ExportWriter implements Closeable {
 
-    protected final KnowledgeDocumentExportDto exportDto;
+    protected final KnowledgeDocumentExportDto dto;
 
-    protected ExportWriter(KnowledgeDocumentExportDto exportDto) {
-        this.exportDto = exportDto;
+    protected ExportWriter(KnowledgeDocumentExportDto dto) {
+        this.dto = dto;
     }
 
     /**

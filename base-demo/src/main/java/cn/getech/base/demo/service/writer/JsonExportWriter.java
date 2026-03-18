@@ -21,8 +21,8 @@ public class JsonExportWriter extends ExportWriter {
     private final ObjectMapper objectMapper;
     private boolean firstItem = true;
 
-    public JsonExportWriter(OutputStream outputStream, KnowledgeDocumentExportDto exportDto) {
-        super(exportDto);
+    public JsonExportWriter(OutputStream outputStream, KnowledgeDocumentExportDto dto) {
+        super(dto);
 
         this.writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
         this.objectMapper = new ObjectMapper();

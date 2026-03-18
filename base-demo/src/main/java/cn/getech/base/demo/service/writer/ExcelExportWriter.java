@@ -2,7 +2,6 @@ package cn.getech.base.demo.service.writer;
 
 import cn.getech.base.demo.dto.KnowledgeDocumentExportDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentSearchVO;
-import cn.getech.base.demo.dto.KnowledgeDocumentExportVO;
 import cn.getech.base.demo.dto.KnowledgeDocumentVO;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
@@ -22,17 +21,17 @@ public class ExcelExportWriter extends ExportWriter {
     private int currentSheetIndex = 1;
     private static final int MAX_ROWS_PER_SHEET = 100000;
 
-    public ExcelExportWriter(OutputStream outputStream, KnowledgeDocumentExportDto exportDto) {
-        super(exportDto);
+    public ExcelExportWriter(OutputStream outputStream, KnowledgeDocumentExportDto dto) {
+        super(dto);
 
         // 创建Excel写入器
-        this.excelWriter = EasyExcel.write(outputStream, KnowledgeDocumentExportVO.class)
-                .inMemory(Boolean.TRUE.equals(exportDto.getIncludeHeader()))
+        this.excelWriter = EasyExcel.write(outputStream, KnowledgeDocumentSearchVO.class)
+                .inMemory(Boolean.TRUE.equals(dto.getIncludeHeader()))
                 .build();
 
         // 创建第一个Sheet
         this.writeSheet = EasyExcel.writerSheet("Sheet1")
-                .needHead(Boolean.TRUE.equals(exportDto.getIncludeHeader()))
+                .needHead(Boolean.TRUE.equals(dto.getIncludeHeader()))
                 .build();
     }
 
@@ -58,7 +57,7 @@ public class ExcelExportWriter extends ExportWriter {
             // 当前Sheet已满，创建新Sheet
             currentSheetIndex++;
             WriteSheet newSheet = EasyExcel.writerSheet("Sheet" + currentSheetIndex)
-                    .needHead(Boolean.TRUE.equals(exportDto.getIncludeHeader()))
+                    .needHead(Boolean.TRUE.equals(dto.getIncludeHeader()))
                     .build();
 
             excelWriter.write(exportData, newSheet);
