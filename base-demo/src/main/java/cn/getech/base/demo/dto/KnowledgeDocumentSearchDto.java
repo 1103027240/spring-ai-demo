@@ -18,12 +18,6 @@ import static cn.getech.base.demo.enums.CursorDirectionEnum.*;
 public class KnowledgeDocumentSearchDto implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** ====== 常量 ====== **/
-
-    private static final int DEFAULT_PAGE_SIZE = 20;
-    private static final int MAX_PAGE_SIZE = 100;
-    private static final int MIN_PAGE_SIZE = 1;
-
     /** ====== 向量搜索参数 ====== **/
 
     @Schema(description = "文档内容", example = "文档内容")

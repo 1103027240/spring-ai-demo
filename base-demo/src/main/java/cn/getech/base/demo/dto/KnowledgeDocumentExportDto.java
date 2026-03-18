@@ -1,8 +1,11 @@
 package cn.getech.base.demo.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.List;
+import static cn.getech.base.demo.enums.ExportFormatEnum.*;
 
 @Data
 @Getter
@@ -12,74 +15,65 @@ import java.time.LocalDateTime;
 public class KnowledgeDocumentExportDto implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 导出格式：json、csv、xml
-     */
-    private String format = "json";
+    // ========== 搜索条件 ==========
 
-    /**
-     * 分类筛选
-     */
-    private String category;
+    @NotNull(message = "搜索条件不能为空")
+    @Schema(description = "搜索条件", example = "搜索条件", required = true)
+    private KnowledgeDocumentSearchDto searchConditionDto;
 
-    /**
-     * 开始时间
-     */
-    private LocalDateTime startTime;
+    // ========== 导出配置 ==========
 
-    /**
-     * 结束时间
-     */
-    private LocalDateTime endTime;
+    @NotNull(message = "导出格式不能为空")
+    @Schema(description = "导出格式: JSON, CSV, EXCEL, GZIP", example = "EXCEL", required = true)
+    private String format = "EXCEL";
 
-    /**
-     * 关键词筛选
-     */
-    private String keyword;
+    @Schema(description = "导出字段列表，为空则导出所有字段")
+    private List<String> exportFields = List.of(
+            "docId", "title", "content", "summary",
+            "categoryId", "keywords", "tags", "source",
+            "author", "score", "createTime"
+    );
 
-    /**
-     * 状态筛选
-     */
-    private Integer status;
+    @Schema(description = "是否压缩", example = "默认true")
+    private Boolean compress = true;
 
-    /**
-     * 作者筛选
-     */
-    private String author;
+    @Schema(description = "压缩级别(1-9)", example = "默认6")
+    private Integer compressionLevel = 6;
 
-    /**
-     * 是否包含已删除的文档
-     */
-    private Boolean includeDeleted = false;
+    @Schema(description = "是否包含表头(CSV/EXCEL)")
+    private Boolean includeHeader = true;
 
-    /**
-     * 字段列表（逗号分隔），用于导出特定字段
-     */
-    private String fields = "id,title,category,author,create_time";
+    // ========== 分页配置 ==========
+    @Schema(description = "每批导出数量")
+    private Integer batchSize = 1000;
 
-    /**
-     * 排序字段
-     */
-    private String orderBy = "create_time";
+    // 辅助方法
+    public boolean isExcelFormat() {
+        return EXCEL.getId().equalsIgnoreCase(format);
+    }
 
-    /**
-     * 排序方向：asc/desc
-     */
-    private String orderDirection = "desc";
+    public boolean isCsvFormat() {
+        return CSV.getId().equalsIgnoreCase(format);
+    }
 
-    /**
-     * 导出文件编码
-     */
-    private String encoding = "UTF-8";
+    public boolean isJsonFormat() {
+        return JSON.getId().equalsIgnoreCase(format);
+    }
 
-    /**
-     * 分页导出，从第几页开始
-     */
-    private Integer page = 1;
+    public boolean isGzipFormat() {
+        return GZIP.getId().equalsIgnoreCase(format) || Boolean.TRUE.equals(compress);
+    }
 
-    /**
-     * 分页导出，每页数量
-     */
-    private Integer size = 1000;
+    public String getFileExtension() {
+        if (isExcelFormat()) {
+            return isGzipFormat() ? EXCEL.getDetailText() : EXCEL.getText();
+        } else if (isCsvFormat()) {
+            return isGzipFormat() ? CSV.getDetailText() : CSV.getText();
+        } else if (isJsonFormat()) {
+            return isGzipFormat() ? JSON.getDetailText() : JSON.getText();
+        } else {
+            return isGzipFormat() ? GZIP.getDetailText() : GZIP.getText();
+        }
+    }
 
 }

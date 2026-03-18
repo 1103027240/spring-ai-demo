@@ -47,9 +47,9 @@ public class FieldValueConstant {
 
     public static final String CUSTOMER_COLLECTION_NAME = "customer_knowledge";
 
-    public static final String CUSTOMER_CURSOR_PREFIX = "milvus:customer:cursor:";
+    public static final String REDIS_TASK_STATUS_PREFIX = "export:task:status:";
 
-    public static final String EXPORT_TASK_PREFIX = "milvus:export:task:";
+    public static final String EXPORT_FILE_PREFIX = "export_";
 
     /**
      * 事务提交后延迟时间（毫秒）

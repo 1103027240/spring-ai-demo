@@ -188,13 +188,18 @@ customer:
   milvus:
     search:
       nprobe: 128
-  cursor:
-    ttl: 300
 
 sync:
   mysql:
     retention:
-      count: 4
+      count: 20
+
+export:
+  task:
+    ttl-minutes: 30
+    ttl-days: 7
+    base-path: E:/Export
+    temp-path: E:/Export/temp
 
 # 文本分割配置（用于 RAG 文档处理）
 rag:
