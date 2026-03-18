@@ -87,9 +87,24 @@ public class ExportTaskServiceImpl extends ServiceImpl<ExportTaskMapper, ExportT
     }
 
     @Override
-    public void updateTaskStatus(ExportTask exportTask, String status, String errorMessage) {
+    public void updateTaskStatus(ExportTask exportTask, String status, String fileName, Path filePath, String errorMessage) {
         exportTask.setTaskStatus(status);
         exportTask.setUpdateTime(LocalDateTime.now());
+
+        if(StrUtil.isNotBlank(fileName)){
+            exportTask.setFileName(fileName);
+        }
+
+        if(filePath != null){
+            exportTask.setFilePath(filePath.toFile().getPath());
+            try {
+                long fileSize = Files.size(filePath);
+                exportTask.setFileSize(fileSize);
+            } catch (IOException e) {
+                log.warn("获取文件大小失败: filePath={}", filePath, e);
+            }
+        }
+
         if(StrUtil.isNotBlank(errorMessage)){
             exportTask.setErrorMessage(errorMessage);
         }

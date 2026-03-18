@@ -63,7 +63,7 @@ public class ExportServiceImpl implements ExportService {
             long fileSize = Files.size(filePath);
 
             // 3. 更新任务状态为已完成
-            exportTaskService.updateTaskStatus(exportTask, COMPLETED.getId(), null);
+            exportTaskService.updateTaskStatus(exportTask, COMPLETED.getId(), fileName, filePath, null);
 
             // 4. 构建返回结果
             KnowledgeDocumentExportVO result = KnowledgeDocumentExportVO.builder()
@@ -83,7 +83,7 @@ public class ExportServiceImpl implements ExportService {
             log.error("导出任务失败: taskId={}", taskId, e);
 
             // 3、更新任务状态为失败
-            exportTaskService.updateTaskStatus(exportTask, FAILED.getId(), e.getMessage());
+            exportTaskService.updateTaskStatus(exportTask, FAILED.getId(), null, null, e.getMessage());
 
             // 4、清理临时文件
             cleanupTempFiles(taskId);
@@ -117,7 +117,7 @@ public class ExportServiceImpl implements ExportService {
 
                 // 3、更新任务状态为处理中，首次写入更新任务状态
                 if (totalExported.getAndIncrement() == 0) { 
-                    exportTaskService.updateTaskStatus(exportTask, PROCESSING.getId(), null);
+                    exportTaskService.updateTaskStatus(exportTask, PROCESSING.getId(), null, null, null);
                 }
 
                 // 检查是否还有更多数据
