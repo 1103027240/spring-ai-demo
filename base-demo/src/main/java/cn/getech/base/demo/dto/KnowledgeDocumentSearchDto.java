@@ -33,7 +33,7 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     private Float thresholdSimilarity = 0.7f;
 
     @Schema(description = "向量搜索返回数量", example = "向量搜索返回数量")
-    private Integer topK = 10000; // 支持无限分页，设置较大值
+    private Integer topK; // 支持无限分页，默认使用动态计算
 
     /** ====== 标量搜素参数 ====== **/
 
@@ -116,18 +116,18 @@ public class KnowledgeDocumentSearchDto implements Serializable {
 
     /**
      * 构建游标值 (使用Base64编码避免特殊字符冲突)
-     * 格式：page|primaryValue|secondaryValue
+     * 格式：page|primaryValue|secondValue
      */
-    public String encodeCursor(int page, String primaryValue, String secondaryValue) {
+    public String encodeCursor(int page, String primaryValue, String secondValue) {
         if (primaryValue == null) primaryValue = "0";
-        if (secondaryValue == null) secondaryValue = "0";
-        String combined = page + "|" + primaryValue + "|" + secondaryValue;
+        if (secondValue == null) secondValue = "0";
+        String combined = page + "|" + primaryValue + "|" + secondValue;
         return Base64.getEncoder().encodeToString(combined.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
      * 解析游标值
-     * @return [page, primaryValue, secondaryValue]
+     * @return [page, primaryValue, secondValue]
      */
     public String[] decodeCursor(String cursor) {
         if (StrUtil.isBlank(cursor)) {
@@ -160,22 +160,15 @@ public class KnowledgeDocumentSearchDto implements Serializable {
 
     /**
      * 获取目标数据索引（供服务层计算topK使用）
-     * 游标中存储的是当前页的绝对页码（从0开始）
-     * 计算方法：目标索引 = (页码 + 1) * 页面大小
+     * 游标页码含义：游标中存储的是目标页的页码
+     * 计算方法：目标索引 = (目标页码 + 1) * 页面大小
      */
     public int getTargetDataIndex() {
         if (isFirstPage()) {
             return pageSize;
-        } else if (isNextPage()) {
-            // 下一页：游标中的页码是上一页的页码，目标页码 = 游标页码 + 1
-            int cursorPageNum = getPageFromCursor(nextCursor);
-            return (cursorPageNum + 2) * pageSize;
-        } else if (isPrevPage()) {
-            // 上一页：游标中的页码是当前页的页码，目标页码 = 游标页码 - 1
-            int cursorPageNum = getPageFromCursor(prevCursor);
-            return cursorPageNum * pageSize;
         }
-        return pageSize;
+        int cursorPageNum = isNextPage() ? getPageFromCursor(nextCursor) : getPageFromCursor(prevCursor);
+        return (cursorPageNum + 1) * pageSize;
     }
 
 }

@@ -140,7 +140,7 @@ public class CustomerKnowledgeBuild {
     }
 
     /**
-     * 查找游标位置（二分查找，没有找到时，不降级成线性查询），找不到精确匹配时返回最接近的位置
+     * 查找游标位置，找不到精确匹配时返回最接近的位置（不降级成线性查询）
      */
     public int findCursorIndex(List<KnowledgeDocumentVO> sortedResults, String primaryCursor, String secondCursor, KnowledgeDocumentSearchDto dto) {
         if (CollUtil.isEmpty(sortedResults)) {
@@ -194,18 +194,20 @@ public class CustomerKnowledgeBuild {
             }
         }
 
-        return low;
+        // 根据排序方向返回合适的游标位置
+        // 降序：返回第一个大于目标值的位置（high）
+        // 升序：返回第一个大于目标值的位置（low）
+        return SortDirectionEnum.DESC.getId().equalsIgnoreCase(dto.getSortDirection()) ? high : low;
     }
 
     /**
      * 构建游标
      */
-    public String buildCursor(KnowledgeDocumentSearchDto dto, KnowledgeDocumentVO doc, int pageNum) {
+    public String buildCursor(KnowledgeDocumentSearchDto dto, KnowledgeDocumentVO doc, int currentPage) {
         return dto.encodeCursor(
-                pageNum,
+                currentPage,
                 doc.getSortKey(dto.getSortField()),
-                doc.getSortKey(dto.getSecondSortField())
-        );
+                doc.getSortKey(dto.getSecondSortField()));
     }
 
     public List<KnowledgeDocumentVO> convertSearchResults(SearchResp searchResp) {
@@ -236,21 +238,18 @@ public class CustomerKnowledgeBuild {
 
     /**
      * 计算动态 topK 值（支持无限分页）
-     * 计算逻辑：目标索引 + 页面大小 * 3（预留空间）
-     * 限制：不能超过16384
+     * 计算逻辑：目标索引 + 每页记录数 * 3（预留空间）
+     * 限制：Milvus不能超过16384
      */
     public int calculateDynamicTopK(KnowledgeDocumentSearchDto dto) {
         int pageSize = dto.getPageSize() != null ? dto.getPageSize() : 20;
-        int targetIndex = dto.getTargetDataIndex();
+        int baseQuerySize = dto.getTargetDataIndex();
 
-        int baseQuerySize = targetIndex;
         int extraBuffer = pageSize * 3;
         int calculatedTopK = baseQuerySize + extraBuffer;
 
-        // 取用户设置的topK和计算值中的最大值，但不超过16384
-        int userTopK = dto.getTopK() != null ? dto.getTopK() : 10000;
-        int finalTopK = Math.max(userTopK, calculatedTopK);
-
+        // 只有用户显式设置topK时才考虑，否则使用动态计算的值
+        int finalTopK = (dto.getTopK() != null) ? Math.max(dto.getTopK(), calculatedTopK) : calculatedTopK;
         return Math.min(finalTopK, 16384);
     }
 

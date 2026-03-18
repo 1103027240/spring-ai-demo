@@ -214,11 +214,11 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
      */
     @Override
     public CursorSearchVO<KnowledgeDocumentVO> search(KnowledgeDocumentSearchDto dto) {
+        // 校验参数
         if (StrUtil.isBlank(dto.getContent())) {
             return CursorSearchVO.empty();
         }
 
-        // 校验参数
         customerKnowledgeCheck.validateSearchParams(dto);
 
         // 搜索并排序
@@ -291,8 +291,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     0L,
                     0L,
                     ConsistencyLevel.BOUNDED,
-                    false
-            );
+                    false);
         } catch (Exception e) {
             log.error("向量搜索异常: error={}", e.getMessage(), e);
             return null;
@@ -362,21 +361,22 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     /**
-     * 获取首页数据
-     * 游标索引从0开始，表示当前页最后一条数据的索引
+     * 获取首页数据（页码0）
      */
     private CursorSearchVO<KnowledgeDocumentVO> getFirstPage(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto) {
         int pageSize = dto.getPageSize();
-        List<KnowledgeDocumentVO> currentPage = sortedResults.stream()
+        List<KnowledgeDocumentVO> currentPageList = sortedResults.stream()
                 .limit(pageSize)
                 .collect(Collectors.toList());
 
         boolean hasNext = sortedResults.size() > pageSize;
+
+        // nextCursor: 当前页最后一条数据，页码为0
         String nextCursor = hasNext
-                ? customerKnowledgeBuild.buildCursor(dto, currentPage.get(currentPage.size() - 1), 0)
+                ? customerKnowledgeBuild.buildCursor(dto, currentPageList.get(currentPageList.size() - 1), 0)
                 : null;
 
-        return CursorSearchVO.success(currentPage, nextCursor, null, hasNext, false, pageSize);
+        return CursorSearchVO.success(currentPageList, nextCursor, null, hasNext, false, pageSize);
     }
 
     /**
@@ -388,14 +388,14 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         }
 
         String[] cursorValues = dto.decodeCursor(dto.getNextCursor());
-        int currentPageNum = Integer.parseInt(cursorValues[0]);
+        int currentPage = Integer.parseInt(cursorValues[0]);
 
         int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
-        // 游标索引必须有效（存在且在范围内）
         if (cursorIndex < 0 || cursorIndex >= sortedResults.size()) {
             return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
-        return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, true);
+
+        return buildPagedResult(sortedResults, dto, cursorIndex, currentPage, true);
     }
 
     /**
@@ -407,30 +407,30 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         }
 
         String[] cursorValues = dto.decodeCursor(dto.getPrevCursor());
-        int currentPageNum = Integer.parseInt(cursorValues[0]);
+        int currentPage = Integer.parseInt(cursorValues[0]);
 
         int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
-        if (cursorIndex <= 0) {
+        if (cursorIndex < 0 || cursorIndex >= sortedResults.size()) {
             return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
-        return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, false);
+
+        return buildPagedResult(sortedResults, dto, cursorIndex, currentPage, false);
     }
 
     /**
      * 构建分页结果
-     * 游标分页逻辑：
-     * - 下一页：从游标位置+1开始（游标代表上一页的最后一项）
-     * - 上一页：到游标位置结束（游标代表当前页的最后一项）
+     * - nextCursor: 当前页最后一条数据的位置（当前页码）
+     * - prevCursor: 当前页第一条数据的前一页位置（当前页码-1）
      */
     private CursorSearchVO<KnowledgeDocumentVO> buildPagedResult(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto,
-                                                                 int cursorIndex, int currentPageNum, boolean isNext) {
+                                                                 int cursorIndex, int currentPage, boolean isNext) {
         int startIndex, endIndex;
         if (isNext) {
-            // 下一页：从游标位置+1开始，因为游标是上一页的最后一项
+            // 下一页：从游标位置+1开始（游标是上一页最后一条）
             startIndex = cursorIndex + 1;
             endIndex = Math.min(startIndex + dto.getPageSize(), sortedResults.size());
         } else {
-            // 上一页：从当前页大小的前一页开始，到游标位置结束
+            // 上一页：从游标位置往前推pageSize条（游标是下一页第一条）
             startIndex = Math.max(0, cursorIndex - dto.getPageSize());
             endIndex = cursorIndex;
         }
@@ -439,18 +439,23 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
 
-        List<KnowledgeDocumentVO> currentPage = sortedResults.subList(startIndex, endIndex);
+        List<KnowledgeDocumentVO> currentPageList = sortedResults.subList(startIndex, endIndex);
         boolean hasPrev = startIndex > 0;
         boolean hasNext = endIndex < sortedResults.size();
 
-        String prevCursor = hasPrev
-                ? customerKnowledgeBuild.buildCursor(dto, sortedResults.get(startIndex), currentPageNum - 1)
-                : null;
+        // 游标页码为当前页的实际页码（下一页时需要+1）
+        int actualPageNum = isNext ? currentPage + 1 : currentPage;
+
+        // nextCursor: 当前页最后一条数据（用于"下一页"）
+        // prevCursor: 当前页第一条数据（用于"上一页"，从它往前推pageSize条）
         String nextCursor = hasNext
-                ? customerKnowledgeBuild.buildCursor(dto, sortedResults.get(endIndex - 1), currentPageNum + 1)
+                ? customerKnowledgeBuild.buildCursor(dto, sortedResults.get(endIndex - 1), actualPageNum)
+                : null;
+        String prevCursor = hasPrev
+                ? customerKnowledgeBuild.buildCursor(dto, sortedResults.get(startIndex), actualPageNum)
                 : null;
 
-        return CursorSearchVO.success(currentPage, nextCursor, prevCursor, hasNext, hasPrev, dto.getPageSize());
+        return CursorSearchVO.success(currentPageList, nextCursor, prevCursor, hasNext, hasPrev, dto.getPageSize());
     }
 
     /**

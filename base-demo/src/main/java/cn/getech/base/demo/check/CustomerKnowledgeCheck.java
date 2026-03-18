@@ -28,8 +28,6 @@ public class CustomerKnowledgeCheck {
             dto.setPageSize(100);
         }
 
-        dto.setSortDirection(SortDirectionEnum.getDefaultId(dto.getSortDirection()));
-
         if (!CursorSortByEnum.isValidSortField(dto.getSortField())) {
             dto.setSortField(SCORE.getId());
         }
@@ -37,6 +35,8 @@ public class CustomerKnowledgeCheck {
         if (!CursorDirectionEnum.isValidCursorDirection(dto.getCursorDirection())) {
             dto.setCursorDirection(FIRST.getId());
         }
+
+        dto.setSortDirection(SortDirectionEnum.getDefaultId(dto.getSortDirection()));
     }
 
     /**
