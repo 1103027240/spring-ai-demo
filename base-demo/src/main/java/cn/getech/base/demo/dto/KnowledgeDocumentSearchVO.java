@@ -73,10 +73,7 @@ public class KnowledgeDocumentSearchVO {
     @ExcelProperty(value = "创建时间", index = 10)
     @ColumnWidth(20)
     @Schema(description = "创建时间")
-    private String createTimeStr;
-
-    // 内部字段
-    private Long createTime;
+    private String createTime;
 
     // 转换方法
     public static KnowledgeDocumentSearchVO fromKnowledgeDocumentVO(KnowledgeDocumentVO  doc) {
@@ -85,8 +82,7 @@ public class KnowledgeDocumentSearchVO {
         exportVO.setDocId(doc.getDocId());
         exportVO.setContent(doc.getContent());
         exportVO.setScore(doc.getScore());
-        exportVO.setCreateTime(doc.getCreateTime());
-        exportVO.setCreateTimeStr(formatTime(doc.getCreateTime()));
+        exportVO.setCreateTime(formatTime(doc.getCreateTime()));
 
         if (doc.getMetadata() != null) {
             Map<String, Object> metadata = doc.getMetadata();

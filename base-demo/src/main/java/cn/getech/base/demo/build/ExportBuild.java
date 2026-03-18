@@ -16,14 +16,13 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.zip.GZIPOutputStream;
 import static cn.getech.base.demo.constant.FieldValueConstant.EXPORT_FILE_PREFIX;
-import static cn.getech.base.demo.enums.CursorDirectionEnum.FIRST;
 import static cn.getech.base.demo.enums.CursorDirectionEnum.NEXT;
 import static cn.hutool.core.date.DatePattern.PURE_DATETIME_FORMATTER;
 
 @Component
 public class ExportBuild {
 
-    @Value("${export.task.base-path")
+    @Value("${export.task.base-path}")
     private String baseExportPath;
 
     /**

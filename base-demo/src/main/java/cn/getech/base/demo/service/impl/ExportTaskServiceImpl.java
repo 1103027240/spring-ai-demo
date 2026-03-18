@@ -34,7 +34,7 @@ import static cn.hutool.core.date.DatePattern.PURE_DATE_PATTERN;
 @Service
 public class ExportTaskServiceImpl extends ServiceImpl<ExportTaskMapper, ExportTask> implements ExportTaskService {
 
-    @Value("${export.task.temp-path")
+    @Value("${export.task.temp-path}")
     private String tempPath;
 
     @Value("${export.task.ttl-days:7}")

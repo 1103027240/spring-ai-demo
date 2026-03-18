@@ -75,7 +75,7 @@ public class ExportServiceImpl implements ExportService {
                     .duration(endTime - startTime)
                     .format(dto.getFormat())
                     .compressionRatio(exportBuild.calculateCompressionRatio(filePath, dto))
-                    .downloadUrl("/api/export/download/" + taskId)
+                    .downloadUrl("E:\\Export\\" + taskId)
                     .build();
 
             return CompletableFuture.completedFuture(result);
