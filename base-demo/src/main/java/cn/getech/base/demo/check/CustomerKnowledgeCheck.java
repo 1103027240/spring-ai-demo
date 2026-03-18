@@ -5,8 +5,9 @@ import cn.getech.base.demo.enums.CursorDirectionEnum;
 import cn.getech.base.demo.enums.CursorSortByEnum;
 import cn.getech.base.demo.enums.SortDirectionEnum;
 import org.springframework.stereotype.Component;
+import java.util.Arrays;
 import static cn.getech.base.demo.enums.CursorDirectionEnum.FIRST;
-import static cn.getech.base.demo.enums.CursorSortByEnum.SCORE;
+import static cn.getech.base.demo.enums.CursorSortByEnum.*;
 
 @Component
 public class CustomerKnowledgeCheck {
@@ -43,13 +44,9 @@ public class CustomerKnowledgeCheck {
      */
     public int compareSortKey(String key1, String key2, String field) {
         if (CursorSortByEnum.SCORE.getId().equals(field)) {
-            float score1 = Float.parseFloat(key1);
-            float score2 = Float.parseFloat(key2);
-            return Float.compare(score1, score2);
-        } else if (CursorSortByEnum.CREATE_TIME.getId().equals(field) || CursorSortByEnum.DOC_ID.getId().equals(field)) {
-            long value1 = Long.parseLong(key1);
-            long value2 = Long.parseLong(key2);
-            return Long.compare(value1, value2);
+            return Float.compare(Float.parseFloat(key1), Float.parseFloat(key2));
+        } else if (Arrays.asList(CREATE_TIME.getId(), DOC_ID.getId()).contains(field)) {
+            return Long.compare(Long.parseLong(key1), Long.parseLong(key2));
         } else {
             return key1.compareTo(key2);
         }
