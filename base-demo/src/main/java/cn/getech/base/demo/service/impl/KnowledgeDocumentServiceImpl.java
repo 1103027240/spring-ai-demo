@@ -363,6 +363,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
     /**
      * 获取首页数据
+     * 游标索引从0开始，表示当前页最后一条数据的索引
      */
     private CursorSearchVO<KnowledgeDocumentVO> getFirstPage(List<KnowledgeDocumentVO> sortedResults, KnowledgeDocumentSearchDto dto) {
         int pageSize = dto.getPageSize();
@@ -372,7 +373,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         boolean hasNext = sortedResults.size() > pageSize;
         String nextCursor = hasNext
-                ? customerKnowledgeBuild.buildCursor(dto, currentPage.get(currentPage.size() - 1), 1)
+                ? customerKnowledgeBuild.buildCursor(dto, currentPage.get(currentPage.size() - 1), 0)
                 : null;
 
         return CursorSearchVO.success(currentPage, nextCursor, null, hasNext, false, pageSize);

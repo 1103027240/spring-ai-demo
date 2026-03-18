@@ -159,17 +159,23 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     }
 
     /**
-     * 获取当前页码（供服务层使用）
+     * 获取目标数据索引（供服务层计算topK使用）
+     * 游标中存储的是当前页的绝对页码（从0开始）
+     * 计算方法：目标索引 = (页码 + 1) * 页面大小
      */
-    public int getCurrentPageNum() {
+    public int getTargetDataIndex() {
         if (isFirstPage()) {
-            return 0;
+            return pageSize;
         } else if (isNextPage()) {
-            return getPageFromCursor(nextCursor);
+            // 下一页：游标中的页码是上一页的页码，目标页码 = 游标页码 + 1
+            int cursorPageNum = getPageFromCursor(nextCursor);
+            return (cursorPageNum + 2) * pageSize;
         } else if (isPrevPage()) {
-            return getPageFromCursor(prevCursor) - 1;
+            // 上一页：游标中的页码是当前页的页码，目标页码 = 游标页码 - 1
+            int cursorPageNum = getPageFromCursor(prevCursor);
+            return cursorPageNum * pageSize;
         }
-        return 0;
+        return pageSize;
     }
 
 }

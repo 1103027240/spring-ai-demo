@@ -236,14 +236,14 @@ public class CustomerKnowledgeBuild {
 
     /**
      * 计算动态 topK 值（支持无限分页）
-     * 计算逻辑：(页码 + 1) * 页面大小 + 页面大小 * 3（预留空间）
+     * 计算逻辑：目标索引 + 页面大小 * 3（预留空间）
      * 限制：不能超过16384
      */
     public int calculateDynamicTopK(KnowledgeDocumentSearchDto dto) {
         int pageSize = dto.getPageSize() != null ? dto.getPageSize() : 20;
-        int currentPageNum = dto.getCurrentPageNum();
+        int targetIndex = dto.getTargetDataIndex();
 
-        int baseQuerySize = (currentPageNum + 1) * pageSize;
+        int baseQuerySize = targetIndex;
         int extraBuffer = pageSize * 3;
         int calculatedTopK = baseQuerySize + extraBuffer;
 
