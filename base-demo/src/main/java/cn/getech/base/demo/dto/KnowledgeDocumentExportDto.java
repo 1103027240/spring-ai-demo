@@ -19,7 +19,7 @@ public class KnowledgeDocumentExportDto implements Serializable {
 
     @NotNull(message = "搜索条件不能为空")
     @Schema(description = "搜索条件", example = "搜索条件", required = true)
-    private KnowledgeDocumentSearchDto searchConditionDto;
+    private KnowledgeDocumentSearchDto searchCondition;
 
     // ========== 导出配置 ==========
 

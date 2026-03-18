@@ -59,8 +59,7 @@ public class ExportTaskServiceImpl extends ServiceImpl<ExportTaskMapper, ExportT
         exportTask.setTaskStatus(INITIALIZED.getId());
         exportTask.setCreateTime(LocalDateTime.now());
         exportTask.setUpdateTime(LocalDateTime.now());
-
-        // 用户ID
+        exportTask.setUserId("10001"); // 用户ID
 
         // 导出请求参数
         try {

@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.zip.GZIPOutputStream;
 import static cn.getech.base.demo.constant.FieldValueConstant.EXPORT_FILE_PREFIX;
+import static cn.getech.base.demo.enums.CursorDirectionEnum.FIRST;
 import static cn.getech.base.demo.enums.CursorDirectionEnum.NEXT;
 import static cn.hutool.core.date.DatePattern.PURE_DATETIME_FORMATTER;
 
@@ -67,11 +68,11 @@ public class ExportBuild {
     /**
      * 构建批处理搜索请求
      */
-    public KnowledgeDocumentSearchDto buildSearchForBatch(KnowledgeDocumentExportDto dto, String cursor) {
-        KnowledgeDocumentSearchDto batchDto = dto.getSearchConditionDto();
+    public KnowledgeDocumentSearchDto buildSearchForBatch(KnowledgeDocumentExportDto dto, String nextCursor) {
+        KnowledgeDocumentSearchDto batchDto = dto.getSearchCondition();
         batchDto.setPageSize(dto.getBatchSize());
         batchDto.setCursorDirection(NEXT.getId());
-        batchDto.setNextCursor(cursor);
+        batchDto.setNextCursor(nextCursor);
         return batchDto;
     }
 
