@@ -256,7 +256,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         // 转换搜索结果
         List<KnowledgeDocumentVO> results = customerKnowledgeBuild.convertSearchResults(searchResp);
 
-        // 验证查询结果（深分页时）
+        // 校验查询结果（深分页时）
         int currentPageNum = dto.getCurrentPageNum();
         int pageSize = dto.getPageSize();
         int requiredDataSize = (currentPageNum + 1) * pageSize + pageSize;
@@ -400,11 +400,9 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         int currentPageNum = Integer.parseInt(cursorValues[0]);
 
         int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
-
         if (cursorIndex >= sortedResults.size()) {
             return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
-
         return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, true);
     }
 
@@ -420,11 +418,9 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         int currentPageNum = Integer.parseInt(cursorValues[0]);
 
         int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
-
         if (cursorIndex <= 0) {
             return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
-
         return buildPagedResult(sortedResults, dto, cursorIndex, currentPageNum, false);
     }
 

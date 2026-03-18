@@ -154,17 +154,16 @@ public class CustomerKnowledgeBuild {
         while (low <= high) {
             int mid = (low + high) >>> 1;
             KnowledgeDocumentVO doc = sortedResults.get(mid);
-
             String docPrimarySortKey = doc.getSortKey(dto.getSortField());
             String docSecondSortKey = doc.getSortKey(dto.getSecondSortField());
 
             int primaryCompare = customerKnowledgeCheck.compareSortKey(docPrimarySortKey, primaryCursor, dto.getSortField());
-
             if (primaryCompare == 0) {
                 int secondCompare = customerKnowledgeCheck.compareSortKey(docSecondSortKey, secondCursor, dto.getSecondSortField());
                 if (secondCompare == 0) {
                     return mid;
                 }
+
                 if (isDesc) {
                     if (secondCompare > 0) {
                         low = mid + 1;
@@ -237,7 +236,7 @@ public class CustomerKnowledgeBuild {
 
     /**
      * 计算动态 topK 值（支持无限分页）
-     * 计算逻辑：(页码 + 1) * 页面大小 + 页面大小*3（预留空间）
+     * 计算逻辑：(页码 + 1) * 页面大小 + 页面大小 * 3（预留空间）
      */
     public int calculateDynamicTopK(KnowledgeDocumentSearchDto dto) {
         int pageSize = dto.getPageSize() != null ? dto.getPageSize() : 20;
@@ -256,8 +255,8 @@ public class CustomerKnowledgeBuild {
         Map<String, Object> searchParams = new HashMap<>();
         searchParams.put("nprobe", nprobe);
         searchParams.put("metric_type", "COSINE");
-        searchParams.put("radius", 1.0 - dto.getThresholdSimilarity());
-        searchParams.put("range_filter", 1.0);
+        searchParams.put("radius", dto.getThresholdSimilarity());  // 最小相似度阈值
+        searchParams.put("range_filter", 1.0);  // 最大相似度上限
         return searchParams;
     }
 

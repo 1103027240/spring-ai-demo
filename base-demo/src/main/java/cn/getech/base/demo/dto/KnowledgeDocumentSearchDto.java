@@ -1,5 +1,6 @@
 package cn.getech.base.demo.dto;
 
+import cn.hutool.core.util.StrUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -129,7 +130,7 @@ public class KnowledgeDocumentSearchDto implements Serializable {
      * @return [page, primaryValue, secondaryValue]
      */
     public String[] decodeCursor(String cursor) {
-        if (cursor == null || cursor.isEmpty()) {
+        if (StrUtil.isBlank(cursor)) {
             return new String[]{"0", "0", "0"};
         }
         try {
