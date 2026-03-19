@@ -3,6 +3,7 @@ package cn.getech.base.demo.service.writer;
 import cn.getech.base.demo.dto.KnowledgeDocumentExportDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentSearchVO;
 import cn.getech.base.demo.dto.KnowledgeDocumentVO;
+import cn.hutool.core.collection.CollUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
@@ -47,7 +48,8 @@ public class ExcelExportWriter extends ExportWriter {
         if (closed) {
             throw new IOException("Writer已关闭，无法写入数据");
         }
-        if (documents == null || documents.isEmpty()) {
+
+        if (CollUtil.isEmpty(documents)) {
             return;
         }
 
@@ -89,6 +91,7 @@ public class ExcelExportWriter extends ExportWriter {
             log.warn("Writer已关闭，无法完成导出");
             return;
         }
+
         if (excelWriter != null) {
             try {
                 excelWriter.finish();

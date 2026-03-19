@@ -3,6 +3,7 @@ package cn.getech.base.demo.service.writer;
 import cn.getech.base.demo.dto.KnowledgeDocumentExportDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentSearchVO;
 import cn.getech.base.demo.dto.KnowledgeDocumentVO;
+import cn.hutool.core.collection.CollUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,8 @@ public class JsonExportWriter extends ExportWriter {
         if (closed) {
             throw new IOException("Writer已关闭，无法写入数据");
         }
-        if (documents == null || documents.isEmpty()) {
+
+        if (CollUtil.isEmpty(documents)) {
             return;
         }
 
@@ -90,6 +92,7 @@ public class JsonExportWriter extends ExportWriter {
             log.warn("Writer已关闭，无法完成导出");
             return;
         }
+
         if (writer != null) {
             try {
                 writer.write("\n]");

@@ -1,5 +1,6 @@
 package cn.getech.base.demo.service.writer;
 
+import org.jspecify.annotations.NonNull;
 import java.io.IOException;
 import java.io.Writer;
 
@@ -8,6 +9,7 @@ import java.io.Writer;
  * 用于防止底层 Writer 被外部库（如 Jackson）自动关闭
  */
 public class NonClosingWriter extends Writer {
+
     private final Writer delegate;
 
     public NonClosingWriter(Writer delegate) {
@@ -15,8 +17,8 @@ public class NonClosingWriter extends Writer {
     }
 
     @Override
-    public void write(char[] cbuf, int off, int len) throws IOException {
-        delegate.write(cbuf, off, len);
+    public void write(char @NonNull [] buff, int off, int len) throws IOException {
+        delegate.write(buff, off, len);
     }
 
     @Override

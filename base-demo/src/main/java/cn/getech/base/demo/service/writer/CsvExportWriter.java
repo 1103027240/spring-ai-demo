@@ -3,6 +3,7 @@ package cn.getech.base.demo.service.writer;
 import cn.getech.base.demo.dto.KnowledgeDocumentExportDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentSearchVO;
 import cn.getech.base.demo.dto.KnowledgeDocumentVO;
+import cn.hutool.core.collection.CollUtil;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
@@ -84,7 +85,8 @@ public class CsvExportWriter extends ExportWriter {
         if (closed) {
             throw new IOException("Writer已关闭，无法写入数据");
         }
-        if (documents == null || documents.isEmpty()) {
+
+        if (CollUtil.isEmpty(documents)) {
             return;
         }
 
@@ -122,6 +124,7 @@ public class CsvExportWriter extends ExportWriter {
             log.warn("Writer已关闭，无法完成导出");
             return;
         }
+
         if (writer != null) {
             try {
                 writer.flush();
