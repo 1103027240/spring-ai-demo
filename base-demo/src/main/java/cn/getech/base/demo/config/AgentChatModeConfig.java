@@ -1,5 +1,7 @@
 package cn.getech.base.demo.config;
 
+import io.agentscope.core.formatter.dashscope.DashScopeChatFormatter;
+import io.agentscope.core.formatter.dashscope.DashScopeMultiAgentFormatter;
 import io.agentscope.core.model.DashScopeChatModel;
 import io.agentscope.core.model.Model;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * @author 11030
  */
 @Configuration
-public class AgentModeConfig {
+public class AgentChatModeConfig {
 
     @Value("${spring.ai.dashscope.api-key}")
     private String apiKey;
@@ -24,6 +26,9 @@ public class AgentModeConfig {
         return DashScopeChatModel.builder()
                 .apiKey(apiKey)
                 .modelName(qwenModel)
+                //.baseUrl("https://dashscope.aliyuncs.com")  // 调用地址
+                //.enableThinking(true)  // 启用流式输出
+                //.formatter(new DashScopeChatFormatter())  // 单智能体：DashScopeChatFormatter，多智能体：DashScopeMultiAgentFormatter
                 .build();
     }
 
