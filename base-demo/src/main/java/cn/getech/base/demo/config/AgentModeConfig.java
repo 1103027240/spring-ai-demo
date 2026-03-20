@@ -19,12 +19,12 @@ public class AgentModeConfig {
     @Value("${spring.ai.dashscope.qwen.model:qwen-plus}")
     private String qwenModel;
 
-//    @Bean("qwenAgentChatModel")
-//    public Model qwenAgentChatModel() {
-//        return DashScopeChatModel.builder()
-//                .apiKey(apiKey)
-//                .modelName(qwenModel)
-//                .build();
-//    }
+    @Bean("qwenAgentChatModel")
+    public Model qwenAgentChatModel() {
+        return DashScopeChatModel.builder()
+                .apiKey(apiKey)
+                .modelName(qwenModel)
+                .build();
+    }
 
 }

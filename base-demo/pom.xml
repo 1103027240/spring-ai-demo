@@ -81,17 +81,17 @@
         </dependency>
 
         <!-- AgentScope核心依赖 -->
-<!--        <dependency>-->
-<!--            <groupId>io.agentscope</groupId>-->
-<!--            <artifactId>agentscope-core</artifactId>-->
-<!--            <version>${agentscope.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-core</artifactId>
+            <version>${agentscope.version}</version>
+        </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>io.agentscope</groupId>-->
-<!--            <artifactId>agentscope-spring-boot-starter</artifactId>-->
-<!--            <version>${agentscope.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-spring-boot-starter</artifactId>
+            <version>${agentscope.version}</version>
+        </dependency>
 
 <!--        <dependency>-->
 <!--            <groupId>io.agentscope</groupId>-->

@@ -25,8 +25,8 @@ public class AgentDemoController {
     @GetMapping("/chatModel/qwen")
     public String doChatModelQwen(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
-            @RequestParam(value = "msg") String msg){
-        return agentDemoService.doChatModelQwen(msg);
+            @RequestParam(value = "msg") String message){
+        return agentDemoService.doChatModelQwen(message);
     }
 
 }
