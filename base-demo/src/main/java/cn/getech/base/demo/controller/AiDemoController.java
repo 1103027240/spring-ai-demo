@@ -1,6 +1,6 @@
 package cn.getech.base.demo.controller;
 
-import cn.getech.base.demo.service.DemoService;
+import cn.getech.base.demo.service.AiDemoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,13 +14,13 @@ import reactor.core.publisher.Flux;
 /**
  * @author 11030
  */
-@Tag(name = "Demo测试接口", description = "Demo测试相关API")
-@RequestMapping("/demo")
+@Tag(name = "AI Demo测试接口", description = "AI Demo测试相关API")
+@RequestMapping("/ai/demo")
 @RestController
-public class DemoController {
+public class AiDemoController {
 
     @Autowired
-    private DemoService demoService;
+    private AiDemoService demoService;
 
     @Operation(summary = "通义千问ChatModel同步聊天", description = "通义千问ChatModel同步聊天")
     @GetMapping("/chatModel/qwen")

@@ -1,6 +1,6 @@
 package cn.getech.base.demo.service.impl;
 
-import cn.getech.base.demo.service.DemoService;
+import cn.getech.base.demo.service.AiDemoService;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
@@ -11,7 +11,7 @@ import reactor.core.publisher.Flux;
  * @author 11030
  */
 @Service
-public class DemoServiceImpl implements DemoService {
+public class AiDemoServiceImpl implements AiDemoService {
 
     @Resource(name = "qwenChatModel")
     private ChatModel qwenChatModel;

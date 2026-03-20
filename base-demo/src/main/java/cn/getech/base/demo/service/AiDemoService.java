@@ -5,7 +5,7 @@ import reactor.core.publisher.Flux;
 /**
  * @author 11030
  */
-public interface DemoService {
+public interface AiDemoService {
 
     String doChatModelQwen(String msg);
 
