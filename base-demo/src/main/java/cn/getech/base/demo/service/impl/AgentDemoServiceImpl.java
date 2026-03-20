@@ -1,12 +1,15 @@
 package cn.getech.base.demo.service.impl;
 
+import cn.getech.base.demo.context.UserContext;
 import cn.getech.base.demo.service.AgentDemoService;
+import cn.getech.base.demo.tools.SqlTools;
 import cn.getech.base.demo.tools.WeatherV2Tools;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
 import io.agentscope.core.model.ExecutionConfig;
 import io.agentscope.core.model.Model;
 import io.agentscope.core.plan.PlanNotebook;
+import io.agentscope.core.tool.ToolExecutionContext;
 import io.agentscope.core.tool.Toolkit;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -26,16 +29,11 @@ public class AgentDemoServiceImpl implements AgentDemoService {
         // 工具调用
         Toolkit toolkit = new Toolkit();
         toolkit.registerTool(new WeatherV2Tools());
+        toolkit.registerTool(new SqlTools());
 
-        // 已用PlanNotebook支持多任务
-        PlanNotebook planNotebook = PlanNotebook.builder()
-                .maxSubtasks(15)
-                .build();
-
-        // 模型调用超时和重试配置
-        ExecutionConfig modelExecutionConfig = ExecutionConfig.builder()
-                .timeout(Duration.ofSeconds(30))
-                .maxAttempts(3)
+        // 工具调用上下文
+        ToolExecutionContext toolExecutionContext = ToolExecutionContext.builder()
+                .register(new UserContext("10001"))
                 .build();
 
         // 工具调用超时和重试配置
@@ -44,17 +42,29 @@ public class AgentDemoServiceImpl implements AgentDemoService {
                 .maxAttempts(3)
                 .build();
 
+        // 模型调用超时和重试配置
+        ExecutionConfig modelExecutionConfig = ExecutionConfig.builder()
+                .timeout(Duration.ofSeconds(30))
+                .maxAttempts(3)
+                .build();
+
+        // 启用PlanNotebook支持多任务
+        PlanNotebook planNotebook = PlanNotebook.builder()
+                .maxSubtasks(15)
+                .build();
+
         // 调用大模型
         ReActAgent agent = ReActAgent.builder()
                 .name("agentDemo")
-                .sysPrompt("你是一个AI助手")
+                .sysPrompt("你是一个AI助手。你必须始终使用中文回复所有问题，无论输入是什么语言。不要使用英文。")
                 .model(qwenAgentChatModel)
                 .maxIters(10)  // 智能体响应迭代次数，默认10
                 .checkRunning(true)  // 阻止并发调用，默认true
-                .planNotebook(planNotebook)
                 .toolkit(toolkit)
+                .toolExecutionContext(toolExecutionContext)
                 .modelExecutionConfig(modelExecutionConfig)
                 .toolExecutionConfig(toolExecutionConfig)
+                .planNotebook(planNotebook)
                 .build();
 
         // 非阻塞调用
