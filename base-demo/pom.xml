@@ -77,14 +77,33 @@
 
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
-            <artifactId>spring-ai-alibaba-agent-framework</artifactId>
+            <artifactId>spring-ai-alibaba-graph-core</artifactId>
             <version>${spring-ai-alibaba.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
-            <artifactId>spring-ai-alibaba-graph-core</artifactId>
+            <artifactId>spring-ai-alibaba-agent-framework</artifactId>
             <version>${spring-ai-alibaba.version}</version>
+        </dependency>
+
+        <!-- AgentScope核心依赖 -->
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-core</artifactId>
+            <version>${agentscope.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-spring-boot-starter</artifactId>
+            <version>${agentscope.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-a2a-spring-boot-starter</artifactId>
+            <version>${agentscope.version}</version>
         </dependency>
 
         <!-- Spring AI Studio -->
@@ -165,12 +184,6 @@
 
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-generator</artifactId>
-            <version>${mybatis.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-annotation</artifactId>
             <version>${mybatis.version}</version>
         </dependency>
@@ -178,6 +191,12 @@
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-extension</artifactId>
+            <version>${mybatis.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-generator</artifactId>
             <version>${mybatis.version}</version>
         </dependency>
 

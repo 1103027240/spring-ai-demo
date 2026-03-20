@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: base-demo
+  cloud:
+    nacos:
+      config:
+        # 使用 localhost（Docker Desktop 端口映射）
+        server-addr: localhost:8080
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        username: nacos
+        password: nacos
+        # 增加超时时间
+        timeout: 30000
+      discovery:
+        # Nacos 3.x gRPC 端口是 8848
+        # 使用 localhost（Docker Desktop 端口映射）
+        server-addr: localhost:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        username: nacos
+        password: nacos
+        # 增加超时时间
+        timeout: 30000
+        watch-delay: 60000
+        # 允许连接失败时继续启动
+        fail-fast: false
+        # 启用缓存
+        naming-load-cache-at-start: true
