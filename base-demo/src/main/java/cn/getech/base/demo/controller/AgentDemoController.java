@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author 11030
  */
 @Tag(name = "Agent Demo测试接口", description = "Agent Demo测试相关API")
-@RequestMapping("/agent/demo")
+@RequestMapping("/agentDemo")
 @RestController
 public class AgentDemoController {
 

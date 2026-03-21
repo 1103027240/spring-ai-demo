@@ -20,11 +20,11 @@ import java.util.Map;
 @Slf4j
 @Tag(name = "文本分割器接口", description = "文本分割器相关API")
 @RestController
-@RequestMapping("/splitter")
+@RequestMapping("/textSplitter")
 public class TextSplitterController {
 
     @Autowired
-    private TextSplitterService splitterService;
+    private TextSplitterService textSplitterService;
 
     @Operation(summary = "指定算法分割文本", description = "指定算法分割文本")
     @PostMapping("/algorithm")
@@ -32,7 +32,7 @@ public class TextSplitterController {
         String algorithm = (String) request.get("algorithm");
         String text = (String) request.get("text");
         Map<String, Object> metadata = (Map<String, Object>) request.get("metadata");
-        List<Document> list = splitterService.split(text, algorithm, metadata);
+        List<Document> list = textSplitterService.split(text, algorithm, metadata);
         log.info("返回结果: {}", JSONObject.toJSONString(list));
     }
 
@@ -50,7 +50,7 @@ public class TextSplitterController {
                 "```\n\n" +
                 "还有一段JSON：{\"name\": \"test\", \"value\": 123}";
         Map<String, Object> metadata = (Map<String, Object>) request.get("metadata");
-        List<Document> list = splitterService.intelligentSplit(text, metadata);
+        List<Document> list = textSplitterService.intelligentSplit(text, metadata);
         log.info("返回结果: {}", JSONObject.toJSONString(list));
     }
 
@@ -59,7 +59,7 @@ public class TextSplitterController {
     public void batchSplit(@RequestBody Map<String, Object> request) {
         String algorithm = (String) request.get("algorithm");
         Map<String, String> texts = (Map<String, String>) request.get("texts");
-        Map<String, List<Document>> map = splitterService.batchSplit(texts, algorithm);
+        Map<String, List<Document>> map = textSplitterService.batchSplit(texts, algorithm);
         log.info("返回结果: {}", JSONObject.toJSONString(map));
     }
 

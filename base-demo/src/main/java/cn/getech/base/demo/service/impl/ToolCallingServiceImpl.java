@@ -1,12 +1,11 @@
 package cn.getech.base.demo.service.impl;
 
-import cn.getech.base.demo.service.ToolCallService;
+import cn.getech.base.demo.service.ToolCallingService;
 import cn.getech.base.demo.tools.DateTimeTools;
 import cn.getech.base.demo.tools.WeatherTools;
 import cn.hutool.core.util.ReflectUtil;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.tool.method.MethodToolCallback;
 import org.springframework.ai.util.json.schema.JsonSchemaGenerator;
@@ -17,7 +16,7 @@ import java.lang.reflect.Method;
  * @author 11030
  */
 @Service
-public class ToolCallServiceImpl implements ToolCallService {
+public class ToolCallingServiceImpl implements ToolCallingService {
 
     @Resource(name = "qwenChatClient")
     private ChatClient qwenChatClient;

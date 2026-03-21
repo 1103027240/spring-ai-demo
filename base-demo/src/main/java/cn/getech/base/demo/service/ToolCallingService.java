@@ -3,7 +3,7 @@ package cn.getech.base.demo.service;
 /**
  * @author 11030
  */
-public interface ToolCallService {
+public interface ToolCallingService {
 
     String getCurrentTime(String msg);
 
