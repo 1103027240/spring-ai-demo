@@ -1,7 +1,7 @@
 package cn.getech.base.demo.service.impl;
 
-import cn.getech.base.demo.build.ExportBuild;
-import cn.getech.base.demo.check.ExportCheck;
+import cn.getech.base.demo.build.knowledgeExportBuild;
+import cn.getech.base.demo.check.KnowledgeExportCheck;
 import cn.getech.base.demo.dto.*;
 import cn.getech.base.demo.entity.ExportTask;
 import cn.getech.base.demo.service.KnowledgeExportService;
@@ -33,10 +33,10 @@ public class KnowledgeExportServiceImpl implements KnowledgeExportService {
     private ExportTaskService exportTaskService;
 
     @Autowired
-    private ExportBuild exportBuild;
+    private knowledgeExportBuild knowledgeExportBuild;
 
     @Autowired
-    private ExportCheck exportCheck;
+    private KnowledgeExportCheck knowledgeExportCheck;
 
     @Async("exportTaskExecutor")
     @Override
@@ -51,8 +51,8 @@ public class KnowledgeExportServiceImpl implements KnowledgeExportService {
             exportTask = exportTaskService.createExportTask(taskId, dto);
 
             // 准备导出文件
-            String fileName = exportBuild.generateFileName(dto, taskId);
-            Path filePath = exportBuild.prepareExportFile(fileName);
+            String fileName = knowledgeExportBuild.generateFileName(dto, taskId);
+            Path filePath = knowledgeExportBuild.prepareExportFile(fileName);
 
             // 2. 执行导出
             long startTime = System.currentTimeMillis();
@@ -74,7 +74,7 @@ public class KnowledgeExportServiceImpl implements KnowledgeExportService {
                     .status(COMPLETED.getId())
                     .duration(endTime - startTime)
                     .format(dto.getFormat())
-                    .compressionRatio(exportBuild.calculateCompressionRatio(filePath, dto))
+                    .compressionRatio(knowledgeExportBuild.calculateCompressionRatio(filePath, dto))
                     .downloadUrl("E:\\Export\\" + taskId)
                     .build();
 
@@ -101,10 +101,10 @@ public class KnowledgeExportServiceImpl implements KnowledgeExportService {
         String nextCursor = null;
 
         // 准备写入器
-        try (ExportWriter writer = exportBuild.createExportWriter(filePath, dto)) {
-            while (hasNext && !exportCheck.isTaskCancelled(exportTask.getTaskId())) {
+        try (ExportWriter writer = knowledgeExportBuild.createExportWriter(filePath, dto)) {
+            while (hasNext && !knowledgeExportCheck.isTaskCancelled(exportTask.getTaskId())) {
                 // 构建搜索请求
-                KnowledgeDocumentSearchDto searchDto = exportBuild.buildSearchForBatch(dto, nextCursor);
+                KnowledgeDocumentSearchDto searchDto = knowledgeExportBuild.buildSearchForBatch(dto, nextCursor);
 
                 // 1、执行搜索
                 CursorSearchVO<KnowledgeDocumentVO> searchResult = knowledgeDocumentService.search(searchDto);

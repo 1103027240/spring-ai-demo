@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import static cn.getech.base.demo.constant.FieldValueConstant.EXPORT_FILE_PREFIX;
-import static cn.getech.base.demo.constant.FieldValueConstant.REDIS_TASK_STATUS_PREFIX;
+import static cn.getech.base.demo.constant.RedisKeyConstant.REDIS_TASK_STATUS_PREFIX;
 import static cn.getech.base.demo.enums.ExportTaskStatusEnum.INITIALIZED;
 import static cn.getech.base.demo.enums.ExportTaskStatusEnum.PROCESSING;
 import static cn.hutool.core.date.DatePattern.PURE_DATE_PATTERN;

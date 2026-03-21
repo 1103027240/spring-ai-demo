@@ -5,11 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import static cn.getech.base.demo.constant.FieldValueConstant.REDIS_TASK_STATUS_PREFIX;
+import static cn.getech.base.demo.constant.RedisKeyConstant.REDIS_TASK_STATUS_PREFIX;
 import static cn.getech.base.demo.enums.ExportTaskStatusEnum.CANCELLED;
 
 @Component
-public class ExportCheck {
+public class KnowledgeExportCheck {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;

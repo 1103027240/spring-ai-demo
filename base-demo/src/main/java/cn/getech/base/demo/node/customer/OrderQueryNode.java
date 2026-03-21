@@ -183,8 +183,8 @@ public class OrderQueryNode implements NodeActionWithConfig {
         try {
             extractAndPutField(result, aiResponse, QUERY_TYPE_PATTERN, QUERY_TYPE);
             extractAndPutField(result, aiResponse, QUERY_ORDER_NUMBER_PATTERN, ORDER_NUMBER);
-            extractAndPutField(result, aiResponse, ORDER_STATUS_PATTERN, ORDER_STATUS);
-            extractAndPutField(result, aiResponse, PRODUCT_INFO_PATTERN, PRODUCT_INFO);
+            extractAndPutField(result, aiResponse, QUERY_ORDER_STATUS_PATTERN, ORDER_STATUS);
+            extractAndPutField(result, aiResponse, QUERY_PRODUCT_INFO_PATTERN, PRODUCT_INFO);
         } catch (Exception e) {
             log.error("【订单提取】简化解析失败", e);
         }

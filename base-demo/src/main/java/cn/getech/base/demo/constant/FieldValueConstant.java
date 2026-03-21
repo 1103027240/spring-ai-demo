@@ -43,11 +43,7 @@ public class FieldValueConstant {
 
     public static final String WORKFLOW_CUSTOMER_SERVICE = "customer_service";
 
-    public static final String CUSTOMER_KNOWLEDGE_PREFIX = "customer:knowledge:";
-
     public static final String CUSTOMER_COLLECTION_NAME = "customer_knowledge";
-
-    public static final String REDIS_TASK_STATUS_PREFIX = "export:task:status:";
 
     public static final String EXPORT_FILE_PREFIX = "export_";
 

@@ -11,4 +11,8 @@ public class RedisKeyConstant {
 
     public static final String SESSION_ACTIVE = WORKFLOW_CUSTOMER_PREFIX + "session:active:";
 
+    public static final String CUSTOMER_KNOWLEDGE_PREFIX = "customer:knowledge:";
+
+    public static final String REDIS_TASK_STATUS_PREFIX = "export:task:status:";
+
 }

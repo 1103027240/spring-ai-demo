@@ -20,7 +20,7 @@ import static cn.getech.base.demo.enums.CursorDirectionEnum.NEXT;
 import static cn.hutool.core.date.DatePattern.PURE_DATETIME_FORMATTER;
 
 @Component
-public class ExportBuild {
+public class knowledgeExportBuild {
 
     @Value("${export.task.base-path}")
     private String baseExportPath;

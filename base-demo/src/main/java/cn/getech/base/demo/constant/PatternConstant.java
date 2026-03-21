@@ -14,9 +14,9 @@ public class PatternConstant {
 
     public static final Pattern QUERY_ORDER_NUMBER_PATTERN = Pattern.compile("\"orderNumber\"\\s*:\\s*\"([^\"]*)\"");
 
-    public static final Pattern ORDER_STATUS_PATTERN = Pattern.compile("\"orderStatus\"\\s*:\\s*\"([^\"]*)\"");
+    public static final Pattern QUERY_ORDER_STATUS_PATTERN = Pattern.compile("\"orderStatus\"\\s*:\\s*\"([^\"]*)\"");
 
-    public static final Pattern PRODUCT_INFO_PATTERN = Pattern.compile("\"productInfo\"\\s*:\\s*\"([^\"]*)\"");
+    public static final Pattern QUERY_PRODUCT_INFO_PATTERN = Pattern.compile("\"productInfo\"\\s*:\\s*\"([^\"]*)\"");
 
     public static final Pattern MARKDOWN_CODE_BLOCK_PATTERN = Pattern.compile("^(?i)```(?:json)?\\s*|```\\s*$", Pattern.MULTILINE);
 
