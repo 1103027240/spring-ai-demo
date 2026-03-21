@@ -4,7 +4,7 @@ import cn.getech.base.demo.build.ExportBuild;
 import cn.getech.base.demo.check.ExportCheck;
 import cn.getech.base.demo.dto.*;
 import cn.getech.base.demo.entity.ExportTask;
-import cn.getech.base.demo.service.ExportService;
+import cn.getech.base.demo.service.KnowledgeExportService;
 import cn.getech.base.demo.service.ExportTaskService;
 import cn.getech.base.demo.service.KnowledgeDocumentService;
 import cn.getech.base.demo.service.writer.ExportWriter;
@@ -24,7 +24,7 @@ import static cn.getech.base.demo.enums.ExportTaskStatusEnum.*;
 
 @Slf4j
 @Service
-public class ExportServiceImpl implements ExportService {
+public class KnowledgeExportServiceImpl implements KnowledgeExportService {
 
     @Autowired
     private KnowledgeDocumentService knowledgeDocumentService;

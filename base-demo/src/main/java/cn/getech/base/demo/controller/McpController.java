@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 /**
  * @author 11030
  */
-@Tag(name = "MCP远程调用接口", description = "MCP远程调用相关API")
+@Tag(name = "MCP远程调用接口", description = "MCP远程调用接口")
 @RequestMapping("/mcp")
 @RestController
 public class McpController {

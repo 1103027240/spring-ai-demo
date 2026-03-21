@@ -2,7 +2,7 @@ package cn.getech.base.demo.service.impl;
 
 import cn.getech.base.demo.service.ToolCallingService;
 import cn.getech.base.demo.tools.DateTimeTools;
-import cn.getech.base.demo.tools.WeatherTools;
+import cn.getech.base.demo.tools.WeatherV2Tools;
 import cn.hutool.core.util.ReflectUtil;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
@@ -29,18 +29,18 @@ public class ToolCallingServiceImpl implements ToolCallingService {
     @Override
     public String getCityWeather(String msg) {
         // 获取方法
-        Method method = ReflectUtil.getMethod(WeatherTools.class, "getCityWeather", String.class);
+        Method method = ReflectUtil.getMethod(WeatherV2Tools.class, "getCityWeather", String.class);
 
         // 获取方法输入参数schema
         String inputSchema = JsonSchemaGenerator.generateForMethodInput(method);
 
         MethodToolCallback methodToolCallback = MethodToolCallback.builder()
                 .toolDefinition(ToolDefinition.builder()
-                        .name("getCityWeather") //必填
-                        .inputSchema(inputSchema) //必填
+                        .name("getCityWeather")  //必填
+                        .inputSchema(inputSchema)  //必填
                         .build())
                 .toolMethod(method)
-                .toolObject(new WeatherTools())
+                .toolObject(new WeatherV2Tools())
                 .build();
 
         return qwenChatClient.prompt().user(msg).toolCallbacks(methodToolCallback).call().content();

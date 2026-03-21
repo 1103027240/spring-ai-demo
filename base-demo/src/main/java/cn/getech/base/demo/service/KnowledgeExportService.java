@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface ExportService {
+public interface KnowledgeExportService {
 
     /**
      * 异步启动导出任务

@@ -2,38 +2,34 @@ package cn.getech.base.demo.controller;
 
 import cn.getech.base.demo.dto.KnowledgeDocumentExportDto;
 import cn.getech.base.demo.dto.KnowledgeDocumentExportVO;
-import cn.getech.base.demo.service.ExportService;
+import cn.getech.base.demo.service.KnowledgeExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import static cn.getech.base.demo.enums.ExportTaskStatusEnum.PROCESSING;
 
 @Slf4j
+@Tag(name = "知识库导出管理", description = "知识库导出管理")
+@RequestMapping("/knowledgeExport")
 @RestController
-@RequestMapping("/export")
-@RequiredArgsConstructor
-@Validated
-@Tag(name = "导出管理", description = "知识库文档导出功能")
-public class ExportController {
+public class KnowledgeExportController {
 
     @Autowired
-    private  ExportService exportService;
+    private KnowledgeExportService knowledgeExportService;
 
     @PostMapping("/start")
-    @Operation(summary = "启动导出任务", description = "启动知识库文档导出任务")
-    public ResponseEntity<Map<String, Object>> startExport(@Valid @RequestBody KnowledgeDocumentExportDto dto) {
+    @Operation(summary = "启动导出任务", description = "启动导出任务")
+    public ResponseEntity<Map<String, Object>> start(@Validated @RequestBody KnowledgeDocumentExportDto dto) {
         try {
-            CompletableFuture<KnowledgeDocumentExportVO> exportFuture = exportService.startExportTask(dto);
+            CompletableFuture<KnowledgeDocumentExportVO> exportFuture = knowledgeExportService.startExportTask(dto);
             KnowledgeDocumentExportVO result = exportFuture.get();
 
             Map<String, Object> response = new HashMap<>();

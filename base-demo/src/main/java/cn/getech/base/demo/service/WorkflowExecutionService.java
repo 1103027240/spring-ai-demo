@@ -11,6 +11,6 @@ public interface WorkflowExecutionService {
 
     Map<String, Object> executeWorkflow(String userInput, Long userId, String userName);
 
-    Page<MessageDocumentVO> pageChatHistory(Long userId, String currentPage, String pageSize);
+    Page<MessageDocumentVO> pageSearch(Long userId, String currentPage, String pageSize);
 
 }

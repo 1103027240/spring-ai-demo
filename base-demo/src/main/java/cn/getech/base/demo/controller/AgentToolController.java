@@ -1,6 +1,6 @@
 package cn.getech.base.demo.controller;
 
-import cn.getech.base.demo.service.AgentDemoService;
+import cn.getech.base.demo.service.AgentToolService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,20 +13,20 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author 11030
  */
-@Tag(name = "Agent Demo测试接口", description = "Agent Demo测试接口")
-@RequestMapping("/agentDemo")
+@Tag(name = "Tool测试接口", description = "Tool测试接口")
+@RequestMapping("/agentTool")
 @RestController
-public class AgentDemoController {
+public class AgentToolController {
 
     @Autowired
-    private AgentDemoService agentDemoService;
+    private AgentToolService agentToolService;
 
-    @Operation(summary = "Agent对话", description = "Agent对话")
+    @Operation(summary = "注册工具组", description = "注册工具组")
     @GetMapping("/doChat")
     public String doChat(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String message){
-        return agentDemoService.doChat(message);
+        return agentToolService.doChat(message);
     }
 
 }

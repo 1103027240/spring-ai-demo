@@ -3,7 +3,7 @@ package cn.getech.base.demo.service.impl;
 import cn.getech.base.demo.context.UserContext;
 import cn.getech.base.demo.service.AgentDemoService;
 import cn.getech.base.demo.tools.SqlTools;
-import cn.getech.base.demo.tools.WeatherV2Tools;
+import cn.getech.base.demo.tools.WeatherTools;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
 import io.agentscope.core.model.ExecutionConfig;
@@ -25,10 +25,10 @@ public class AgentDemoServiceImpl implements AgentDemoService {
     private Model qwenAgentChatModel;
 
     @Override
-    public String doChatModelQwen(String message) {
+    public String doChat(String message) {
         // 工具调用
         Toolkit toolkit = new Toolkit();
-        toolkit.registerTool(new WeatherV2Tools());
+        toolkit.registerTool(new WeatherTools());
         toolkit.registerTool(new SqlTools());
 
         // 工具调用上下文

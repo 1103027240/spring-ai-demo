@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * @author 11030
  */
-@Tag(name = "对话记忆及向量化接口", description = "对话记忆及向量化相关API")
+@Tag(name = "对话记忆及向量化接口", description = "对话记忆及向量化接口")
 @RequestMapping("/memoryVector")
 @RestController
 public class MemoryVectorController {
@@ -23,14 +23,14 @@ public class MemoryVectorController {
     @Autowired
     private MemoryVectorService memoryVectorService;
 
-    @Operation(summary = "分层记忆", description = "分层记忆")
-    @GetMapping("/hierarchical")
-    public String doChatHierarchical(
+    @Operation(summary = "分层记忆对话", description = "分层记忆对话")
+    @GetMapping("/doChat")
+    public String doChat(
             @Parameter(description = "用户消息内容", required = true, example = "1加1等于几")
             @RequestParam(value = "msg") String msg,
             @Parameter(description = "用户ID", required = true, example = "123456")
             @RequestParam(value = "conversationId") String conversationId){
-        return memoryVectorService.doChatHierarchical(msg, conversationId);
+        return memoryVectorService.doChat(msg, conversationId);
     }
 
     @Operation(summary = "新增向量数据", description = "新增向量数据")

@@ -14,13 +14,13 @@ public interface KnowledgeDocumentService {
 
     void createDocument(KnowledgeDocumentDto dto);
 
-    void batchCreateDocuments(KnowledgeDocumentAddDto dto);
+    void batchCreateDocument(KnowledgeDocumentAddDto dto);
 
     void updateDocument(KnowledgeDocumentDto dto);
 
     void deleteDocument(Long documentId);
 
-    KnowledgeDocument getDocumentById(Long documentId);
+    KnowledgeDocument getDocument(Long documentId);
 
     CursorSearchVO<KnowledgeDocumentVO> search(KnowledgeDocumentSearchDto dto);
 

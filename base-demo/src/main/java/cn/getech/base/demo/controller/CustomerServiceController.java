@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * @author 11030
  */
-@Tag(name = "售后客服工作流接口", description = "售后客服工作流相关API")
+@Tag(name = "售后客服工作流接口", description = "售后客服工作流接口")
 @RequestMapping("/customerService")
 @RestController
 public class CustomerServiceController {
@@ -21,22 +21,22 @@ public class CustomerServiceController {
     @Autowired
     private WorkflowExecutionService workflowExecutionService;
 
-    @PostMapping("/chat")
+    @PostMapping("/doChat")
     @Operation(summary = "客服对话", description = "处理用户咨询并返回AI回复")
-    public Map<String, Object> chat(
+    public Map<String, Object> doChat(
             @Parameter(description = "用户消息") @RequestParam(name = "message") String message,
             @Parameter(description = "用户ID") @RequestParam(name = "userId") Long userId,
             @Parameter(description = "用户名") @RequestParam(name = "userName") String userName) {
         return workflowExecutionService.executeWorkflow(message, userId, userName);
     }
 
-    @PostMapping("/history")
-    @Operation(summary = "获取会话历史", description = "获取指定用户会话聊天历史")
-    public Page<MessageDocumentVO> pageChatHistory(
+    @PostMapping("/pageSearch")
+    @Operation(summary = "分页搜索", description = "分页搜索")
+    public Page<MessageDocumentVO> pageSearch(
             @Parameter(description = "用户ID") @RequestParam(name = "userId") Long userId,
             @Parameter(description = "当前页") @RequestParam(defaultValue = "1") String currentPage,
             @Parameter(description = "每页记录数") @RequestParam(defaultValue = "20") String pageSize) {
-        return workflowExecutionService.pageChatHistory(userId, currentPage, pageSize);
+        return workflowExecutionService.pageSearch(userId, currentPage, pageSize);
     }
 
 }

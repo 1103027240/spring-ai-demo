@@ -15,7 +15,7 @@ import reactor.core.publisher.Flux;
 /**
  * @author 11030
  */
-@Tag(name = "Prompt提示词接口", description = "Prompt提示词相关API")
+@Tag(name = "Prompt提示词接口", description = "Prompt提示词接口")
 @RequestMapping("/prompt")
 @RestController
 public class PromptController {
@@ -24,15 +24,15 @@ public class PromptController {
     private PromptService promptService;
 
     @Operation(summary = "系统角色", description = "系统角色")
-    @GetMapping("/role/system")
+    @GetMapping("/doChatRoleSystem")
     public Flux<String> doChatRoleSystem(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String msg){
         return promptService.doChatRoleSystem(msg);
     }
 
-    @Operation(summary = "Tool角色", description = "Tool角色")
-    @GetMapping("/role/tool")
+    @Operation(summary = "工具角色", description = "工具角色")
+    @GetMapping("/doChatRoleTool")
     public Flux<String> doChatRoleTool(
             @Parameter(description = "用户消息内容", required = true, example = "北京")
             @RequestParam(value = "msg") String msg){
@@ -40,7 +40,7 @@ public class PromptController {
     }
 
     @Operation(summary = "组合角色", description = "组合角色")
-    @GetMapping("/role/combine")
+    @GetMapping("/doChatRoleCombine")
     public Flux<String> doChatRoleCombine(
             @Parameter(description = "用户消息内容", required = true, example = "新能源汽车")
             @RequestParam(value = "msg") String msg){
@@ -48,7 +48,7 @@ public class PromptController {
     }
 
     @Operation(summary = "格式化输出", description = "格式化输出")
-    @GetMapping("/chat/output")
+    @GetMapping("/doChatOutput")
     public Student doChatOutput(
             @Parameter(description = "姓名", required = true, example = "张三")
             @RequestParam(value = "name") String name,

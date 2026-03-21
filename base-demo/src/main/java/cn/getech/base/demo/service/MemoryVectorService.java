@@ -8,7 +8,7 @@ import java.util.List;
  */
 public interface MemoryVectorService {
 
-    String doChatHierarchical(String msg, String conversationId);
+    String doChat(String msg, String conversationId);
 
     void addMemory(String msg);
 

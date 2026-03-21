@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 /**
  * @author 11030
  */
-@Tag(name = "AI Demo测试接口", description = "AI Demo测试相关API")
+@Tag(name = "AI Demo测试接口", description = "AI Demo测试接口")
 @RequestMapping("/aiDemo")
 @RestController
 public class AiDemoController {
@@ -22,32 +22,32 @@ public class AiDemoController {
     @Autowired
     private AiDemoService demoService;
 
-    @Operation(summary = "通义千问ChatModel同步聊天", description = "通义千问ChatModel同步聊天")
-    @GetMapping("/chatModel/qwen")
+    @Operation(summary = "通义千问ChatModel同步对话", description = "通义千问ChatModel同步对话")
+    @GetMapping("/doChatModelQwen")
     public String doChatModelQwen(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String msg){
         return demoService.doChatModelQwen(msg);
     }
 
-    @Operation(summary = "Deepseek ChatModel流式聊天", description = "Deepseek ChatModel流式聊天")
-    @GetMapping("/chatModel/deepseek")
+    @Operation(summary = "Deepseek ChatModel流式对话", description = "Deepseek ChatModel流式对话")
+    @GetMapping("/doChatModelDeepseek")
     public Flux<String> doChatModelDeepseek(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String msg){
         return demoService.doChatModelDeepseek(msg);
     }
 
-    @Operation(summary = "通义千问ChatClient同步聊天", description = "通义千问ChatClient同步聊天")
-    @GetMapping("/chatClient/qwen")
+    @Operation(summary = "通义千问ChatClient同步对话", description = "通义千问ChatClient同步对话")
+    @GetMapping("/doChatClientQwen")
     public String doChatClientQwen(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String msg){
         return demoService.doChatClientQwen(msg);
     }
 
-    @Operation(summary = "Deepseek ChatClient流式聊天", description = "Deepseek ChatClient流式聊天")
-    @GetMapping("/chatClient/deepseek")
+    @Operation(summary = "Deepseek ChatClient流式对话", description = "Deepseek ChatClient流式对话")
+    @GetMapping("/doChatClientDeepseek")
     public Flux<String> doChatClientDeepseek(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String msg){

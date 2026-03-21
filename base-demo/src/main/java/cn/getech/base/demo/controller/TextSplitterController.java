@@ -18,16 +18,16 @@ import java.util.Map;
  * @author 11030
  */
 @Slf4j
-@Tag(name = "文本分割器接口", description = "文本分割器相关API")
-@RestController
+@Tag(name = "文本分割器接口", description = "文本分割器接口")
 @RequestMapping("/textSplitter")
+@RestController
 public class TextSplitterController {
 
     @Autowired
     private TextSplitterService textSplitterService;
 
     @Operation(summary = "指定算法分割文本", description = "指定算法分割文本")
-    @PostMapping("/algorithm")
+    @PostMapping("/split")
     public void split(@RequestBody Map<String, Object> request) {
         String algorithm = (String) request.get("algorithm");
         String text = (String) request.get("text");
@@ -37,7 +37,7 @@ public class TextSplitterController {
     }
 
     @Operation(summary = "智能分割文本", description = "智能分割文本")
-    @PostMapping("/intelligent")
+    @PostMapping("/intelligentSplit")
     public void intelligentSplit(@RequestBody Map<String, Object> request) {
         String text = "# Markdown标题\n\n" +
                 "这是一段普通文本，包含一个HTML标签：<b>粗体文本</b>\n\n" +
@@ -55,7 +55,7 @@ public class TextSplitterController {
     }
 
     @Operation(summary = "批量分割文本", description = "批量分割文本")
-    @PostMapping("/batch")
+    @PostMapping("/batchSplit")
     public void batchSplit(@RequestBody Map<String, Object> request) {
         String algorithm = (String) request.get("algorithm");
         Map<String, String> texts = (Map<String, String>) request.get("texts");

@@ -35,7 +35,7 @@ public class MemoryVectorServiceImpl implements MemoryVectorService {
     private VectorStore vectorStore;
 
     @Override
-    public String doChatHierarchical(String msg, String conversationId) {
+    public String doChat(String msg, String conversationId) {
         return memoryQwenChatClient.prompt()
                 .user(msg)
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, conversationId))

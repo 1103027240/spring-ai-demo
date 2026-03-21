@@ -135,7 +135,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     }
 
     @Override
-    public Page<MessageDocumentVO> pageChatHistory(Long userId, String currentPage, String pageSize) {
+    public Page<MessageDocumentVO> pageSearch(Long userId, String currentPage, String pageSize) {
         int page = Integer.parseInt(currentPage);
         int size = Integer.parseInt(pageSize);
 

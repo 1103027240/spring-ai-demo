@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * @author 11030
  */
-@Tag(name = "RAG检索增强接口", description = "RAG检索增强相关API")
+@Tag(name = "RAG检索增强接口", description = "RAG检索增强接口")
 @RequestMapping("/rag")
 @RestController
 public class RagController {
@@ -24,7 +24,7 @@ public class RagController {
     @Operation(summary = "新增文档", description = "新增文档")
     @PostMapping("/addDocument")
     public void addDocument(
-            @Parameter(description = "用户消息内容", required = true, example = "1加1等于几")
+            @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String msg){
         String text = "# Markdown标题\n\n" +
                 "这是一段普通文本，包含一个HTML标签：<b>粗体文本</b>\n\n" +
@@ -48,7 +48,7 @@ public class RagController {
     }
 
     @Operation(summary = "增强搜索V1", description = "增强搜索V1")
-    @PostMapping("/v1/advanceSearch")
+    @PostMapping("/advanceSearchV1")
     public String advanceSearchV1(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String msg){
@@ -56,7 +56,7 @@ public class RagController {
     }
 
     @Operation(summary = "增强搜索V2", description = "增强搜索V2")
-    @PostMapping("/v2/advanceSearch")
+    @PostMapping("/advanceSearchV2")
     public String advanceSearchV2(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String msg){

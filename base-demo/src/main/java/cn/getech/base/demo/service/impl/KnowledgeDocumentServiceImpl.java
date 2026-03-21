@@ -133,7 +133,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
     @Transactional
     @Override
-    public void batchCreateDocuments(KnowledgeDocumentAddDto dto) {// 更新文档
+    public void batchCreateDocument(KnowledgeDocumentAddDto dto) {// 更新文档
         for (KnowledgeDocumentDto req : dto.getDocuments()) {
             try {
                 createDocument(req);
@@ -193,7 +193,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     }
 
     @Override
-    public KnowledgeDocument getDocumentById(Long documentId) {
+    public KnowledgeDocument getDocument(Long documentId) {
         String cacheKey = CUSTOMER_KNOWLEDGE_PREFIX + "documentId:" + documentId;
         KnowledgeDocument cachedDocument = (KnowledgeDocument) redisTemplate.opsForValue().get(cacheKey);
         if (cachedDocument != null) {
