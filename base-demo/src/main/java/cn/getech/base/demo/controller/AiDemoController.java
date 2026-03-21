@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 /**
  * @author 11030
  */
-@Tag(name = "AI Demo测试接口", description = "AI Demo测试接口")
+@Tag(name = "AI示例接口", description = "AI示例接口")
 @RequestMapping("/aiDemo")
 @RestController
 public class AiDemoController {

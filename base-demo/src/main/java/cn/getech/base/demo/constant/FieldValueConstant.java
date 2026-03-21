@@ -47,6 +47,10 @@ public class FieldValueConstant {
 
     public static final String EXPORT_FILE_PREFIX = "export_";
 
+    public static final String AGENT_SESSION_NAME = "agentSession";
+
+    public static final String AGENT_MEMORY_NAME = "agentMemory";
+
     /**
      * 事务提交后延迟时间（毫秒）
      */

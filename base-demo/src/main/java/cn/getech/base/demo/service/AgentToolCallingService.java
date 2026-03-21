@@ -1,6 +1,6 @@
 package cn.getech.base.demo.service;
 
-public interface AgentToolService {
+public interface AgentToolCallingService {
 
     String doChat(String message);
 

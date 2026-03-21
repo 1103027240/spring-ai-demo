@@ -81,7 +81,7 @@ spring:
       milvus:
         uri: http://localhost:19530 # Milvus默认端口
         token: root:Milvus # 默认账号密码（生产需修改）
-        database-name: default
+        database-name: default # 数据库名
         collection-name: long_term_chat_memory # 向量库集合名
         embedding-dimension: 1024 # 通义千问embedding维度
         index-type: IVF_FLAT # 索引类型
@@ -142,6 +142,37 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     # 优化：设置超时时间（秒）
     default-statement-timeout: 30
+
+# AgentScope配置
+agentscope:
+  # Session配置（Mysql）
+  session:
+    type: mysql
+    mysql:
+      table-name: agentscope_sessions  # Session表名
+  # Memory配置（ReMe + Milvus）
+  memory:
+    reme:
+      # Milvus 连接配置
+      milvus:
+        host: localhost
+        port: 19530
+        database-name: default
+        collection-name: reme_long_term_memory
+        dimension: 1024
+        index-type: IVF_FLAT
+        metric-type: COSINE
+      # 记忆隔离配置
+      user-isolation: true  # 按用户隔离记忆
+      agent-isolation: true # 按Agent隔离记忆
+      # 嵌入模型配置
+      model:
+        dashscope:
+          api-key: ${qwen-api}
+          chat:
+            model-name: qwen-plus
+          embedding:
+            model-name: text-embedding-v3
 
 # Knife4j配置
 springdoc:

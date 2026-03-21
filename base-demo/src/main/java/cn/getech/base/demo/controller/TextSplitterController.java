@@ -18,7 +18,7 @@ import java.util.Map;
  * @author 11030
  */
 @Slf4j
-@Tag(name = "文本分割器接口", description = "文本分割器接口")
+@Tag(name = "文本分割接口", description = "文本分割接口")
 @RequestMapping("/textSplitter")
 @RestController
 public class TextSplitterController {

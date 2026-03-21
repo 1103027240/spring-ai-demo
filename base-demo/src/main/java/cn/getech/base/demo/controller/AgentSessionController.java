@@ -1,8 +1,10 @@
 package cn.getech.base.demo.controller;
 
+import cn.getech.base.demo.service.AgentSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -11,17 +13,42 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author 11030
  */
-@Tag(name = "Session测试接口", description = "Session测试接口")
+@Tag(name = "Agent会话接口", description = "Agent会话接口")
 @RequestMapping("/agentSession")
 @RestController
 public class AgentSessionController {
 
-    @Operation(summary = "JsonSession测试", description = "JsonSession测试")
-    @GetMapping("/chatModel/qwen")
-    public String doChatModelQwen(
+    @Autowired
+    private AgentSessionService agentSessionService;
+
+    @Operation(summary = "Json会话", description = "Json会话")
+    @GetMapping("/doChatJsonSession")
+    public String doChatJsonSession(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
-            @RequestParam(value = "msg") String message){
-        return null;
+            @RequestParam(value = "msg") String message,
+            @Parameter(description = "sessionId", required = true, example = "sessionId")
+            @RequestParam(value = "sessionId") String sessionId){
+        return agentSessionService.doChatJsonSession(message, sessionId);
+    }
+
+    @Operation(summary = "Mysql会话", description = "Mysql会话")
+    @GetMapping("/doChatMysqlSession")
+    public String doChatMysqlSession(
+            @Parameter(description = "用户消息内容", required = true, example = "你好")
+            @RequestParam(value = "msg") String message,
+            @Parameter(description = "sessionId", required = true, example = "sessionId")
+            @RequestParam(value = "sessionId") String sessionId){
+        return agentSessionService.doChatMysqlSession(message, sessionId);
+    }
+
+    @Operation(summary = "SessionManager会话管理", description = "SessionManager会话管理")
+    @GetMapping("/doChatSessionManager")
+    public String doChatSessionManager(
+            @Parameter(description = "用户消息内容", required = true, example = "你好")
+            @RequestParam(value = "msg") String message,
+            @Parameter(description = "sessionId", required = true, example = "sessionId")
+            @RequestParam(value = "sessionId") String sessionId){
+        return agentSessionService.doChatSessionManager(message, sessionId);
     }
 
 }

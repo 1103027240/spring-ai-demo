@@ -1,6 +1,6 @@
 package cn.getech.base.demo.service.impl;
 
-import cn.getech.base.demo.service.AgentToolService;
+import cn.getech.base.demo.service.AgentToolCallingService;
 import cn.getech.base.demo.tools.WeatherTools;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 
 @Service
-public class AgentToolServiceImpl implements AgentToolService {
+public class AgentToolCallingServiceImpl implements AgentToolCallingService {
 
     @Resource(name = "qwenAgentChatModel")
     private Model qwenAgentChatModel;
@@ -42,7 +42,7 @@ public class AgentToolServiceImpl implements AgentToolService {
 
         // 调用大模型
         ReActAgent agent = ReActAgent.builder()
-                .name("agentDemo")
+                .name("agentTool")
                 .sysPrompt("你是一个AI助手。你必须始终使用中文回复所有问题，无论输入是什么语言。不要使用英文。")
                 .model(qwenAgentChatModel)
                 .toolkit(toolkit)

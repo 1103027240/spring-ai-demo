@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author 11030
  */
-@Tag(name = "ToolCalling工具调用接口", description = "ToolCalling工具调用接口")
+@Tag(name = "工具调用接口", description = "工具调用接口")
 @RequestMapping("/toolCalling")
 @RestController
 public class ToolCallingController {
