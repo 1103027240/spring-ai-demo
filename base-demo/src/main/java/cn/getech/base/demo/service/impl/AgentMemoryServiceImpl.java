@@ -32,7 +32,7 @@ public class AgentMemoryServiceImpl implements AgentMemoryService {
     public String doChat(String message, String userId, String sessionId) {
         ReMeLongTermMemory longTermMemory = ReMeLongTermMemory.builder()
                 .userId(userId)
-                .apiBaseUrl("http://localhost:8002") //Reme服务器端口
+                .apiBaseUrl("http://localhost:8002")  //需要搭建reme服务，reme服务端口
                 .build();
 
         // 1.创建智能体
@@ -44,8 +44,8 @@ public class AgentMemoryServiceImpl implements AgentMemoryService {
                 .build();
 
         // 加载Session
-//        Session mysqlSession = new MysqlSession(dataSource, true);
-//        agent.loadIfExists(mysqlSession, sessionId);
+        Session mysqlSession = new MysqlSession(dataSource, true);
+        agent.loadIfExists(mysqlSession, sessionId);
 
         // 2.创建消息
         Msg msg = agentBuild.getMsg(message);
@@ -54,7 +54,7 @@ public class AgentMemoryServiceImpl implements AgentMemoryService {
         String response = agent.call(msg).block().getTextContent();
 
         // 4.保存会话
-        //agent.saveTo(mysqlSession, sessionId);
+        agent.saveTo(mysqlSession, sessionId);
         return response;
     }
 
