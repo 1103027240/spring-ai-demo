@@ -15,6 +15,9 @@ public class McpServiceImpl implements McpService {
 //    @Resource(name = "mcpQwenChatClient")
 //    private ChatClient mcpQwenChatClient;
 
+    /**
+     * 修改mcp-server.json中百度地图密钥
+     */
     @Override
     public Flux<String> doChat(String msg) {
         //return mcpQwenChatClient.prompt(msg).stream().content();

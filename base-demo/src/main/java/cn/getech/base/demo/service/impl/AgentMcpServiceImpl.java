@@ -28,7 +28,7 @@ public class AgentMcpServiceImpl implements AgentMcpService {
         McpClientWrapper wrapper = McpClientBuilder.create("baidu-mcp-client")
                 .stdioTransport("cmd",
                         List.of("/c", "npx", "-y", "@baidumap/mcp-server-baidu-map"),
-                        Map.of("BAIDU_MAP_API_KEY","百度地图密钥"))
+                        Map.of("BAIDU_MAP_API_KEY", System.getenv("baidu-map-api")))
                 .buildAsync()
                 .block();
 
