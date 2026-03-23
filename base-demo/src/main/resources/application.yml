@@ -106,14 +106,14 @@ spring:
         key-prefix: spring_ai_long_chat_memory # 长期记忆缓存key前缀
 
     # MCP客户端配置
-    mcp:
-      client:
-        enabled: true
-        request-timeout: 300s
-        toolcallback:
-          enabled: true
-        stdio:
-          servers-configuration: classpath:/mcp-server.json
+#    mcp:
+#      client:
+#        enabled: true
+#        request-timeout: 300s
+#        toolcallback:
+#          enabled: true
+#        stdio:
+#          servers-configuration: classpath:/mcp-server.json
 
     # 工作流可视化视图配置
     studio:
