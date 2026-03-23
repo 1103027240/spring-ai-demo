@@ -31,7 +31,7 @@ public class VectorStoreConfig {
     @Bean("longTermMemoryVectorStore")
     public VectorStore longTermMemoryVectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel) {
         return MilvusVectorStore.builder(milvusClient, embeddingModel)
-                .collectionName("long_term_chat_memory")
+                .collectionName("long_term_memory")
                 .build();
     }
 

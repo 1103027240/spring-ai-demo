@@ -8,9 +8,11 @@ import cn.getech.base.demo.factory.TextSplitterFactory;
 import cn.getech.base.demo.service.TextSplitterService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.transformer.splitter.TextSplitter;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
@@ -31,6 +33,9 @@ public class TextSplitterServiceImpl implements TextSplitterService {
     @Autowired
     private TextSplitterBuild textSplitterBuild;
 
+    @Resource(name = "ragDocumentVectorStore")
+    private VectorStore ragDocumentVectorStore;
+
     /**
      * 使用特定分割器分割文本
      */
@@ -43,9 +48,13 @@ public class TextSplitterServiceImpl implements TextSplitterService {
         try {
             TextSplitterCheck.validateAlgorithm(algorithm);
             TextSplitter splitter = textSplitterFactory.getTextSplitter(algorithm);
-            Document inputDoc = textSplitterBuild.createDocument(text, metadata);
-            List<Document> documents = textSplitterBuild.splitDocument(splitter, inputDoc);
-            return enrichDocuments(documents, algorithm);
+            Document doc = textSplitterBuild.createDocument(text, metadata);
+
+            List<Document> documents = textSplitterBuild.splitDocument(splitter, doc);
+            documents = enrichDocuments(documents, algorithm);
+
+            ragDocumentVectorStore.add(documents);
+            return documents;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -56,9 +65,9 @@ public class TextSplitterServiceImpl implements TextSplitterService {
      */
     @Override
     public List<Document> intelligentSplit(String text, Map<String, Object> metadata) {
-        List<Document> allDocuments = new ArrayList<>();
+        List<Document> documents = new ArrayList<>();
         if (StrUtil.isBlank(text)) {
-            return allDocuments;
+            return documents;
         }
 
         try {
@@ -80,9 +89,11 @@ public class TextSplitterServiceImpl implements TextSplitterService {
 
                 // 转换为Document对象并丰富元数据
                 List<Document> segmentDocuments = enrichIntelligentDocuments(chunks, metadata, algorithm, i, segments.size(), timestamp);
-                allDocuments.addAll(segmentDocuments);
+                documents.addAll(segmentDocuments);
             }
-            return allDocuments;
+
+            ragDocumentVectorStore.add(documents);
+            return documents;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -99,9 +110,12 @@ public class TextSplitterServiceImpl implements TextSplitterService {
         }
 
         try {
+            List<Document> documents = new ArrayList<>();
             TextSplitterCheck.validateAlgorithm(algorithm);
             TextSplitter splitter = textSplitterFactory.getTextSplitter(algorithm);
-            texts.forEach((docId, text) -> processBatchSplit(results, docId, text, splitter, algorithm));
+            texts.forEach((docId, text) -> processBatchSplit(results, documents, docId, text, splitter, algorithm));
+
+            ragDocumentVectorStore.add(documents);
             return results;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -111,15 +125,19 @@ public class TextSplitterServiceImpl implements TextSplitterService {
     /**
      * 处理批量分割中的单个文档
      */
-    private void processBatchSplit(Map<String, List<Document>> results, String docId, String text, TextSplitter splitter, String algorithm) {
+    private void processBatchSplit(Map<String, List<Document>> results, List<Document> allDocuments,
+                                   String docId, String text, TextSplitter splitter, String algorithm) {
         try {
             if (StrUtil.isBlank(text)) {
                 results.put(docId, Collections.emptyList());
                 return;
             }
+
             Document inputDoc = textSplitterBuild.createDocument(text, Map.of("docId", docId));
             List<Document> documents = textSplitterBuild.splitDocument(splitter, inputDoc);
             List<Document> processedDocs = enrichDocuments(documents, algorithm);
+
+            allDocuments.addAll(processedDocs);
             results.put(docId, processedDocs);
         } catch (Exception e) {
             throw new RuntimeException(e);

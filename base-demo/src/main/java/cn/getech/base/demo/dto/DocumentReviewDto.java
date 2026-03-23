@@ -1,15 +1,16 @@
 package cn.getech.base.demo.dto;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-
+import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
  * @author 11030
  */
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
-@Builder
 public class DocumentReviewDto implements Serializable {
     private static final long serialVersionUID = 1L;
 

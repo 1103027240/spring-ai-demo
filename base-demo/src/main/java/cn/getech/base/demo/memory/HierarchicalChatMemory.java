@@ -26,19 +26,19 @@ public class HierarchicalChatMemory implements ChatMemory {
     private ChatMemory shortTermMemory;
 
     // 长期记忆（Milvus向量库存储）
-    private VectorStore vectorStore;
+    private VectorStore longTermMemoryVectorStore;
 
     // 短期记忆最大消息数
     @Value("${spring.ai.memory.short-term.max-messages:10}")
     private int shortTermMaxMessages;
 
     // 长期记忆搜索前K条消息
-    @Value("${spring.ai.memory.long-term.similarity-top-k:5}")
+    @Value("${spring.ai.memory.long-term.similarity-top-k:6}")
     private int longTermTopK;
 
-    public HierarchicalChatMemory(ChatMemory shortTermMemory, VectorStore vectorStore) {
+    public HierarchicalChatMemory(ChatMemory shortTermMemory, VectorStore longTermMemoryVectorStore) {
         this.shortTermMemory = shortTermMemory;
-        this.vectorStore = vectorStore;
+        this.longTermMemoryVectorStore = longTermMemoryVectorStore;
     }
 
     /**
@@ -130,7 +130,7 @@ public class HierarchicalChatMemory implements ChatMemory {
                         "conversationId", longTermChatMemory.getConversationId(),
                         "createTime", longTermChatMemory.getCreateTime(),
                         "memoryType", longTermChatMemory.getMemoryType()));
-        vectorStore.add(List.of(doc));
+        longTermMemoryVectorStore.add(List.of(doc));
 
         // 4. 重置短期记忆，只保留最新N条
         shortTermMemory.clear(conversationId);
@@ -169,7 +169,7 @@ public class HierarchicalChatMemory implements ChatMemory {
                 .filterExpression("conversationId == '" + conversationId + "'")
                 .build();
 
-        return vectorStore.similaritySearch(searchRequest).stream()
+        return longTermMemoryVectorStore.similaritySearch(searchRequest).stream()
                 .map(doc -> new UserMessage("【历史相关记忆】：" + doc.getText()))
                 .collect(Collectors.toList());
     }

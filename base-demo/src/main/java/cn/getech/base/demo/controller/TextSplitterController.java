@@ -28,17 +28,17 @@ public class TextSplitterController {
 
     @Operation(summary = "指定算法分割文本", description = "指定算法分割文本")
     @PostMapping("/split")
-    public void split(@RequestBody Map<String, Object> request) {
-        String algorithm = (String) request.get("algorithm");
-        String text = (String) request.get("text");
-        Map<String, Object> metadata = (Map<String, Object>) request.get("metadata");
+    public void split(@RequestBody Map<String, Object> dto) {
+        String algorithm = (String) dto.get("algorithm");
+        String text = (String) dto.get("text");
+        Map<String, Object> metadata = (Map<String, Object>) dto.get("metadata");
         List<Document> list = textSplitterService.split(text, algorithm, metadata);
         log.info("返回结果: {}", JSONObject.toJSONString(list));
     }
 
     @Operation(summary = "智能分割文本", description = "智能分割文本")
     @PostMapping("/intelligentSplit")
-    public void intelligentSplit(@RequestBody Map<String, Object> request) {
+    public void intelligentSplit(@RequestBody Map<String, Object> dto) {
         String text = "# Markdown标题\n\n" +
                 "这是一段普通文本，包含一个HTML标签：<b>粗体文本</b>\n\n" +
                 "```java\n" +
@@ -49,16 +49,16 @@ public class TextSplitterController {
                 "}\n" +
                 "```\n\n" +
                 "还有一段JSON：{\"name\": \"test\", \"value\": 123}";
-        Map<String, Object> metadata = (Map<String, Object>) request.get("metadata");
+        Map<String, Object> metadata = (Map<String, Object>) dto.get("metadata");
         List<Document> list = textSplitterService.intelligentSplit(text, metadata);
         log.info("返回结果: {}", JSONObject.toJSONString(list));
     }
 
     @Operation(summary = "批量分割文本", description = "批量分割文本")
     @PostMapping("/batchSplit")
-    public void batchSplit(@RequestBody Map<String, Object> request) {
-        String algorithm = (String) request.get("algorithm");
-        Map<String, String> texts = (Map<String, String>) request.get("texts");
+    public void batchSplit(@RequestBody Map<String, Object> dto) {
+        String algorithm = (String) dto.get("algorithm");
+        Map<String, String> texts = (Map<String, String>) dto.get("texts");
         Map<String, List<Document>> map = textSplitterService.batchSplit(texts, algorithm);
         log.info("返回结果: {}", JSONObject.toJSONString(map));
     }

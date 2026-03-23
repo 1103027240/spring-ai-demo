@@ -31,8 +31,8 @@ public class MemoryVectorServiceImpl implements MemoryVectorService {
     @Resource(name = "memoryQwenChatClient")
     private ChatClient memoryQwenChatClient;
 
-    @Autowired
-    private VectorStore vectorStore;
+    @Resource(name = "ragDocumentVectorStore")
+    private VectorStore ragDocumentVectorStore;
 
     @Override
     public String doChat(String msg, String conversationId) {
@@ -59,7 +59,7 @@ public class MemoryVectorServiceImpl implements MemoryVectorService {
                         "conversationId", longTermChatMemory.getConversationId(),
                         "createTime", longTermChatMemory.getCreateTime(),
                         "memoryType", longTermChatMemory.getMemoryType()));
-        vectorStore.add(List.of(doc));
+        ragDocumentVectorStore.add(List.of(doc));
     }
 
     @Override
@@ -70,7 +70,7 @@ public class MemoryVectorServiceImpl implements MemoryVectorService {
                 .similarityThreshold(0.7)
                 .build();
 
-        return vectorStore.similaritySearch(searchRequest)
+        return ragDocumentVectorStore.similaritySearch(searchRequest)
                 .stream()
                 .map(e -> DocumentConverter.toEntity(e, (content, metadata) ->
                         LongTermChatMemory.builder()

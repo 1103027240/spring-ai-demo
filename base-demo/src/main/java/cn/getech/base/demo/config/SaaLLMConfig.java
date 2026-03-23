@@ -164,8 +164,8 @@ public class SaaLLMConfig {
     @Bean
     public ChatMemory hierarchicalChatMemory(
             ChatMemory shortTermMemory,
-            @Qualifier("longTermMemoryVectorStore") VectorStore vectorStore) {
-        return new HierarchicalChatMemory(shortTermMemory, vectorStore);
+            @Qualifier("longTermMemoryVectorStore") VectorStore longTermMemoryVectorStore) {
+        return new HierarchicalChatMemory(shortTermMemory, longTermMemoryVectorStore);
     }
 
     /**

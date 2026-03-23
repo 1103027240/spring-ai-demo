@@ -37,7 +37,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
     @Resource(name = "ragDocumentVectorStore")
     private VectorStore ragDocumentVectorStore;
 
-    // 操作是milvus数据库中long_term_chat_memory集合
+    // 操作是milvus数据库中long_term_memory集合
     @Value("${spring.ai.vectorstore.milvus.collection-name}")
     private String collectionName;
 

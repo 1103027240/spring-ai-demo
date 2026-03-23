@@ -33,8 +33,8 @@ public class AgentSessionServiceImpl implements AgentSessionService {
         ReActAgent agent = agentBuild.getAgent(memory, AGENT_SESSION_NAME);
 
         // 创建JsonSession并加载
-        Session session = new JsonSession(Path.of("E:\\sessions"));
-        loadIfExists(agent, session, sessionId);
+        Session jsonSession = new JsonSession(Path.of("E:\\sessions"));
+        loadIfExists(agent, jsonSession, sessionId);
 
         // 2.创建消息
         Msg msg = agentBuild.getMsg(message);
@@ -43,7 +43,7 @@ public class AgentSessionServiceImpl implements AgentSessionService {
         String response = agent.call(msg).block().getTextContent();
 
         // 4.保存会话
-        agent.saveTo(session, sessionId);
+        agent.saveTo(jsonSession, sessionId);
         return response;
     }
 
@@ -54,8 +54,8 @@ public class AgentSessionServiceImpl implements AgentSessionService {
         ReActAgent agent = agentBuild.getAgent(memory, AGENT_SESSION_NAME);
 
         // 创建MysqlSession并加载
-        Session session = new MysqlSession(dataSource, true);
-        loadIfExists(agent, session, sessionId);
+        Session mysqlSession = new MysqlSession(dataSource, true);
+        loadIfExists(agent, mysqlSession, sessionId);
 
         // 2.创建消息
         Msg msg = agentBuild.getMsg(message);
@@ -64,7 +64,7 @@ public class AgentSessionServiceImpl implements AgentSessionService {
         String response = agent.call(msg).block().getTextContent();
 
         // 4.保存会话
-        agent.saveTo(session, sessionId);
+        agent.saveTo(mysqlSession, sessionId);
         return response;
     }
 

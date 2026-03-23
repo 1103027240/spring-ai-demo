@@ -26,9 +26,11 @@ public class AgentMemoryController {
     public String doChat(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String message,
+            @Parameter(description = "userId", required = true, example = "userId")
+            @RequestParam(value = "userId") String userId,
             @Parameter(description = "sessionId", required = true, example = "sessionId")
             @RequestParam(value = "sessionId") String sessionId){
-        return agentMemoryService.doChat(message, sessionId);
+        return agentMemoryService.doChat(message, userId, sessionId);
     }
 
 }

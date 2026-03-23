@@ -2,7 +2,6 @@ package cn.getech.base.demo.build;
 
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.memory.InMemoryMemory;
-import io.agentscope.core.memory.reme.ReMeLongTermMemory;
 import io.agentscope.core.message.Msg;
 import io.agentscope.core.message.TextBlock;
 import io.agentscope.core.model.Model;
@@ -16,22 +15,11 @@ public class AgentBuild {
     @Resource(name = "qwenAgentChatModel")
     private Model qwenAgentChatModel;
 
-    @Autowired
-    private ReMeLongTermMemory reMeLongTermMemory;
-
     public ReActAgent getAgent(InMemoryMemory memory, String agentName) {
         return ReActAgent.builder()
                 .name(agentName)
                 .model(qwenAgentChatModel)
                 .memory(memory)
-                .build();
-    }
-
-    public ReActAgent getAgent(String agentName) {
-        return ReActAgent.builder()
-                .name(agentName)
-                .model(qwenAgentChatModel)
-                .longTermMemory(reMeLongTermMemory)
                 .build();
     }
 

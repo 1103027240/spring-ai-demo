@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
 /**
- * milvus数据库中long_term_chat_memory集合
+ * milvus数据库中long_term_memory集合
  * @author 11030
  */
 @Data

@@ -82,24 +82,25 @@ spring:
         uri: http://localhost:19530 # Milvus默认端口
         token: root:Milvus # 默认账号密码（生产需修改）
         database-name: default # 数据库名
-        collection-name: long_term_chat_memory # 向量库集合名
+        collection-name: long_term_memory # 向量库集合名
         embedding-dimension: 1024 # 通义千问embedding维度
         index-type: IVF_FLAT # 索引类型
         metric-type: COSINE # 相似度计算方式（余弦）
-        consistency-level: EVENTUALLY # 优化：使用最终一致性，提升性能
+        consistency-level: BOUNDED # 优化：使用最终一致性，提升性能
         # 项目启动时，自动创建，milvus多集合
         auto-create-collection: true
         collections:
-          - long_term_chat_memory
+          - long_term_memory
           - rag_document
           - customer_knowledge
           - chat_message
+          - reme_long_term_memory
     # 记忆配置
     memory:
       short-term:
-        max-messages: 5 # 优化：减少短期记忆窗口大小（从10条改为5条）
+        max-messages: 10 #
       long-term:
-        similarity-top-k: 3 # 优化：减少长期记忆召回数量（从5条改为3条）
+        similarity-top-k: 6
       implementation: lettuce  # 切换到 redisson
       redis:
         key-prefix: spring_ai_long_chat_memory # 长期记忆缓存key前缀
@@ -143,36 +144,28 @@ mybatis-plus:
     # 优化：设置超时时间（秒）
     default-statement-timeout: 30
 
-# AgentScope配置
-agentscope:
-  # Session配置（Mysql）
-  session:
-    type: mysql
-    mysql:
-      table-name: agentscope_sessions  # Session表名
-  # Memory配置（ReMe + Milvus）
-  memory:
-    reme:
-      # Milvus 连接配置
-      milvus:
-        host: localhost
-        port: 19530
-        database-name: default
-        collection-name: reme_long_term_memory
-        dimension: 1024
-        index-type: IVF_FLAT
-        metric-type: COSINE
-      # 记忆隔离配置
-      user-isolation: true  # 按用户隔离记忆
-      agent-isolation: true # 按Agent隔离记忆
-      # 嵌入模型配置
-      model:
-        dashscope:
-          api-key: ${qwen-api}
-          chat:
-            model-name: qwen-plus
-          embedding:
-            model-name: text-embedding-v3
+# Qdrant向量库配置
+qdrant:
+  host: localhost
+  port: 6333
+  # 禁用gRPC，使用REST API
+  use-grpc: false
+  # 集合名称
+  collection-name: reme_long_term_memory
+  # 向量维度
+  vector-dim: 1024
+  # 相似度算法
+  distance: Cosine
+  # 关闭版本检查，消除警告
+  check-compatibility: false
+  # 请求超时时间
+  timeout: 30000
+
+# Agentscope连接ReMe长期记忆配置
+reme:
+  long-term-memory:
+    api-base-url: http://localhost:8002
+    timeout-seconds: 60
 
 # Knife4j配置
 springdoc:

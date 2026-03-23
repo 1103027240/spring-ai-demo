@@ -27,7 +27,7 @@ public class KnowledgeDocumentSearchDto implements Serializable {
     private Float thresholdSimilarity = 0.7f;
 
     @Schema(description = "向量搜索返回数量", example = "向量搜索返回数量")
-    private Integer topK; // 支持无限分页，默认使用动态计算
+    private Integer topK; // 支持无限分页（不要传），默认使用动态计算
 
     /** ====== 标量搜素参数 ====== **/
 
