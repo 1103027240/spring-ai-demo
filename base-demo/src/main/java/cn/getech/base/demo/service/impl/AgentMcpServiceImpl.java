@@ -1,5 +1,6 @@
 package cn.getech.base.demo.service.impl;
 
+import cn.getech.base.demo.memory.MonitorHook;
 import cn.getech.base.demo.service.AgentMcpService;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
@@ -9,6 +10,7 @@ import io.agentscope.core.tool.mcp.McpClientBuilder;
 import io.agentscope.core.tool.mcp.McpClientWrapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import java.time.Duration;
@@ -21,6 +23,9 @@ public class AgentMcpServiceImpl implements AgentMcpService {
 
     @Resource(name = "qwenAgentChatModel")
     private Model qwenAgentChatModel;
+
+    @Autowired
+    private MonitorHook monitorHook;
 
     @Override
     public String doChat(String message) {
@@ -40,6 +45,7 @@ public class AgentMcpServiceImpl implements AgentMcpService {
                 .name("agentMcp")
                 .model(qwenAgentChatModel)
                 .toolkit(toolkit)
+                .hook(monitorHook)
                 .build();
 
         Mono<Msg> responseMono = agent.call(
