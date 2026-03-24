@@ -24,7 +24,7 @@ public class AgentStructuredServiceImpl implements AgentStructuredService {
     @Override
     public ContactInfoVO doChat(String message) {
         ReActAgent agent = ReActAgent.builder()
-                .name("agentStructured")
+                .name("StructuredOutputAgent")
                 .model(qwenAgentChatModel)
                 .sysPrompt("你是一个智能分析助手。分析用户请求，并提供结构化回复")
                 .build();

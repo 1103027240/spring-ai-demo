@@ -4,6 +4,6 @@ import java.util.Map;
 
 public interface MultiSequentialService {
 
-    Map<String, String> doChat(String message);
+    Map<String, Object> doChat(String message);
 
 }

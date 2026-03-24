@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.sql.DataSource;
 import java.nio.file.Path;
-import static cn.example.base.demo.constant.FieldValueConstant.AGENT_SESSION_NAME;
 
 @Slf4j
 @Service
@@ -30,7 +29,7 @@ public class AgentSessionServiceImpl implements AgentSessionService {
     public String doChatJsonSession(String message, String sessionId) {
         // 1.创建智能体
         InMemoryMemory memory = new InMemoryMemory();
-        ReActAgent agent = agentBuild.getAgent(memory, AGENT_SESSION_NAME);
+        ReActAgent agent = agentBuild.getAgent(memory, "SessionAgent");
 
         // 创建JsonSession并加载
         Session jsonSession = new JsonSession(Path.of("E:\\sessions"));
@@ -51,7 +50,7 @@ public class AgentSessionServiceImpl implements AgentSessionService {
     public String doChatMysqlSession(String message, String sessionId) {
         // 1.创建智能体
         InMemoryMemory memory = new InMemoryMemory();
-        ReActAgent agent = agentBuild.getAgent(memory, AGENT_SESSION_NAME);
+        ReActAgent agent = agentBuild.getAgent(memory, "SessionAgent");
 
         // 创建MysqlSession并加载
         Session mysqlSession = new MysqlSession(dataSource, true);
@@ -72,7 +71,7 @@ public class AgentSessionServiceImpl implements AgentSessionService {
     public String doChatSessionManager(String message, String sessionId) {
         // 1.创建智能体
         InMemoryMemory memory = new InMemoryMemory();
-        ReActAgent agent = agentBuild.getAgent(memory, AGENT_SESSION_NAME);
+        ReActAgent agent = agentBuild.getAgent(memory, "SessionAgent");
 
         // 创建SessionManager并加载
         SessionManager sessionManager = SessionManager.forSessionId(sessionId)

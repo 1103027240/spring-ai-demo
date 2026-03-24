@@ -37,7 +37,7 @@ public class AgentMultiModalServiceImpl implements AgentMultiModalService {
                     .build();
 
             ReActAgent agent = ReActAgent.builder()
-                    .name("agentMultiModal")
+                    .name("MultiModalAgent")
                     .model(qwenMultiModalChatModel)
                     .build();
 

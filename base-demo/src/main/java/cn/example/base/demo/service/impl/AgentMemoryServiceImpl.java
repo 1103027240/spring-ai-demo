@@ -13,7 +13,6 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.sql.DataSource;
-import static cn.example.base.demo.constant.FieldValueConstant.AGENT_MEMORY_NAME;
 
 @Service
 public class AgentMemoryServiceImpl implements AgentMemoryService {
@@ -36,7 +35,7 @@ public class AgentMemoryServiceImpl implements AgentMemoryService {
 
         // 1.创建智能体
         ReActAgent agent = ReActAgent.builder()
-                .name(AGENT_MEMORY_NAME)
+                .name("MemoryAgent")
                 .model(qwenAgentChatModel)
                 .longTermMemory(longTermMemory)
                 .longTermMemoryMode(LongTermMemoryMode.STATIC_CONTROL)

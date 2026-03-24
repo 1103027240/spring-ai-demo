@@ -19,7 +19,7 @@ import java.util.List;
 public class ReturnProcessSequentialConfig {
 
     @Bean("returnProcessSequentialAgent")
-    public SequentialAgent returnProcessSequentialAgent(
+    public SequentialAgent returnProcessSequentialAgent (
             AgentScopeAgent orderCheckAgent,
             AgentScopeAgent returnPolicyCheckAgent,
             AgentScopeAgent refundCalculateAgent,

@@ -20,13 +20,13 @@ public class AgentStudioServiceImpl implements AgentStudioService {
         // 初始化Studio连接
         StudioManager.init()
                 .studioUrl("http://localhost:3000")
-                .project("AgentStudio")
+                .project("StudioAgent")
                 .runName("run_" + System.currentTimeMillis())
                 .initialize()
                 .block();
 
         ReActAgent agent = ReActAgent.builder()
-                .name("agentStudio")
+                .name("StudioAgent")
                 .model(qwenAgentChatModel)
                 .hook(new StudioMessageHook(StudioManager.getClient()))
                 .build();

@@ -55,7 +55,7 @@ public class AgentDemoServiceImpl implements AgentDemoService {
 
         // 调用大模型
         ReActAgent agent = ReActAgent.builder()
-                .name("agentDemo")
+                .name("DemoAgent")
                 .sysPrompt("你是一个AI助手。你必须始终使用中文回复所有问题，无论输入是什么语言。不要使用英文。")
                 .model(qwenAgentChatModel)
                 .maxIters(10)  // 智能体响应迭代次数，默认10

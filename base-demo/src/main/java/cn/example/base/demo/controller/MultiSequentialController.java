@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * @author 11030
  */
-@Tag(name = "顺序多智能体示例接口", description = "顺序多智能体示例接口")
+@Tag(name = "顺序多智能体接口", description = "顺序多智能体接口")
 @RequestMapping("/multiSequential")
 @RestController
 public class MultiSequentialController {
@@ -21,7 +21,7 @@ public class MultiSequentialController {
 
     @Operation(summary = "退货对话", description = "退货对话")
     @PostMapping("/doChat")
-    public Map<String, String> doChat(
+    public Map<String, Object> doChat(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String message) {
         return multiSequentialService.doChat(message);

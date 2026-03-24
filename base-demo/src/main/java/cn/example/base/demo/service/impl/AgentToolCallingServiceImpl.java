@@ -42,7 +42,7 @@ public class AgentToolCallingServiceImpl implements AgentToolCallingService {
 
         // 调用大模型
         ReActAgent agent = ReActAgent.builder()
-                .name("agentTool")
+                .name("ToolCallingAgent")
                 .sysPrompt("你是一个AI助手。你必须始终使用中文回复所有问题，无论输入是什么语言。不要使用英文。")
                 .model(qwenAgentChatModel)
                 .toolkit(toolkit)

@@ -42,7 +42,7 @@ public class AgentMcpServiceImpl implements AgentMcpService {
         toolkit.registerMcpClient(wrapper).block();  //一定要阻塞，让MCP注册工具
 
         ReActAgent agent = ReActAgent.builder()
-                .name("agentMcp")
+                .name("McpAgent")
                 .model(qwenAgentChatModel)
                 .toolkit(toolkit)
                 .hook(monitorHook)
