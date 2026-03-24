@@ -3,8 +3,6 @@ package cn.getech.base.demo.service.impl;
 import cn.getech.base.demo.service.AgentStudioService;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
-import io.agentscope.core.message.MsgRole;
-import io.agentscope.core.message.TextBlock;
 import io.agentscope.core.model.Model;
 import io.agentscope.core.studio.StudioManager;
 import io.agentscope.core.studio.StudioMessageHook;
@@ -34,13 +32,12 @@ public class AgentStudioServiceImpl implements AgentStudioService {
                 .build();
 
         Msg msg = Msg.builder()
-                .role(MsgRole.USER)
-                .content(TextBlock.builder()
-                        .text("从以下位置提取用户请求: " + message)
-                        .build())
+                .textContent(message)
                 .build();
 
-        String response = agent.call(msg).block().getTextContent();
+        String response = agent.call(msg)
+                .block()
+                .getTextContent();
 
         // 清理资源
         StudioManager.shutdown();
