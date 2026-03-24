@@ -10,7 +10,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>cn.getech</groupId>
+    <groupId>cn.example</groupId>
     <artifactId>spring-ai-demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>spring-ai-demo</name>

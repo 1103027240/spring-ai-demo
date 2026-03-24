@@ -127,7 +127,7 @@ spring:
 mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml
   # 实体扫描，多个package用逗号或者分号分隔
-  typeAliasesPackage: cn.getech.base.demo.entity
+  typeAliasesPackage: cn.example.base.demo.entity
   # 配置
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
@@ -190,7 +190,7 @@ milvus:
 logging:
   level:
     root: INFO
-    cn.getech: DEBUG
+    cn.example: DEBUG
     io.undertow: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="cn.getech.base.demo.mapper.KnowledgeDocumentMapper">
+<mapper namespace="cn.example.base.demo.mapper.KnowledgeDocumentMapper">
 
     <!-- 关键词搜索 -->
-    <select id="selectByCondition" resultType="cn.getech.base.demo.entity.KnowledgeDocument">
+    <select id="selectByCondition" resultType="cn.example.base.demo.entity.KnowledgeDocument">
         SELECT * FROM knowledge_document
         <where>
             <if test="keyword != null and keyword != ''">

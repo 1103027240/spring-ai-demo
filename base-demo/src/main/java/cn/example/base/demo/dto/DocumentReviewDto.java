@@ -1,0 +1,19 @@
+package cn.example.base.demo.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.io.Serializable;
+
+/**
+ * @author 11030
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class DocumentReviewDto implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private String documentContent;
+
+}

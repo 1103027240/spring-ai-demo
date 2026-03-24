@@ -1,0 +1,97 @@
+package cn.example.base.demo.entity;
+
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import static cn.example.base.demo.enums.ChatSessionStatusEnum.*;
+
+/**
+ * @author 11030
+ */
+@Data
+@TableName("chat_session")
+@Accessors(chain = true)
+public class ChatSession implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    @TableField("session_id")
+    private String sessionId;
+
+    @TableField("user_id")
+    private Long userId;
+
+    @TableField("user_name")
+    private String userName;
+
+    @TableField("session_type")
+    private Integer sessionType;
+
+    @TableField("status")
+    private Integer status;
+
+    @TableField("start_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime startTime;
+
+    @TableField("end_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime endTime;
+
+    @TableField("message_count")
+    private Integer messageCount = 0;
+
+    @TableField("last_message_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime lastMessageTime;
+
+    @TableField("session_data")
+    private String sessionData;
+
+    @TableField(fill = FieldFill.INSERT)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createTime;
+
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updateTime;
+
+    /**
+     * 计算会话时长（秒）
+     */
+    public Long getDurationSeconds() {
+        if (startTime == null) {
+            return 0L;
+        }
+        LocalDateTime end = endTime != null ? endTime : LocalDateTime.now();
+        return Duration.between(startTime, end).getSeconds();
+    }
+
+    /**
+     * 计算会话时长（分钟）
+     */
+    public Long getDurationMinutes() {
+        return getDurationSeconds() / 60;
+    }
+
+    /**
+     * 判断会话是否活跃
+     */
+    public boolean isActive() {
+        return ACTIVE.equals(status) || WAITING.equals(status);
+    }
+
+    /**
+     * 判断会话是否已结束
+     */
+    public boolean isEnded() {
+        return ENDED.equals(status);
+    }
+
+}

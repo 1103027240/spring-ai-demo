@@ -1,0 +1,9 @@
+package cn.example.base.demo.service;
+
+import cn.example.base.demo.dto.ContactInfoVO;
+
+public interface AgentStructuredService {
+
+    ContactInfoVO doChat(String message);
+
+}
