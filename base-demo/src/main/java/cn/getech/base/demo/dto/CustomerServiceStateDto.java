@@ -95,6 +95,9 @@ public class CustomerServiceStateDto implements Serializable {
      */
     private String status = "RUNNING";
 
+    /**
+     * 错误信息
+     */
     private String errorMessage;
 
     /**

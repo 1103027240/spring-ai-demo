@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/knowledge")
-@Tag(name = "知识库管理", description = "知识库管理")
+@Tag(name = "知识库接口", description = "知识库接口")
 public class KnowledgeDocumentController {
 
     @Autowired

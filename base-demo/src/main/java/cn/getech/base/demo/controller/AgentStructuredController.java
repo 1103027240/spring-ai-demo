@@ -1,6 +1,7 @@
 package cn.getech.base.demo.controller;
 
-import cn.getech.base.demo.service.AgentMcpService;
+import cn.getech.base.demo.dto.ContactInfoVO;
+import cn.getech.base.demo.service.AgentStructuredService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,20 +14,20 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author 11030
  */
-@Tag(name = "智能体MCP接口", description = "智能体MCP接口")
-@RequestMapping("/agentMcp")
+@Tag(name = "智能体结构化输出接口", description = "智能体结构化输出接口")
+@RequestMapping("/agentStructured")
 @RestController
-public class AgentMcpController {
+public class AgentStructuredController {
 
     @Autowired
-    private AgentMcpService agentMcpService;
+    private AgentStructuredService agentStructuredService;
 
-    @Operation(summary = "远程调用百度地图", description = "远程调用百度地图")
+    @Operation(summary = "结构化输出对话", description = "结构化输出对话")
     @GetMapping("/doChat")
-    public String doChat(
+    public ContactInfoVO doChat(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String message){
-        return agentMcpService.doChat(message);
+        return agentStructuredService.doChat(message);
     }
 
 }

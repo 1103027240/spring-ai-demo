@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author 11030
  */
-@Tag(name = "Agent记忆接口", description = "Agent记忆接口")
+@Tag(name = "智能体记忆接口", description = "智能体记忆接口")
 @RequestMapping("/agentMemory")
 @RestController
 public class AgentMemoryController {

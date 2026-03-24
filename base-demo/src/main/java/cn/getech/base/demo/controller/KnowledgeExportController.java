@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import static cn.getech.base.demo.enums.ExportTaskStatusEnum.PROCESSING;
 
 @Slf4j
-@Tag(name = "知识库导出管理", description = "知识库导出管理")
+@Tag(name = "知识库导出接口", description = "知识库导出接口")
 @RequestMapping("/knowledgeExport")
 @RestController
 public class KnowledgeExportController {

@@ -51,6 +51,8 @@ public class FieldValueConstant {
 
     public static final String AGENT_MEMORY_NAME = "agentMemory";
 
+    public static final String AGENT_MULTI_MODAL_NAME = "qwen-vl-max";
+
     /**
      * 事务提交后延迟时间（毫秒）
      */

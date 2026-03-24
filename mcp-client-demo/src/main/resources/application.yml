@@ -19,7 +19,7 @@ spring:
       api-key: ${qwen-api}
       base-url: https://dashscope.aliyuncs.com
       qwen:
-        model: qwen-plus
+        model: qwen-max
       deepseek:
         model: deepseek-v3
 

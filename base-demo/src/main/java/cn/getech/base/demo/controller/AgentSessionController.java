@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author 11030
  */
-@Tag(name = "Agent会话接口", description = "Agent会话接口")
+@Tag(name = "智能体会话接口", description = "智能体会话接口")
 @RequestMapping("/agentSession")
 @RestController
 public class AgentSessionController {

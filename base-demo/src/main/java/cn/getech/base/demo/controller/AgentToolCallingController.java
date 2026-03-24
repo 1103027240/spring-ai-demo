@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author 11030
  */
-@Tag(name = "Agent工具调用接口", description = "Agent工具调用接口")
+@Tag(name = "智能体工具调用接口", description = "智能体工具调用接口")
 @RequestMapping("/agentToolCalling")
 @RestController
 public class AgentToolCallingController {
