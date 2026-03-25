@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Import;
 import java.util.List;
 
 /**
- * 5、顺序退货流程处理智能体
+ * 1、顺序退货流程处理智能体
  */
 @Configuration
 @Import({
@@ -18,7 +18,7 @@ import java.util.List;
         ReturnOrderGenerateConfig.class})
 public class ReturnProcessSequentialConfig {
 
-    @Bean("returnProcessSequentialAgent")
+    @Bean
     public SequentialAgent returnProcessSequentialAgent (
             AgentScopeAgent orderCheckAgent,
             AgentScopeAgent returnPolicyCheckAgent,
@@ -26,7 +26,7 @@ public class ReturnProcessSequentialConfig {
             AgentScopeAgent returnOrderGenerateAgent) {
 
         return SequentialAgent.builder()
-                .name("顺序退货流程处理器")
+                .name("顺序退货流程处理智能体")
                 .description("电商退货流程管道：验证订单、检查政策、计算退款、生成退货单")
                 .subAgents(List.of(
                         orderCheckAgent,

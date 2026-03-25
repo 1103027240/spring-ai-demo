@@ -115,15 +115,6 @@ spring:
 #        stdio:
 #          servers-configuration: classpath:/mcp-server.json
 
-    # 工作流可视化视图配置
-    studio:
-      enabled: true
-      server:
-        enabled: true
-      graph:
-        auto-register: true  # 自动注册Graph Bean
-        show-details: true   # 显示详细信息
-
 mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml
   # 实体扫描，多个package用逗号或者分号分隔

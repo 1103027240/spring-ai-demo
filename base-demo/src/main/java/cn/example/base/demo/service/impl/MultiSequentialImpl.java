@@ -2,6 +2,7 @@ package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.service.MultiSequentialService;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.agent.flow.agent.SequentialAgent;
@@ -14,8 +15,11 @@ import io.agentscope.core.studio.StudioManager;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.stereotype.Service;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
 
 @Service
 public class MultiSequentialImpl implements MultiSequentialService {
@@ -40,29 +44,29 @@ public class MultiSequentialImpl implements MultiSequentialService {
         String orderId = extractOrderId(message);
         if(StrUtil.isBlank(orderId)){
             StudioManager.shutdown();
-            return Map.of("orderId", orderId, "status", "失败", "msg", "用户输入不包含订单号");
+            return Map.of("status", "fail", "orderId", orderId, "msg", "用户输入不包含订单号");
         }
 
         // 2、调用顺序退货流程处理智能体
         OverAllState overAllState;
         try {
-            overAllState = returnProcessSequentialAgent.invoke(Map.of("orderId", orderId)).orElse(null);
+            overAllState = returnProcessSequentialAgent.invoke(initOrderMap(orderId)).orElse(null);
         } catch (GraphRunnerException e) {
             StudioManager.shutdown();
-            return Map.of("orderId", orderId, "status", "错误", "msg", e.getMessage());
+            return Map.of("status", "error", "orderId", orderId,  "msg", e.getMessage());
         }
 
         // 3、封装返回结果
         if (overAllState == null || CollUtil.isEmpty(overAllState.data())) {
             StudioManager.shutdown();
-            return Map.of("orderId", orderId, "status", "失败", "msg", "代理未返回结果");
+            return Map.of("status", "fail", "orderId", orderId, "msg", "代理未返回结果");
         }
 
         Map<String, Object> dataMap = overAllState.data();
         StudioManager.shutdown();
         return Map.of(
+                "status", "success",
                 "orderId", orderId,
-                "status", "成功",
                 "orderCheckResult", extractText(dataMap, "orderCheckResult"),
                 "policyCheckResult", extractText(dataMap, "policyCheckResult"),
                 "refundAmount", extractText(dataMap, "refundAmount"),
@@ -108,6 +112,14 @@ public class MultiSequentialImpl implements MultiSequentialService {
             return message.getText();
         }
         return value != null ? value.toString() : null;
+    }
+
+    private Map<String, Object> initOrderMap(String orderId) {
+        return Map.of(
+                "orderId", orderId,
+                "status", "Shipped",
+                "amount", new SecureRandom().nextInt(1000) + 1,
+                "createTime", DateUtil.format(LocalDateTime.now().plusDays(new SecureRandom().nextLong(16)), NORM_DATETIME_PATTERN));
     }
 
 }
