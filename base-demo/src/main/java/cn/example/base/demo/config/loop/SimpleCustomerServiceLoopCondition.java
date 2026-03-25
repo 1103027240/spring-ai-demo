@@ -2,36 +2,33 @@ package cn.example.base.demo.config.loop;
 
 import cn.hutool.core.collection.CollUtil;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.function.Predicate;
+import static cn.example.base.demo.constant.FieldValueConstant.MAX_LOOP_TIMES;
 
+@Component
 public class SimpleCustomerServiceLoopCondition implements Predicate<List<Message>> {
 
-    private Integer maxLoopTimes;
-
-    private Integer count = 0;
-
-    public SimpleCustomerServiceLoopCondition(int maxLoopTimes) {
-        this.maxLoopTimes = maxLoopTimes;
-    }
+    private int count = 0;
 
     @Override
     public boolean test(List<Message> messages) {
+        // 检查最大迭代次数
         count++;
-        if (CollUtil.isEmpty(messages)) {
-            return false;
+        if (count > MAX_LOOP_TIMES) {
+            return true;  // 超过最大次数，返回true结束循环
         }
 
-        // 1、校验是否达到最大循环次数
-        if(count > maxLoopTimes){
-            return true;
+        if (CollUtil.isEmpty(messages)) {
+            return false;
         }
 
         // 获取最后一条消息
         Message lastMessage = messages.get(messages.size() - 1);
         String lastContent = lastMessage.getText();
 
-        // 2、校验返回数据中是否有结束关键词
+        // 结束关键词
         String[] endKeywords = {
                 "谢谢", "再见", "结束", "好了", "完成",
                 "不客气", "不用谢", "问题解决", "处理完成",
@@ -41,11 +38,6 @@ public class SimpleCustomerServiceLoopCondition implements Predicate<List<Messag
             if (lastContent.contains(keyword)) {
                 return true;
             }
-        }
-
-        // 3、校验返回数据中是否结束标志
-        if(lastContent.contains("\"needMoreInfo\": false")){
-            return true;
         }
 
         return false;

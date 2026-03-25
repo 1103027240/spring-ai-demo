@@ -2,6 +2,7 @@ package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.build.ChatMessageBuild;
 import cn.example.base.demo.build.MultiAgentBuild;
+import cn.example.base.demo.config.loop.SimpleChatLoopConfig;
 import cn.example.base.demo.service.ChatMessageService;
 import cn.example.base.demo.service.SimpleChatLoopService;
 import cn.example.base.demo.utils.ParamUtils;
@@ -9,6 +10,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.cloud.ai.agent.agentscope.AgentScopeAgent;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.agent.flow.agent.LoopAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
@@ -25,9 +27,6 @@ import static cn.example.base.demo.constant.FieldValueConstant.DEFAULT_LIMIT;
 @Service
 public class SimpleChatLoopServiceImpl implements SimpleChatLoopService {
 
-    @Resource(name = "simpleChatLoopAgent")
-    private LoopAgent simpleChatLoopAgent;
-
     @Autowired
     private ChatMessageBuild chatMessageBuild;
 
@@ -37,13 +36,20 @@ public class SimpleChatLoopServiceImpl implements SimpleChatLoopService {
     @Autowired
     private ChatMessageService chatMessageService;
 
+    @Resource(name = "simpleCustomerServiceAgent")
+    private AgentScopeAgent simpleCustomerServiceAgent;
+
     @Override
     public Map<String, Object> runLoop(Long userId, String sessionId, String message) throws GraphRunnerException {
         // 1. 查询历史对话
         String conversationHistory = chatMessageBuild.buildChatMessageHistory(userId, sessionId, DEFAULT_LIMIT);
 
+        // 组合对话历史和用户消息
+        String combinedMessage = buildCombinedMessage(conversationHistory, message);
+
         // 2. 调用多智能体
-        OverAllState overAllState = simpleChatLoopAgent.invoke(initMap(userId, sessionId, message, conversationHistory)).orElse(null);
+        LoopAgent simpleChatLoopAgent = new SimpleChatLoopConfig().getSimpleChatLoopAgent(simpleCustomerServiceAgent);
+        OverAllState overAllState = simpleChatLoopAgent.invoke(initMap(userId, sessionId, combinedMessage)).orElse(null);
         if (overAllState == null || CollUtil.isEmpty(overAllState.data())) {
             return Map.of("status", "fail", "userId", userId, "sessionId", sessionId,"msg", "智能体未返回结果");
         }
@@ -65,12 +71,28 @@ public class SimpleChatLoopServiceImpl implements SimpleChatLoopService {
                 "aiResponse", aiResponse);
     }
 
-    private Map<String, Object> initMap(Long userId, String sessionId, String userMessage, String conversationHistory) {
+    private Map<String, Object> initMap(Long userId, String sessionId, String combinedMessage) {
         return Map.of(
                 "userId", userId,
                 "sessionId", sessionId,
-                "userMessage", userMessage,
-                "conversationHistory", conversationHistory);
+                "userMessage", combinedMessage);
+    }
+
+    /**
+     * 组合对话历史和用户消息
+     */
+    private String buildCombinedMessage(String conversationHistory, String userMessage) {
+        StringBuilder sb = new StringBuilder();
+        
+        // 添加对话历史
+        if (StrUtil.isNotBlank(conversationHistory)) {
+            sb.append("【对话历史】\n").append(conversationHistory).append("\n\n");
+        }
+        
+        // 添加当前用户问题
+        sb.append("【当前问题】\n").append(userMessage);
+        
+        return sb.toString();
     }
 
     /**
