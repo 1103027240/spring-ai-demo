@@ -186,6 +186,16 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
+# OpenTelemetry配置
+otel:
+  exporter:
+    otlp:
+      endpoint: http://localhost:3000
+      timeout: 180s
+  sdk:
+    autoconfigure:
+      enabled: true
+
 # Actuator监控
 management:
   endpoints:

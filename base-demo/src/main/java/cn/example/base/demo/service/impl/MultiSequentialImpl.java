@@ -1,11 +1,8 @@
 package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.service.MultiSequentialService;
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
+import cn.example.base.demo.service.ReturnProcessSequentialService;
 import cn.hutool.core.util.StrUtil;
-import com.alibaba.cloud.ai.graph.OverAllState;
-import com.alibaba.cloud.ai.graph.agent.flow.agent.SequentialAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
@@ -13,13 +10,10 @@ import io.agentscope.core.message.TextBlock;
 import io.agentscope.core.model.Model;
 import io.agentscope.core.studio.StudioManager;
 import jakarta.annotation.Resource;
-import org.springframework.ai.chat.messages.Message;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
 
 @Service
 public class MultiSequentialImpl implements MultiSequentialService {
@@ -27,12 +21,11 @@ public class MultiSequentialImpl implements MultiSequentialService {
     @Resource(name = "qwenAgentChatModel")
     private Model qwenAgentChatModel;
 
-    @Resource(name = "returnProcessSequentialAgent")
-    private SequentialAgent returnProcessSequentialAgent;
+    @Autowired
+    private ReturnProcessSequentialService returnProcessSequentialService;
 
     @Override
     public Map<String, Object> doChat(String message) {
-        // 初始化Studio连接
         StudioManager.init()
                 .studioUrl("http://localhost:3000")
                 .project("顺序多智能体")
@@ -40,37 +33,21 @@ public class MultiSequentialImpl implements MultiSequentialService {
                 .initialize()
                 .block();
 
-        // 1、调用大模型提取订单号
-        String orderId = extractOrderId(message);
-        if(StrUtil.isBlank(orderId)){
-            StudioManager.shutdown();
-            return Map.of("status", "fail", "orderId", orderId, "msg", "用户输入不包含订单号");
-        }
-
-        // 2、调用顺序退货流程处理智能体
-        OverAllState overAllState;
+        String orderId = "";
         try {
-            overAllState = returnProcessSequentialAgent.invoke(initOrderMap(orderId)).orElse(null);
+            // 1、调用大模型提取订单号
+            orderId = extractOrderId(message);
+            if(StrUtil.isBlank(orderId)){
+                return Map.of("status", "fail", "orderId", orderId, "msg", "用户输入不包含订单号");
+            }
+
+            // 2、调用顺序退货流程处理智能体
+            return returnProcessSequentialService.runSequential(orderId);
         } catch (GraphRunnerException e) {
+            return Map.of("status", "error", "orderId", orderId, "msg", e.getMessage());
+        } finally {
             StudioManager.shutdown();
-            return Map.of("status", "error", "orderId", orderId,  "msg", e.getMessage());
         }
-
-        // 3、封装返回结果
-        if (overAllState == null || CollUtil.isEmpty(overAllState.data())) {
-            StudioManager.shutdown();
-            return Map.of("status", "fail", "orderId", orderId, "msg", "代理未返回结果");
-        }
-
-        Map<String, Object> dataMap = overAllState.data();
-        StudioManager.shutdown();
-        return Map.of(
-                "status", "success",
-                "orderId", orderId,
-                "orderCheckResult", extractText(dataMap, "orderCheckResult"),
-                "policyCheckResult", extractText(dataMap, "policyCheckResult"),
-                "refundAmount", extractText(dataMap, "refundAmount"),
-                "returnOrder", extractText(dataMap, "returnOrder"));
     }
 
     private String extractOrderId(String message) {
@@ -100,30 +77,6 @@ public class MultiSequentialImpl implements MultiSequentialService {
                 .getTextContent();
 
         return StrUtil.unWrap(result, '"', '"');  //例""""，去掉前后""，只返回""
-    }
-
-    private String extractText(Map<String, Object> dataMap, String key) {
-        Object value = dataMap.get(key);
-        if (value == null) {
-            return null;
-        }
-
-        if (value instanceof Message message) {
-            return message.getText();
-        }
-        return value != null ? value.toString() : null;
-    }
-
-    private Map<String, Object> initOrderMap(String orderId) {
-        int status = new SecureRandom().nextInt(3);
-        int amount = new SecureRandom().nextInt(1000) + 1;
-        long days = new SecureRandom().nextLong(11);
-
-        return Map.of(
-                "orderId", orderId,
-                "status", (status == 0 ? "Paid" : status == 1 ? "Shipped" : "Delivered"),
-                "amount", amount,
-                "createTime", DateUtil.format(LocalDateTime.now().plusDays(days), NORM_DATETIME_PATTERN));
     }
 
 }

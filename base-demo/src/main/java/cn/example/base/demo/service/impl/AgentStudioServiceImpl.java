@@ -25,23 +25,26 @@ public class AgentStudioServiceImpl implements AgentStudioService {
                 .initialize()
                 .block();
 
-        ReActAgent agent = ReActAgent.builder()
-                .name("StudioAgent")
-                .model(qwenAgentChatModel)
-                .hook(new StudioMessageHook(StudioManager.getClient()))
-                .build();
+        try {
+            ReActAgent agent = ReActAgent.builder()
+                    .name("StudioAgent")
+                    .model(qwenAgentChatModel)
+                    .hook(new StudioMessageHook(StudioManager.getClient()))
+                    .build();
 
-        Msg msg = Msg.builder()
-                .textContent(message)
-                .build();
+            Msg msg = Msg.builder()
+                    .textContent(message)
+                    .build();
 
-        String response = agent.call(msg)
-                .block()
-                .getTextContent();
-
-        // 清理资源
-        StudioManager.shutdown();
-        return response;
+            return agent.call(msg)
+                    .block()
+                    .getTextContent();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 清理资源
+            StudioManager.shutdown();
+        }
     }
 
 }

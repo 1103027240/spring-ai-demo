@@ -27,7 +27,7 @@ public class ReturnProcessSequentialConfig {
 
         return SequentialAgent.builder()
                 .name("顺序退货流程处理智能体")
-                .description("电商退货流程管道：验证订单、检查政策、计算退款、生成退货单")
+                .description("电商退货顺序处理：验证订单、检查政策、计算退款、生成退货单")
                 .subAgents(List.of(
                         orderCheckAgent,
                         returnPolicyCheckAgent,

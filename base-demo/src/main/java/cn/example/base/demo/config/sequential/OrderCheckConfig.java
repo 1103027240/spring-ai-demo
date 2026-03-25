@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * 2、订单验证智能体
  */
- @Configuration
+@Configuration
 public class OrderCheckConfig {
 
     private static final String ORDER_CHECK_PROMPT  =
