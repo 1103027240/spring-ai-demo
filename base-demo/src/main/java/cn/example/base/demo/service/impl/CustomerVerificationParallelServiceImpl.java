@@ -64,17 +64,6 @@ public class CustomerVerificationParallelServiceImpl implements CustomerVerifica
             if (keyValue.length == 2) {
                 String key = keyValue[0].trim();
                 String value = keyValue[1].trim();
-
-                // 提取数值
-                if (key.contains("分") || key.contains("率") || key.contains("价")) {
-                    // 使用正则表达式提取数值
-                    Pattern pattern = Pattern.compile("([0-9]+\\.?[0-9]*)[%元]?");
-                    Matcher matcher = pattern.matcher(value);
-                    if (matcher.find()) {
-                        resultMap.put("数值", matcher.group(1));
-                    }
-                }
-
                 resultMap.put(key, value);
             }
         }
@@ -91,19 +80,61 @@ public class CustomerVerificationParallelServiceImpl implements CustomerVerifica
 
         // 检查每个维度的结果
         for (Map.Entry<String, Object> entry : results.entrySet()) {
-            if (entry.getValue() instanceof Map) {
-                Map<String, String> metricResult = (Map<String, String>) entry.getValue();
-                String assessment = metricResult.get("评估等级");
-                if (StrUtil.isNotBlank(assessment)) {
-                    if (assessment.contains("优秀") || assessment.contains("高价值") || assessment.contains("低风险")) {
-                        score += 4;
-                    } else if (assessment.contains("良好") || assessment.contains("中等价值") || assessment.contains("中等风险")) {
-                        score += 3;
-                    } else if (assessment.contains("一般")) {
-                        score += 2;
-                    } else if (assessment.contains("较差") || assessment.contains("低价值") || assessment.contains("高风险")) {
-                        score += 1;
-                    }
+            String key = entry.getKey();
+            Map<String, String> metricResult = (Map<String, String>) entry.getValue();
+
+            if (metricResult instanceof Map) {
+                switch (key){
+                    case "creditScoreResult":
+                        String assessment1 = metricResult.get("评估");
+                        if (StrUtil.isNotBlank(assessment1)) {
+                            if (assessment1.contains("优秀")) {
+                                score += 4;
+                            } else if (assessment1.contains("良好")) {
+                                score += 3;
+                            } else if (assessment1.contains("一般")) {
+                                score += 2;
+                            } else {
+                                score += 1;
+                            }
+                        }
+                        break;
+                    case "orderSuccessRateResult":
+                        String assessment2 = metricResult.get("客户");
+                        if (assessment2.contains("VIP客户")) {
+                            score += 4;
+                        } else if (assessment2.contains("优质客户")) {
+                            score += 3;
+                        } else if (assessment2.contains("普通客户")) {
+                            score += 2;
+                        } else {
+                            score += 1;
+                        }
+                        break;
+                    case "orderAveragePriceResult":
+                        String assessment3 = metricResult.get("水平");
+                        if (assessment3.contains("高价值客户")) {
+                            score += 4;
+                        } else if (assessment3.contains("中等价值客户")) {
+                            score += 3;
+                        } else if (assessment3.contains("低价值客户")) {
+                            score += 2;
+                        } else {
+                            score += 1;
+                        }
+                        break;
+                    default:
+                        String assessment4 = metricResult.get("风险");
+                        if (assessment4.contains("低风险")) {
+                            score += 4;
+                        } else if (assessment4.contains("中等风险")) {
+                            score += 3;
+                        } else if (assessment4.contains("高风险")) {
+                            score += 2;
+                        } else {
+                            score += 1;
+                        }
+                        break;
                 }
             }
         }
@@ -111,9 +142,9 @@ public class CustomerVerificationParallelServiceImpl implements CustomerVerifica
         // 计算百分比
         double percentage = (double) score / maxScore * 100;
         if (percentage >= 80) {
-            return String.format("综合评分：%.1f%% - 优质客户，建议重点维护", percentage);
+            return String.format("综合评分：%.1f%% - 优质客户，建议重点维护，可提供VIP服务", percentage);
         } else if (percentage >= 60) {
-            return String.format("综合评分：%.1f%% - 普通客户，可正常服务", percentage);
+            return String.format("综合评分：%.1f%% - 普通客户，建议正常服务，可尝试提升价值", percentage);
         } else {
             return String.format("综合评分：%.1f%% - 需关注客户，建议加强沟通", percentage);
         }

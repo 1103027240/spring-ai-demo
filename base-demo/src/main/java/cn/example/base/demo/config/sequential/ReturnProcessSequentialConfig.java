@@ -2,6 +2,7 @@ package cn.example.base.demo.config.sequential;
 
 import com.alibaba.cloud.ai.agent.agentscope.AgentScopeAgent;
 import com.alibaba.cloud.ai.graph.agent.flow.agent.SequentialAgent;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -20,14 +21,14 @@ public class ReturnProcessSequentialConfig {
 
     @Bean
     public SequentialAgent returnProcessSequentialAgent (
-            AgentScopeAgent orderCheckAgent,
-            AgentScopeAgent returnPolicyCheckAgent,
-            AgentScopeAgent refundCalculateAgent,
-            AgentScopeAgent returnOrderGenerateAgent) {
+            @Qualifier("orderCheckAgent") AgentScopeAgent orderCheckAgent,
+            @Qualifier("returnPolicyCheckAgent") AgentScopeAgent returnPolicyCheckAgent,
+            @Qualifier("refundCalculateAgent") AgentScopeAgent refundCalculateAgent,
+            @Qualifier("returnOrderGenerateAgent") AgentScopeAgent returnOrderGenerateAgent) {
 
         return SequentialAgent.builder()
-                .name("顺序退货流程处理智能体")
-                .description("电商退货顺序处理：验证订单、检查政策、计算退款、生成退货单")
+                .name("退货处理顺序智能体")
+                .description("退货处理顺序执行：验证订单、检查政策、计算退款、生成退货单")
                 .subAgents(List.of(
                         orderCheckAgent,
                         returnPolicyCheckAgent,
