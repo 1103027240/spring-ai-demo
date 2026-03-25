@@ -2,7 +2,6 @@ package cn.example.base.demo.build;
 
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.stereotype.Component;
-
 import java.util.Map;
 
 @Component

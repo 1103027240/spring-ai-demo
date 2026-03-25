@@ -28,7 +28,7 @@ public class CustomerVerificationParallelServiceImpl implements CustomerVerifica
     public Map<String, Object> runParallel(String customerId) throws GraphRunnerException {
         OverAllState overAllState = customerVerificationParallelAgent.invoke(Map.of("customerId", customerId)).orElse(null);
         if (overAllState == null || CollUtil.isEmpty(overAllState.data())) {
-            return Map.of("status", "fail", "customerId", customerId, "msg", "代理未返回结果");
+            return Map.of("status", "fail", "customerId", customerId, "msg", "智能体未返回结果");
         }
 
         Map<String, Object> verificationResultMap = new HashMap<>();

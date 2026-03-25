@@ -28,7 +28,7 @@ public class ReturnProcessSequentialServiceImpl implements ReturnProcessSequenti
     public Map<String, Object> runSequential(String orderId) throws GraphRunnerException {
         OverAllState overAllState = returnProcessSequentialAgent.invoke(initMap(orderId)).orElse(null);
         if (overAllState == null || CollUtil.isEmpty(overAllState.data())) {
-            return Map.of("status", "fail", "orderId", orderId, "msg", "代理未返回结果");
+            return Map.of("status", "fail", "orderId", orderId, "msg", "智能体未返回结果");
         }
 
         Map<String, Object> dataMap = overAllState.data();

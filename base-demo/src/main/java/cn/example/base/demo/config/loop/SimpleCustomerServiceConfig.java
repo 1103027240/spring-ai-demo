@@ -13,7 +13,7 @@ public class SimpleCustomerServiceConfig {
     private static final String CUSTOMER_SERVICE_PROMPT =
             """
             你是一个电商客服助手。你需要：
-            1. 理解用户问题，提供准确回答
+            1. 基于用户问题和对话历史，提供准确回答
             2. 如果信息不足，礼貌询问更多细节
             3. 回答要专业、简洁、有帮助
             
@@ -42,8 +42,10 @@ public class SimpleCustomerServiceConfig {
                 .name("客服助手智能体")
                 .description("处理用户咨询多轮对话")
                 .instruction("""
-                        用户问题: {userMessage} \n
-                        对话历史: {conversationHistory}
+                        用户ID: {userId} \n
+                        会话ID：{sessionId} \n
+                        用户问题：{userMessage} \n
+                        对话历史：{conversationHistory}
                         """)
                 .includeContents(false)
                 .outputKey("agentResponse")

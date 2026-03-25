@@ -417,11 +417,13 @@ public class TextSplitterUtils {
         if (paraChunks.size() > 1) {
             return paraChunks;
         }
+
         // 然后按语句分割
         List<String> sentChunks = splitBySentence(text);
         if (sentChunks.size() > 1) {
             return sentChunks;
         }
+
         // 最后按固定字符数分割
         return splitByCharacterCount(text, 1000, 100);
     }

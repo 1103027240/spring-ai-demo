@@ -6,6 +6,6 @@ import java.util.Map;
 
 public interface SimpleChatLoopService {
 
-    Map<String, Object> doChat(String userId, String sessionId, String message) throws GraphRunnerException;
+    Map<String, Object> runLoop(Long userId, String sessionId, String message) throws GraphRunnerException;
 
 }

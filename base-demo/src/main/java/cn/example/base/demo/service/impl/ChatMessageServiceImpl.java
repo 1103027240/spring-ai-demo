@@ -40,11 +40,21 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
             messages.add(chatMessageBuild.buildAiChatMessage(state));
         }
 
-        // 使用 MyBatis-Plus 批量插入
         if (CollUtil.isNotEmpty(messages)) {
             saveBatch(messages);
         }
+        return messages;
+    }
 
+    @Override
+    public List<ChatMessage> batchSaveMessages(Long userId, String sessionId, String userMessage, String aiResponse) {
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(chatMessageBuild.buildUserChatMessage(sessionId, userId, userMessage));
+        messages.add(chatMessageBuild.buildAiChatMessage(sessionId, userId, aiResponse));
+
+        if (CollUtil.isNotEmpty(messages)) {
+            saveBatch(messages);
+        }
         return messages;
     }
 

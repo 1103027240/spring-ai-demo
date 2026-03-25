@@ -162,7 +162,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
         ObjectMapper objectMapper = SpringUtil.getBean(ObjectMapper.class);
 
         try {
-            String cleanedResponse = cleanMarkdownCodeBlock(aiResponse);
+            String cleanedResponse = ParamUtils.cleanMarkdownCodeBlock(aiResponse);
             result = objectMapper.readValue(cleanedResponse, new TypeReference<>() {});
         } catch (JsonProcessingException e) {
             log.warn("【订单查询节点】JSON格式解析失败，尝试简化解析: {}", e.getMessage());
@@ -338,18 +338,6 @@ public class OrderQueryNode implements NodeActionWithConfig {
         String orderNumber = (String) order.get(ORDER_NUMBER);
         Integer status = (Integer) order.get(STATUS);
         summary.append(String.format(ORDER_ITEM_TEMPLATE, index, orderNumber, OrderStatusEnum.getText(status)));
-    }
-
-    /**
-     * 清理markdown代码块，移除 ```json 和 ``` 等标记，保留纯JSON内容
-     */
-    private String cleanMarkdownCodeBlock(String text) {
-        if (StrUtil.isBlank(text)) {
-            return text;
-        }
-        String result = MARKDOWN_CODE_BLOCK_PATTERN.matcher(text).replaceAll("").trim();
-        log.debug("【订单查询节点】清理markdown后内容: {}", result);
-        return result;
     }
 
 }

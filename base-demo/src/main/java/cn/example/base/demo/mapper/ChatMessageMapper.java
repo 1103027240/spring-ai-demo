@@ -18,6 +18,9 @@ public interface ChatMessageMapper extends BaseMapper<ChatMessage> {
     @Select("SELECT COUNT(*) FROM chat_message WHERE user_id = #{userId} AND is_deleted = 0")
     int countByUserId(@Param("userId") Long userId);
 
+    @Select("SELECT * FROM chat_message WHERE user_id = #{userId} AND session_id = #{sessionId} AND is_deleted = 0 ORDER BY create_time DESC, is_ai_response DESC LIMIT #{limit}")
+    List<ChatMessage> selectHistoryByUserIdAndSessionId(@Param("userId") Long userId, @Param("sessionId") String sessionId, @Param("limit") int limit);
+
     @Update("UPDATE chat_message SET sync_status = 2, sync_time = NOW() WHERE session_id = #{sessionId} AND sync_status = 0 AND is_deleted = 0")
     int updateSyncStatusToSynced(@Param("sessionId") String sessionId);
 

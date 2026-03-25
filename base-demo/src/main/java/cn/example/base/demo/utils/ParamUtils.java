@@ -4,6 +4,8 @@ import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Map;
 
+import static cn.example.base.demo.constant.PatternConstant.MARKDOWN_CODE_BLOCK_PATTERN;
+
 @Slf4j
 public class ParamUtils {
 
@@ -73,6 +75,18 @@ public class ParamUtils {
                 target.put(key, source.get(key));
             }
         }
+    }
+
+    /**
+     * 清理markdown代码块，移除 ```json 和 ``` 等标记，保留纯JSON内容
+     */
+    public static String cleanMarkdownCodeBlock(String text) {
+        if (StrUtil.isBlank(text)) {
+            return text;
+        }
+        String result = MARKDOWN_CODE_BLOCK_PATTERN.matcher(text).replaceAll("").trim();
+        log.debug("清理markdown后内容: {}", result);
+        return result;
     }
 
 }

@@ -11,6 +11,8 @@ public interface ChatMessageService {
      */
     List<ChatMessage> batchSaveMessages(CustomerServiceStateDto state);
 
+    List<ChatMessage> batchSaveMessages(Long userId, String sessionId, String message, String aiResponse);
+
     void cleanupOldMessageInMysql(Long userId);
 
     List<ChatMessage> selectUnsyncedMessages(String sessionId);
