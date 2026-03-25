@@ -41,7 +41,7 @@ public class CreditScoreCheckConfig {
                 .name("信用分检查智能体")
                 .description("检查客户信用分并提供评估")
                 .instruction("""
-                        客户ID：{customerId} \n
+                        客户ID：{customerId} 
                         检查客户信用分。
                         """)
                 .includeContents(false)

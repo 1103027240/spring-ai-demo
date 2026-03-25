@@ -36,8 +36,8 @@ public class RefundCalculateConfig {
                 .includeContents(false)
                 .instruction(
                         """
-                        订单金额：{amount} \n
-                        政策检查结果: {policyCheckResult} \n
+                        订单金额：{amount} 
+                        政策检查结果: {policyCheckResult} 
                         如果适用，计算退款金额。
                         """)
                 .outputKey("refundAmount")

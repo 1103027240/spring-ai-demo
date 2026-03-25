@@ -40,7 +40,7 @@ public class OrderAveragePriceConfig {
                 .name("客单价分析智能体")
                 .description("分析客户历史平均客单价")
                 .instruction("""
-                        客户ID：{customerId} \n
+                        客户ID：{customerId} 
                         分析客户历史平均客单价。
                         """)
                 .includeContents(false)

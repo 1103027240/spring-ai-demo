@@ -41,7 +41,7 @@ public class OrderSuccessRateConfig {
                 .name("订单成功率分析智能体")
                 .description("分析客户历史订单成功率")
                 .instruction("""
-                        客户ID: {customerId} \n
+                        客户ID: {customerId} 
                         分析客户订单成功率。
                         """)
                 .includeContents(false)

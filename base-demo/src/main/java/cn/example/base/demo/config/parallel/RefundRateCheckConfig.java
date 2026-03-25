@@ -41,7 +41,7 @@ public class RefundRateCheckConfig {
                 .name("退款率分析智能体")
                 .description("分析客户历史订单退款率")
                 .instruction("""
-                        客户ID：{customerId} \n
+                        客户ID：{customerId} 
                         分析客户历史订单退款率。
                         """)
                 .includeContents(false)

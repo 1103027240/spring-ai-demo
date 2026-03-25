@@ -38,9 +38,9 @@ public class ReturnPolicyCheckConfig {
                 .includeContents(false)
                 .instruction(
                         """
-                        订单ID：{orderId} \n
-                        订单创建时间：{createTime} \n
-                        验证结果：{orderCheckResult} \n
+                        订单ID：{orderId} 
+                        订单创建时间：{createTime} 
+                        验证结果：{orderCheckResult} 
                         检查订单是否符合退货条件。     
                         """)
                 .outputKey("policyCheckResult")

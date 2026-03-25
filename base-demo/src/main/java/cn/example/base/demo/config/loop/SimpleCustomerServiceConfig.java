@@ -42,6 +42,7 @@ public class SimpleCustomerServiceConfig {
                         用户ID：{userId}
                         会话ID：{sessionId}
                         用户问题：{userMessage}
+                        
                         请根据以上信息，给出专业、简洁、有帮助的回答。
                         """)
                 .includeContents(false)

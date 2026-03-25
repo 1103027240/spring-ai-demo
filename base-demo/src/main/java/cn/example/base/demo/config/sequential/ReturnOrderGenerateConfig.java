@@ -38,10 +38,10 @@ public class ReturnOrderGenerateConfig {
                 .includeContents(false)
                 .instruction(
                         """
-                        订单ID: {orderId} \n
-                        验证结果: {orderCheckResult} \n
-                        政策结果: {orderCheckResult} \n
-                        退款金额: {refundAmount} \n
+                        订单ID: {orderId} 
+                        验证结果: {orderCheckResult} 
+                        政策结果: {orderCheckResult} 
+                        退款金额: {refundAmount} 
                         如果适用，生成退货单。
                         """)
                 .outputKey("returnOrder")
