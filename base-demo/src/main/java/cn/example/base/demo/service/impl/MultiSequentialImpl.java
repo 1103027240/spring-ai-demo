@@ -115,11 +115,15 @@ public class MultiSequentialImpl implements MultiSequentialService {
     }
 
     private Map<String, Object> initOrderMap(String orderId) {
+        int status = new SecureRandom().nextInt(3);
+        int amount = new SecureRandom().nextInt(1000) + 1;
+        long days = new SecureRandom().nextLong(16);
+
         return Map.of(
                 "orderId", orderId,
-                "status", (new SecureRandom().nextInt(2) == 0 ? "Shipped" : "Paid"),
-                "amount", new SecureRandom().nextInt(1000) + 1,
-                "createTime", DateUtil.format(LocalDateTime.now().plusDays(new SecureRandom().nextLong(16)), NORM_DATETIME_PATTERN));
+                "status", (status == 0 ? "Paid" : status == 1 ? "Shipped" : "Delivered"),
+                "amount", amount,
+                "createTime", DateUtil.format(LocalDateTime.now().plusDays(days), NORM_DATETIME_PATTERN));
     }
 
 }
