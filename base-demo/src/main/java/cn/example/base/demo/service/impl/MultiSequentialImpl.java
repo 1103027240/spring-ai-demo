@@ -117,7 +117,7 @@ public class MultiSequentialImpl implements MultiSequentialService {
     private Map<String, Object> initOrderMap(String orderId) {
         int status = new SecureRandom().nextInt(3);
         int amount = new SecureRandom().nextInt(1000) + 1;
-        long days = new SecureRandom().nextLong(16);
+        long days = new SecureRandom().nextLong(11);
 
         return Map.of(
                 "orderId", orderId,
