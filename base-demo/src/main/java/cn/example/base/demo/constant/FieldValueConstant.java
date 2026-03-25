@@ -77,4 +77,6 @@ public class FieldValueConstant {
 
     public static final int CACHE_TTL = 3600; // 1小时
 
+    public static final int MAX_LOOP_TIMES = 3;
+
 }
