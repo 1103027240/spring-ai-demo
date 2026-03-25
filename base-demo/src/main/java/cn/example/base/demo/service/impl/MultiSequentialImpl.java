@@ -35,7 +35,7 @@ public class MultiSequentialImpl implements MultiSequentialService {
         // 初始化Studio连接
         StudioManager.init()
                 .studioUrl("http://localhost:3000")
-                .project("MultiSequentialAgent")
+                .project("顺序多智能体")
                 .runName("run_" + System.currentTimeMillis())
                 .initialize()
                 .block();
@@ -85,7 +85,7 @@ public class MultiSequentialImpl implements MultiSequentialService {
                 """.formatted(message);
 
         ReActAgent agent = ReActAgent.builder()
-                .name("MultiSequentialAgent")
+                .name("退货流程处理智能体")
                 .model(qwenAgentChatModel)
                 .build();
 
@@ -117,7 +117,7 @@ public class MultiSequentialImpl implements MultiSequentialService {
     private Map<String, Object> initOrderMap(String orderId) {
         return Map.of(
                 "orderId", orderId,
-                "status", "Shipped",
+                "status", (new SecureRandom().nextInt(2) == 0 ? "Shipped" : "Paid"),
                 "amount", new SecureRandom().nextInt(1000) + 1,
                 "createTime", DateUtil.format(LocalDateTime.now().plusDays(new SecureRandom().nextLong(16)), NORM_DATETIME_PATTERN));
     }
