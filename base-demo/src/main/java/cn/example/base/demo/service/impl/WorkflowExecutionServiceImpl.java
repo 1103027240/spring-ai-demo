@@ -22,7 +22,6 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,12 +43,6 @@ import static cn.example.base.demo.enums.WorkflowExecutionStatusEnum.SUCCESS;
 @Slf4j
 @Service
 public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
-
-    @Value("${app.redis.expire.workflow-state:3600}")
-    private int workflowStateExpireSeconds;
-
-    @Value("${app.redis.expire.execution-details:7200}")
-    private int executionDetailsExpireSeconds;
 
     @Resource(name = "customerServiceGraph")
     private CompiledGraph customerServiceGraph;
@@ -168,6 +161,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
                     .map(OverAllState::data)
                     .orElseThrow(() -> new RuntimeException("【售后客服工作流】执行未返回结果"));
 
+            // 封装返回数据
             return customerServiceStateBuild.buildCustomerServiceState(executionId, sessionId, dto, output);
         } catch (Exception e) {
             log.error("【售后客服工作流】工作流执行失败", e);

@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 import static cn.example.base.demo.enums.DocumentReviewNodeEnum.HUMAN_APPROVAL;
 
 /**
@@ -50,16 +49,12 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
             // 2.订阅结果（异步处理）
             outputFlux.subscribe(
                     output -> handleNodeOutput(output, instanceId),
-                    error -> {
-                        log.error("工作流执行失败: instanceId = {}，异常信息：{}", instanceId, error);
-                    },
-                    () -> {
-                        log.info("工作流执行完成（非中断情况）: instanceId = {}", instanceId);
-                    });
+                    error -> log.error("工作流执行失败: instanceId = {}，异常信息：{}", instanceId, error),
+                    () -> log.info("工作流执行完成（非中断情况）: instanceId = {}", instanceId));
 
             // 由于中断是异步发生的，这里立即返回。客户端应通过/state接口轮询状态，或等待/webhook通知。
-            log.info(String.format("1.工作流实例[%s]已启动。它将在人工审批节点前中断，等待您的决策。\n" +
-                    "2.人工审批节点前中断后。调用/resume接口，传入approval_decision以继续流程。", instanceId));
+            log.info("1.工作流实例[{}]已启动。它将在人工审批节点前中断，等待您的决策。\n" +
+                    "2.人工审批节点前中断后。调用/resume接口，传入approval_decision以继续流程。", instanceId);
 
             return Map.of("success", true, "instanceId", instanceId);
         } catch (Exception e) {
@@ -114,12 +109,8 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
             // 5.订阅处理
             resumeFlux.subscribe(
                     output -> handleNodeOutput(output, instanceId),
-                    error -> {
-                        log.error("工作流恢复执行失败: thread_id = {}，异常信息：{}", instanceId, error);
-                    },
-                    () -> {
-                        log.info("工作流恢复执行完成: thread_id = {}", instanceId);
-                    });
+                    error -> log.error("工作流恢复执行失败: thread_id = {}，异常信息：{}", instanceId, error),
+                    () -> log.info("工作流恢复执行完成: thread_id = {}", instanceId));
 
             // 节点中断恢复开始执行
             log.info("工作流实例[{}]中断节点已找到，恢复执行已启动。当前节点：{}，下一个节点：{}",
