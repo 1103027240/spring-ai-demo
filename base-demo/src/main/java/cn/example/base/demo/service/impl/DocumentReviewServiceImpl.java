@@ -92,13 +92,13 @@ public class DocumentReviewServiceImpl implements DocumentReviewService {
             }
 
             // 准备恢复数据
-            Map<String, Object> reviewUpdats = new HashMap<>();
-            reviewUpdats.put("approval_decision", dto.getDecision());
-            reviewUpdats.put("approver_comment", dto.getComment());
-            reviewUpdats.put("approver", dto.getApprover());
+            Map<String, Object> reviewUpdates = new HashMap<>();
+            reviewUpdates.put("approval_decision", dto.getDecision());
+            reviewUpdates.put("approver_comment", dto.getComment());
+            reviewUpdates.put("approver", dto.getApprover());
 
             // 2.更新状态数据
-            RunnableConfig resumeConfig = documentReviewGraph.updateState(interruptionConfig, reviewUpdats);
+            RunnableConfig resumeConfig = documentReviewGraph.updateState(interruptionConfig, reviewUpdates);
 
             // 3.重新获取当前状态数据（更新后的状态数据）
             Map<String, Object> resumeStateMap  = documentReviewGraph.getState(resumeConfig).state().data();
