@@ -56,8 +56,8 @@ public class SqlResultGenerateNode implements NodeAction {
             } else {
                 if (executeSqlResult.containsKey(DATA)) {
                     List<Map<String, Object>> data = (List<Map<String, Object>>) executeSqlResult.get(DATA);
-                    Map<String, Object> simpleAnalysis = performSimpleAnalysis(data, (String) nlToSqlResult.get(QUERY_TYPE));
-                    finalResult.put("analysis", simpleAnalysis);
+                    Map<String, Object> manualAnalysis = performSimpleAnalysis(data, (String) nlToSqlResult.get(QUERY_TYPE));
+                    finalResult.put("manualAnalysis", manualAnalysis);
                 }
             }
 
@@ -79,7 +79,7 @@ public class SqlResultGenerateNode implements NodeAction {
     private Map<String, Object> performSimpleAnalysis(List<Map<String, Object>> data, String queryType) {
         Map<String, Object> analysis = new HashMap<>();
         if (CollUtil.isEmpty(data)) {
-            analysis.put(MESSAGE, "查询结果为空");
+            analysis.put(MESSAGE, "sql返回结果为空");
             return analysis;
         }
 
@@ -151,7 +151,7 @@ public class SqlResultGenerateNode implements NodeAction {
         } catch (Exception e) {
             log.error("【数据查询智能体】查询结果生成节点执行失败", e);
             analysis.put(SUCCESS, false);
-            analysis.put(ERROR, e.getMessage());
+            analysis.put(MESSAGE, e.getMessage());
         }
 
         return analysis;

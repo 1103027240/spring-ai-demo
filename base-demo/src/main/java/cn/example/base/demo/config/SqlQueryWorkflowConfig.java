@@ -61,7 +61,7 @@ public class SqlQueryWorkflowConfig {
         graph.addNode(EXECUTE_SQL_NODE.getId(), node_async(executeSqlNode));
 
         // 5、数据分析节点
-        graph.addNode(ANALYSIS_NODE.getId(), sqlResultAnalysisAgent.asNode(true, true));
+        graph.addNode(ANALYSIS_NODE.getId(), sqlResultAnalysisAgent.asNode(true, false));
 
         // 6、查询结果生成节点
         graph.addNode(QUERY_RESULT_GENERATE.getId(), node_async(sqlResultGenerateNode));
@@ -94,7 +94,7 @@ public class SqlQueryWorkflowConfig {
                     ERROR_HANDLE_NODE.getId(), ERROR_HANDLE_NODE.getId()));
 
         // 数据分析节点 -> 结果生成节点
-        graph.addConditionalEdges(ANALYSIS_NODE.getId(), edge_async(new AnalysisNodeCondition()),
+        graph.addConditionalEdges(ANALYSIS_NODE.getId(), edge_async(new SqlResultAnalysisNodeCondition()),
             Map.of(
                     QUERY_RESULT_GENERATE.getId(), QUERY_RESULT_GENERATE.getId(),
                     ERROR_HANDLE_NODE.getId(), ERROR_HANDLE_NODE.getId()));

@@ -169,8 +169,6 @@ public class FieldConstant {
 
     public static final String SUCCESS = "success";
 
-    public static final String QUERY_AGENT_RESULT = "queryAgentResult";
-
     public static final String GENERATED_SQL = "generatedSql";
 
     public static final String ORIGINAL_QUERY = "originalQuery";

@@ -24,17 +24,22 @@ public class QueryAgent {
     public QueryAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel,
                       @Qualifier("queryTools") QueryTools queryTools) {
         Toolkit toolkit = new Toolkit();
-        toolkit.registerTool(queryTools);
+
+        // 创建工具组并激活
+        toolkit.createToolGroup("nlToSqlGroup", "自然语言转SQL工具", true);
+
+        // 注册工具到激活的组
+        toolkit.registration()
+                .tool(queryTools)
+                .group("nlToSqlGroup")
+                .apply();
 
         this.reactAgent = ReActAgent.builder()
                 .name("SQL查询智能体")
                 .description("自然语言转SQL查询智能体")
                 .sysPrompt("""
-                    你是一个专业的SQL查询智能体。你的职责是：
-                    1. 理解用户的自然语言查询请求
-                    2. 将自然语言转换为准确的SQL查询语句
-                    3. 执行SQL查询并返回结果
-                    4. 解释查询结果并提供业务洞察
+                    你是一个专业的SQL查询智能体。你的职责是将用户的自然语言查询请求转换为准确的SQL查询语句。
+                    重要：你只能使用 nlToSql 工具将自然语言转换为SQL，不要调用其他工具。
                     
                     数据库表结构：
                     1. 订单表(t_order): id, order_no, customer_id, customer_name, product_id, product_name, 
@@ -46,25 +51,19 @@ public class QueryAgent {
                     5. 支付表(t_payment): id, payment_no, order_no, amount, payment_method, status, create_time
                     
                     处理规则：
-                    1. 只允许SELECT查询，禁止INSERT/UPDATE/DELETE
+                    1. queryType只允许SELECT，禁止INSERT/UPDATE/DELETE
                     2. 必须包含LIMIT限制结果集大小
                     3. 对敏感字段进行脱敏处理
-                    
-                    可用工具：
-                    - nlToSql: 将自然语言转换为SQL语句
-                    - validateSql: 验证SQL安全性
-                    - getSchema: 获取数据库结构
-                    - executeSql: 执行SQL查询
+                    4. 如果工具调用成功，success为true，error为""
+                    5、如果工具调用失败，success为false，error为工具调用返回的失败原因，如果失败原因为空，请自己组织失败原因，限制在60字以内
                     
                     响应格式必须是JSON：
                     {
                         "success": true/false,
-                        "queryType": "查询类型",
+                        "queryType": "SELECT",
                         "originalQuery": "原始查询",
-                        "generatedSQL": "生成的SQL",
-                        "executionTime": 执行时间(ms),
-                        "rowCount": 行数,
-                        "data": [查询结果]
+                        "generatedSql": "生成的SQL",
+                        "error": "失败原因"
                     }
                     """)
                 .model(qwenAgentChatModel)

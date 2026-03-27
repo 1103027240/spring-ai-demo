@@ -31,7 +31,7 @@ public class ValidateSqlNode implements NodeAction {
             Map<String, Object> nlToSqlResult = state.value(NL_TO_SQL_RESULT, Map.class).orElse(new HashMap<>());
             if (!(boolean) nlToSqlResult.getOrDefault(SUCCESS, false)) {
                 return Map.of(
-                        ERROR, "自然语言查询转SQL失败: " + nlToSqlResult.get(ERROR),
+                        ERROR, "【SQL验证节点】自然语言查询转SQL处理失败: " + nlToSqlResult.get(ERROR),
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getId());
             }
@@ -39,19 +39,19 @@ public class ValidateSqlNode implements NodeAction {
             String generatedSql = (String) nlToSqlResult.get(GENERATED_SQL);
             if (StrUtil.isBlank(generatedSql) || StrUtil.isBlank(generatedSql.trim())) {
                 return Map.of(
-                        ERROR, "生成的SQL为空",
+                        ERROR, "【SQL验证节点】生成的SQL为空",
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getId());
             }
 
             // 调用QueryTools.validateSql
             Map<String, Object> validateSqlResult = queryTools.validateSql(generatedSql);
-
             boolean isValid = (boolean) validateSqlResult.getOrDefault(SUCCESS, false);
+
             if (!isValid) {
                 return Map.of(
                         VALIDATE_SQL_RESULT, validateSqlResult,
-                        ERROR, "SQL验证失败: " + validateSqlResult.get(REASON),
+                        ERROR, "【SQL验证节点】SQL验证失败: " + validateSqlResult.get(ERROR),
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getId());
             }

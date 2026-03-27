@@ -26,8 +26,6 @@ public enum QueryTypeEnum {
 
     GENERAL_QUERY("GENERAL_QUERY", "默认查询"),
 
-    UNKNOWN("UNKNOWN", "未知"),
-
     ;
 
     private String id;

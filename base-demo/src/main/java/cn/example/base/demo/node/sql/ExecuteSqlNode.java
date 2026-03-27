@@ -31,7 +31,7 @@ public class ExecuteSqlNode implements NodeAction {
             String generatedSql = state.value(GENERATED_SQL, String.class).orElse("");
             if (StrUtil.isBlank(generatedSql)) {
                 return Map.of(
-                        ERROR, "SQL语句为空",
+                        ERROR, "【SQL执行节点】SQL语句为空",
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getId());
             }
@@ -43,7 +43,7 @@ public class ExecuteSqlNode implements NodeAction {
             if (!success) {
                 return Map.of(
                         EXECUTE_SQL_RESULT, executeSqlResult,
-                        ERROR, "SQL执行失败: " + executeSqlResult.get(ERROR),
+                        ERROR, "【SQL执行节点】SQL执行失败: " + executeSqlResult.get(ERROR),
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getId());
             }

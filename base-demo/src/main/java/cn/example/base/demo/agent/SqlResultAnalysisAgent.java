@@ -38,7 +38,8 @@ public class SqlResultAnalysisAgent {
                 "analysis": "分析内容",
                 "keyFindings": ["关键发现1", "关键发现2"],
                 "businessSuggestions": ["建议1", "建议2"],
-                "potentialRisks": ["风险1", "风险2"]
+                "potentialRisks": ["风险1", "风险2"],
+                "error": "失败原因"
             }
             """;
 
@@ -53,6 +54,7 @@ public class SqlResultAnalysisAgent {
         this.agentScopeAgent = AgentScopeAgent.fromBuilder(builder)
                 .name("analysisNode")  // 节点名称
                 .description("数据分析智能体")
+                .instruction("请分析以下查询结果数据并提供业务洞察。")
                 .outputKey("analysisResult")
                 .build();
     }

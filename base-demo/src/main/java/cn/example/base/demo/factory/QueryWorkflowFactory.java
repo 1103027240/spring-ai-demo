@@ -25,7 +25,6 @@ public class QueryWorkflowFactory {
             strategies.put(NEXT_NODE, new ReplaceStrategy());
 
             // 智能体处理结果
-            strategies.put(QUERY_AGENT_RESULT, new ReplaceStrategy());
             strategies.put(NL_TO_SQL_RESULT, new ReplaceStrategy());
             strategies.put(GENERATED_SQL, new ReplaceStrategy());
             strategies.put(ORIGINAL_QUERY, new ReplaceStrategy());

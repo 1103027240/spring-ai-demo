@@ -205,7 +205,7 @@ public class QueryTools {
             if (StrUtil.isBlank(sql) || StrUtil.isBlank(sql.trim())) {
                 result.put("success", false);
                 result.put("riskLevel", "HIGH");
-                result.put("reason", "SQL语句为空");
+                result.put("error", "SQL语句为空");
                 return result;
             }
 
@@ -215,7 +215,7 @@ public class QueryTools {
             if (!upperSql.startsWith("SELECT")) {
                 result.put("success", false);
                 result.put("riskLevel", "HIGH");
-                result.put("reason", "只允许SELECT查询");
+                result.put("error", "只允许SELECT查询");
                 return result;
             }
 
@@ -223,7 +223,7 @@ public class QueryTools {
             if (!upperSql.contains("LIMIT")) {
                 result.put("success", false);
                 result.put("riskLevel", "MEDIUM");
-                result.put("reason", "必须包含LIMIT限制");
+                result.put("error", "必须包含LIMIT限制");
                 return result;
             }
 
@@ -231,13 +231,13 @@ public class QueryTools {
             if (SQL_INJECTION_PATTERN.matcher(sql).find()) {
                 result.put("success", false);
                 result.put("riskLevel", "CRITICAL");
-                result.put("reason", "检测到SQL注入特征");
+                result.put("error", "检测到SQL注入特征");
                 return result;
             }
 
             result.put("success", true);
             result.put("riskLevel", "LOW");
-            result.put("reason", "SQL验证通过");
+            result.put("error", "SQL验证通过");
             return result;
         } catch (Exception e) {
             log.error("验证SQL语句失败", e);
@@ -320,9 +320,9 @@ public class QueryTools {
         try {
             String upperSql = sql.toUpperCase();
 
-            // 禁止操作
+            // 禁止操作（CREATE TABLE、UPDATE TABLE因为有创建和修改时间）
             String[] forbiddenKeywords = {
-                    "INSERT", "UPDATE", "DELETE", "DROP", "TRUNCATE", "ALTER", "CREATE",
+                    "INSERT", "UPDATE TABLE", "DELETE", "DROP", "TRUNCATE", "ALTER", "CREATE TABLE",
                     "GRANT", "REVOKE", "EXEC", "WAITFOR", "SHUTDOWN"
             };
 

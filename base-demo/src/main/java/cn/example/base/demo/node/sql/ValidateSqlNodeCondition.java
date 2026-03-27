@@ -22,7 +22,7 @@ public class ValidateSqlNodeCondition implements EdgeAction {
         boolean success = state.value(SUCCESS, Boolean.class).orElse(false);
         String error = state.value(ERROR, String.class).orElse("");
 
-        if (StrUtil.isBlank(error)) {
+        if (StrUtil.isNotBlank(error)) {
             return ERROR_HANDLE_NODE.getId();
         }
 
