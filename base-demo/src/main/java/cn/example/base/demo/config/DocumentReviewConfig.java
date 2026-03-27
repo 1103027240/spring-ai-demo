@@ -44,7 +44,7 @@ public class DocumentReviewConfig {
         // 生成PlantUML格式的可视化图
         GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, DOCUMENT_REVIEW_TITLE);
 
-        log.info("\n" + "=".repeat(80));
+        log.info("\n{}", "=".repeat(80));
         log.info("=== Document Review Graph ===");
         log.info(representation.content());
         log.info("========================================================\n");
@@ -71,7 +71,7 @@ public class DocumentReviewConfig {
         // 配置持久化和中断节点
         CompileConfig compileConfig = graphBuild.buildCompileConfig(mySqlSaver, true, HUMAN_APPROVAL.getText());
 
-        log.info("\n" + "=".repeat(80));
+        log.info("\n{}", "=".repeat(80));
         log.info("=== Document Review Graph ===");
         log.info("工作流名称：{}", DOCUMENT_REVIEW_NAME);
         log.info("标题：{}", DOCUMENT_REVIEW_TITLE);

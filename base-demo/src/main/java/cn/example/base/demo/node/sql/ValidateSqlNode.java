@@ -35,7 +35,7 @@ public class ValidateSqlNode implements NodeAction {
                 return Map.of(
                         ERROR, "【SQL验证节点】自然语言查询转SQL处理失败: " + nlToSqlResult.get(ERROR),
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                        NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                        NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             String generatedSql = (String) nlToSqlResult.get(GENERATED_SQL);
@@ -43,7 +43,7 @@ public class ValidateSqlNode implements NodeAction {
                 return Map.of(
                         ERROR, "【SQL验证节点】生成的SQL为空",
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                        NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                        NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             // 调用QueryTools.validateSql
@@ -54,21 +54,21 @@ public class ValidateSqlNode implements NodeAction {
                         VALIDATE_SQL_RESULT, validateSqlResult,
                         ERROR, "【SQL验证节点】SQL验证失败: " + validateSqlResult.get(ERROR),
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                        NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                        NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             return Map.of(
                     VALIDATE_SQL_RESULT, validateSqlResult,
                     GENERATED_SQL, generatedSql,
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId(),
-                    CURRENT_NODE, VALIDATE_SQL_NODE.getId(),
-                    NEXT_NODE, EXECUTE_SQL_NODE.getId());
+                    CURRENT_NODE, VALIDATE_SQL_NODE.getText(),
+                    NEXT_NODE, EXECUTE_SQL_NODE.getText());
         } catch (Exception e) {
             log.error("【数据查询智能体】SQL验证节点执行失败", e);
             return Map.of(
                     ERROR, e.getMessage(),
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                    NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                    NEXT_NODE, ERROR_HANDLE_NODE.getText());
         }
     }
 

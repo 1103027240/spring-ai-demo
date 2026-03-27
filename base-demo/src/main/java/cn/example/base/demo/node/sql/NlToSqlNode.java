@@ -33,7 +33,7 @@ public class NlToSqlNode implements NodeAction {
                 return Map.of(
                         ERROR, "【转SQL节点】自然语言查询为空",
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                        NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                        NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             // 调用QueryTools.nlToSql
@@ -44,7 +44,7 @@ public class NlToSqlNode implements NodeAction {
                         NL_TO_SQL_RESULT, nlToSqlResult,
                         ERROR, "【转SQL节点】自然语言查询转SQL处理失败: " + nlToSqlResult.get(ERROR),
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                        NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                        NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             String generatedSql = (String) nlToSqlResult.getOrDefault(GENERATED_SQL, "");
@@ -53,21 +53,21 @@ public class NlToSqlNode implements NodeAction {
                         NL_TO_SQL_RESULT, nlToSqlResult,
                         ERROR, "【转SQL节点】生成的SQL为空",
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                        NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                        NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             return Map.of(
                     NL_TO_SQL_RESULT, nlToSqlResult,
                     GENERATED_SQL, generatedSql,
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId(),
-                    CURRENT_NODE, NL_TO_SQL_NODE.getId(),
-                    NEXT_NODE, VALIDATE_SQL_NODE.getId());
+                    CURRENT_NODE, NL_TO_SQL_NODE.getText(),
+                    NEXT_NODE, VALIDATE_SQL_NODE.getText());
         } catch (Exception e) {
             log.error("【数据查询智能体】自然语言查询转SQL节点执行失败", e);
             return Map.of(
                     ERROR, e.getMessage(),
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                    NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                    NEXT_NODE, ERROR_HANDLE_NODE.getText());
         }
     }
 

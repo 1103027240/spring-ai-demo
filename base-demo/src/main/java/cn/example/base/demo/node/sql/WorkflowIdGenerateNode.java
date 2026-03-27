@@ -29,14 +29,14 @@ public class WorkflowIdGenerateNode implements NodeAction {
                     WORKFLOW_ID, workflowId,
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.STARTED.getId(),
                     NATURAL_LANGUAGE_QUERY, naturalLanguageQuery,
-                    CURRENT_NODE, WORKFLOW_ID_GENERATE_NODE.getId(),
-                    NEXT_NODE, NL_TO_SQL_NODE.getId());
+                    CURRENT_NODE, WORKFLOW_ID_GENERATE_NODE.getText(),
+                    NEXT_NODE, NL_TO_SQL_NODE.getText());
         } catch (Exception e) {
             log.error("【数据查询智能体】流程ID生成节点执行失败", e);
             return Map.of(
                     ERROR, e.getMessage(),
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                    NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                    NEXT_NODE, ERROR_HANDLE_NODE.getText());
         }
     }
 

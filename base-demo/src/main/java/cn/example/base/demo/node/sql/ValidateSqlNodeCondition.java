@@ -25,14 +25,14 @@ public class ValidateSqlNodeCondition implements EdgeAction {
         boolean success = (boolean) validateSqlResult.getOrDefault(SUCCESS, false);
 
         if (StrUtil.isNotBlank(error)) {
-            return ERROR_HANDLE_NODE.getId();
+            return ERROR_HANDLE_NODE.getText();
         }
 
         if (!success) {
-            return ERROR_HANDLE_NODE.getId();
+            return ERROR_HANDLE_NODE.getText();
         }
 
-        return EXECUTE_SQL_NODE.getId();
+        return EXECUTE_SQL_NODE.getText();
     }
 
 }

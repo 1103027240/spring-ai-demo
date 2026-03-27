@@ -24,7 +24,7 @@ public class SqlResultAnalysisNodeCondition implements EdgeAction {
             Object result = state.value(ANALYSIS_RESULT).orElse(null);
             if (result == null) {
                 log.warn("【数据分析智能体节点条件】无输出结果");
-                return QUERY_RESULT_GENERATE.getId();
+                return QUERY_RESULT_GENERATE.getText();
             }
 
             Map<String, Object> agentResult = multiAgentBuild.parseMap(multiAgentBuild.extractText(result));
@@ -34,12 +34,12 @@ public class SqlResultAnalysisNodeCondition implements EdgeAction {
                 // 仍然继续，因为可能有简单分析
             }
 
-            return QUERY_RESULT_GENERATE.getId();
+            return QUERY_RESULT_GENERATE.getText();
         } catch (Exception e) {
             log.error("【数据分析智能体节点条件】分析数据处理失败", e);
 
             // 仍然继续，因为可能有简单分析
-            return QUERY_RESULT_GENERATE.getId();
+            return QUERY_RESULT_GENERATE.getText();
         }
     }
 

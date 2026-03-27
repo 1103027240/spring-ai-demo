@@ -42,7 +42,7 @@ public class CustomerServiceGraphConfig {
         // 生成PlantUML格式的可视化图
         GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, CUSTOMER_SERVICE_TITLE);
 
-        log.info("\n" + "=".repeat(80));
+        log.info("\n{}", "=".repeat(80));
         log.info("=== Customer Service Graph ===");
         log.info(representation.content());
         log.info("========================================================\n");
@@ -68,7 +68,7 @@ public class CustomerServiceGraphConfig {
         // 配置持久化
         CompileConfig compileConfig = graphBuild.buildCompileConfig(mySqlSaver, false, null);
 
-        log.info("\n" + "=".repeat(80));
+        log.info("\n{}", "=".repeat(80));
         log.info("=== Customer Service Graph ===");
         log.info("工作流名称：{}", CUSTOMER_SERVICE_NAME);
         log.info("标题：{}", CUSTOMER_SERVICE_TITLE);

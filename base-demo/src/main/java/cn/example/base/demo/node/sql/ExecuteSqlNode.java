@@ -46,7 +46,7 @@ public class ExecuteSqlNode implements NodeAction {
                 return Map.of(
                         ERROR, "【SQL执行节点】SQL语句为空",
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                        NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                        NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             // 调用QueryTools.executeSql
@@ -57,7 +57,7 @@ public class ExecuteSqlNode implements NodeAction {
                         EXECUTE_SQL_RESULT, executeSqlResult,
                         ERROR, "【SQL执行节点】SQL执行失败: " + executeSqlResult.get(ERROR),
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                        NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                        NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             // 用于数据分析
@@ -74,8 +74,8 @@ public class ExecuteSqlNode implements NodeAction {
             result.put(DATA_JSON, dataJson);
             result.put(DATA_SUMMARY, dataSummary);
             result.put(WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId());
-            result.put(CURRENT_NODE, EXECUTE_SQL_NODE.getId());
-            result.put(NEXT_NODE, ANALYSIS_NODE.getId());
+            result.put(CURRENT_NODE, EXECUTE_SQL_NODE.getText());
+            result.put(NEXT_NODE, ANALYSIS_NODE.getText());
             return result;
         } catch (Exception e) {
             log.error("【数据查询智能体】SQL执行节点执行失败", e);
@@ -85,7 +85,7 @@ public class ExecuteSqlNode implements NodeAction {
             result.put(DATA_SUMMARY, dataSummary);
             result.put(ERROR, e.getMessage());
             result.put(WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId());
-            result.put(NEXT_NODE, ERROR_HANDLE_NODE.getId());
+            result.put(NEXT_NODE, ERROR_HANDLE_NODE.getText());
             return result;
         }
     }

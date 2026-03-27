@@ -44,14 +44,14 @@ public class SqlResultAnalysisAgent {
     @Autowired
     public SqlResultAnalysisAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel) {
         ReActAgent.Builder builder = ReActAgent.builder()
-                .name(ANALYSIS_NODE.getId())  // 只能是节点名称
+                .name(ANALYSIS_NODE.getText())  // 只能是节点名称
                 .model(qwenAgentChatModel)
                 .description("数据分析智能体")
                 .sysPrompt(QUERY_ANALYSIS_PROMPT)
                 .maxIters(1); //迭代次数为1，降低提示词token数
 
         this.agentScopeAgent = AgentScopeAgent.fromBuilder(builder)
-                .name(ANALYSIS_NODE.getId())  // 只能是节点名称
+                .name(ANALYSIS_NODE.getText())  // 只能是节点名称
                 .description("数据分析智能体")
                 .instruction("""
                         # 数据分析任务

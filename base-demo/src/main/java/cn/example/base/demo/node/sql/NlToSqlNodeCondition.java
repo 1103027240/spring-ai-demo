@@ -25,18 +25,18 @@ public class NlToSqlNodeCondition implements EdgeAction {
         boolean success = (boolean) nlToSqlResult.getOrDefault(SUCCESS, false);
 
         if (StrUtil.isNotBlank(error)) {
-            return ERROR_HANDLE_NODE.getId();
+            return ERROR_HANDLE_NODE.getText();
         }
 
         if (!success) {
-            return ERROR_HANDLE_NODE.getId();
+            return ERROR_HANDLE_NODE.getText();
         }
 
         String generatedSql = state.value(GENERATED_SQL, String.class).orElse("");
         if (StrUtil.isBlank(generatedSql)) {
-            return ERROR_HANDLE_NODE.getId();
+            return ERROR_HANDLE_NODE.getText();
         }
-        return VALIDATE_SQL_NODE.getId();
+        return VALIDATE_SQL_NODE.getText();
     }
 
 }

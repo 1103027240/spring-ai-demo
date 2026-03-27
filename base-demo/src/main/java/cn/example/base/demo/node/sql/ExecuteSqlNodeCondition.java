@@ -25,14 +25,14 @@ public class ExecuteSqlNodeCondition implements EdgeAction {
         boolean success = (boolean) executeSqlResult.getOrDefault(SUCCESS, false);
 
         if (StrUtil.isNotBlank(error)) {
-            return ERROR_HANDLE_NODE.getId();
+            return ERROR_HANDLE_NODE.getText();
         }
 
         if (!success) {
-            return ERROR_HANDLE_NODE.getId();
+            return ERROR_HANDLE_NODE.getText();
         }
 
-        return ANALYSIS_NODE.getId();
+        return ANALYSIS_NODE.getText();
     }
 
 }

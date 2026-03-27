@@ -66,7 +66,7 @@ public class SqlResultGenerateNode implements NodeAction {
             return Map.of(
                     ERROR, e.getMessage(),
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                    NEXT_NODE, ERROR_HANDLE_NODE.getId());
+                    NEXT_NODE, ERROR_HANDLE_NODE.getText());
         }
     }
 
