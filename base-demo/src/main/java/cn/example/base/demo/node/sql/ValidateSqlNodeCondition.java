@@ -5,8 +5,9 @@ import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.EdgeAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import static cn.example.base.demo.constant.FieldConstant.ERROR;
-import static cn.example.base.demo.constant.FieldConstant.SUCCESS;
+import java.util.HashMap;
+import java.util.Map;
+import static cn.example.base.demo.constant.FieldConstant.*;
 import static cn.example.base.demo.enums.SqlQueryNodeEnum.ERROR_HANDLE_NODE;
 import static cn.example.base.demo.enums.SqlQueryNodeEnum.EXECUTE_SQL_NODE;
 
@@ -19,8 +20,9 @@ public class ValidateSqlNodeCondition implements EdgeAction {
 
     @Override
     public String apply(OverAllState state) throws Exception {
-        boolean success = state.value(SUCCESS, Boolean.class).orElse(false);
         String error = state.value(ERROR, String.class).orElse("");
+        Map<String, Object> validateSqlResult = state.value(VALIDATE_SQL_RESULT, Map.class).orElse(new HashMap<>());
+        boolean success = (boolean) validateSqlResult.getOrDefault(SUCCESS, false);
 
         if (StrUtil.isNotBlank(error)) {
             return ERROR_HANDLE_NODE.getId();
