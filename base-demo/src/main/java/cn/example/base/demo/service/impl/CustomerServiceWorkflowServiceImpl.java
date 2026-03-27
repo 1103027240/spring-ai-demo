@@ -1,6 +1,7 @@
 package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.build.CustomerServiceStateBuild;
+import cn.example.base.demo.build.WorkflowBuild;
 import cn.example.base.demo.build.WorkflowExecutionBuild;
 import cn.example.base.demo.dto.CustomerServiceStateDto;
 import cn.example.base.demo.dto.MessageDocumentVO;
@@ -10,26 +11,22 @@ import cn.example.base.demo.entity.WorkflowExecution;
 import cn.example.base.demo.enums.WorkflowExecutionStatusEnum;
 import cn.example.base.demo.mapper.WorkflowExecutionMapper;
 import cn.example.base.demo.service.*;
-import cn.example.base.demo.service.*;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import static cn.example.base.demo.constant.FieldConstant.*;
 import static cn.example.base.demo.constant.FieldConstant.CREATE_TIME;
@@ -42,7 +39,7 @@ import static cn.example.base.demo.enums.WorkflowExecutionStatusEnum.SUCCESS;
  */
 @Slf4j
 @Service
-public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
+public class CustomerServiceWorkflowServiceImpl implements CustomerServiceWorkflowService {
 
     @Resource(name = "customerServiceGraph")
     private CompiledGraph customerServiceGraph;
@@ -58,15 +55,6 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
 
     @Autowired
     private MessageSyncTaskService messageSyncTaskService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Resource(name = "workflowExecutor")
-    private Executor workflowExecutor;
 
     @Autowired
     private CustomerServiceStateBuild customerServiceStateBuild;
@@ -85,11 +73,11 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
      */
     @Transactional
     @Override
-    public Map<String, Object> executeWorkflow(String userInput, Long userId, String userName) {
+    public Map<String, Object> executeWorkflow(String message, Long userId, String userName) {
         long startTime = System.currentTimeMillis();
-        String executionId = UUID.randomUUID().toString().replace("-", "");
+        String executionId = WorkflowBuild.generateWorkflowId();
         String sessionId = UUID.randomUUID().toString().replace("-", "");
-        WorkflowDto dto = new WorkflowDto(userInput, userId, userName);
+        WorkflowDto dto = new WorkflowDto(message, userId, userName);
         CustomerServiceStateDto state = null;
 
         try {

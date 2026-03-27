@@ -2,7 +2,7 @@ package cn.example.base.demo.controller;
 
 import cn.example.base.demo.dto.DocumentReviewDto;
 import cn.example.base.demo.dto.DocumentReviewResumeDto;
-import cn.example.base.demo.service.DocumentReviewService;
+import cn.example.base.demo.service.DocumentReviewWorkflowService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,18 +19,18 @@ import java.util.Map;
 public class DocumentReviewController {
 
     @Autowired
-    private DocumentReviewService documentReviewService;
+    private DocumentReviewWorkflowService documentReviewWorkflowService;
 
     @Operation(summary = "启动工作流实例", description = "启动工作流实例")
     @PostMapping("/start")
     public Map<String, Object> start(@Validated @RequestBody DocumentReviewDto dto) {
-        return documentReviewService.startWorkflow(dto);
+        return documentReviewWorkflowService.startWorkflow(dto);
     }
 
     @Operation(summary = "恢复中断工作流实例", description = "恢复中断工作流实例")
     @PostMapping("/resume")
     public Map<String, Object> resume(@Validated @RequestBody DocumentReviewResumeDto dto) {
-        return documentReviewService.resumeWorkflow(dto);
+        return documentReviewWorkflowService.resumeWorkflow(dto);
     }
 
 }

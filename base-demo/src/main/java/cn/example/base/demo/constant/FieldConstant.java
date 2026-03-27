@@ -155,4 +155,41 @@ public class FieldConstant {
 
     public static final String SCORE = "score";
 
+    public static final String QUERY_REQUEST = "queryRequest";
+
+    public static final String QUERY = "query";
+
+    public static final String WORKFLOW_ID = "workflowId";
+
+    public static final String NATURAL_LANGUAGE_QUERY = "naturalLanguageQuery";
+
+    public static final String CURRENT_NODE = "currentNode";
+
+    public static final String NEXT_NODE = "nextNode";
+
+    public static final String ERROR = "error";
+
+    public static final String SUCCESS = "success";
+
+    public static final String QUERY_AGENT_RESULT = "queryAgentResult";
+
+    public static final String GENERATED_SQL = "generatedSql";
+
+    public static final String ORIGINAL_QUERY = "originalQuery";
+
+    public static final String NL_TO_SQL_RESULT = "nlToSqlResult";
+
+    public static final String VALIDATE_SQL_RESULT = "validateSqlResult";
+
+    public static final String EXECUTE_SQL_RESULT = "executeSqlResult";
+
+    public static final String ANALYSIS_RESULT = "analysisResult";
+
+    public static final String FINAL_RESULT = "finalResult";
+
+    public static final String DATA = "data";
+
+    public static final String SUGGESTION = "suggestion";
+
+
 }

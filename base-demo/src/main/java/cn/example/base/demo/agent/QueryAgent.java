@@ -1,0 +1,119 @@
+package cn.example.base.demo.agent;
+
+import cn.example.base.demo.tools.QueryTools;
+import io.agentscope.core.ReActAgent;
+import io.agentscope.core.message.Msg;
+import io.agentscope.core.message.MsgRole;
+import io.agentscope.core.model.Model;
+import io.agentscope.core.tool.Toolkit;
+import jakarta.annotation.Resource;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import java.time.LocalDateTime;
+import java.util.Map;
+
+@Slf4j
+@Component
+public class QueryAgent {
+
+    @Getter
+    private ReActAgent reactAgent;
+
+    @Resource(name = "qwenAgentChatModel")
+    private Model qwenAgentChatModel;
+
+    @Autowired
+    public QueryAgent(@Qualifier("queryTools") QueryTools queryTools) {
+        Toolkit toolkit = new Toolkit();
+        toolkit.registerTool(queryTools);
+
+        this.reactAgent = ReActAgent.builder()
+                .name("SQL查询智能体")
+                .description("自然语言转SQL查询智能体")
+                .sysPrompt("""
+                    你是一个专业的SQL查询智能体。你的职责是：
+                    1. 理解用户的自然语言查询请求
+                    2. 将自然语言转换为准确的SQL查询语句
+                    3. 执行SQL查询并返回结果
+                    4. 解释查询结果并提供业务洞察
+                    
+                    数据库表结构：
+                    1. 订单表(t_order): id, order_no, customer_id, customer_name, product_id, product_name, 
+                        quantity, unit_price, total_amount, status, create_time, update_time
+                    2. 客户表(t_customer): id, customer_no, name, email, phone, customer_type, credit_level, 
+                        membership_level, total_orders, total_spent, create_time
+                    3. 商品表(t_product): id, product_no, name, category, brand, unit_price, cost_price, status
+                    4. 库存表(t_inventory): id, product_id, product_name, sku_code, total_stock, available_stock
+                    5. 支付表(t_payment): id, payment_no, order_no, amount, payment_method, status, create_time
+                    
+                    处理规则：
+                    1. 只允许SELECT查询，禁止INSERT/UPDATE/DELETE
+                    2. 必须包含LIMIT限制结果集大小
+                    3. 对敏感字段进行脱敏处理
+                    
+                    可用工具：
+                    - nlToSql: 将自然语言转换为SQL语句
+                    - validateSql: 验证SQL安全性
+                    - getSchema: 获取数据库结构
+                    - executeSql: 执行SQL查询
+                    
+                    响应格式必须是JSON：
+                    {
+                        "success": true/false,
+                        "queryType": "查询类型",
+                        "originalQuery": "原始查询",
+                        "generatedSQL": "生成的SQL",
+                        "executionTime": 执行时间(ms),
+                        "rowCount": 行数,
+                        "data": [查询结果]
+                    }
+                    """)
+                .model(qwenAgentChatModel)
+                .toolkit(toolkit)
+                .maxIters(5)
+                .build();
+    }
+
+    public Msg call(Msg msg) {
+        long startTime = System.currentTimeMillis();
+
+        try {
+            String agentResponse = this.reactAgent.call(msg).block().getTextContent();
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("SQL查询智能体处理完成，耗时: {}ms", duration);
+
+            return Msg.builder()
+                    .name("SQL查询智能体")
+                    .role(MsgRole.ASSISTANT)
+                    .textContent(agentResponse)
+                    .metadata(Map.of(
+                            "duration", duration,
+                            "success", true))
+                    .build();
+        } catch (Exception e) {
+            log.error("SQL查询智能体处理失败", e);
+            long duration = System.currentTimeMillis() - startTime;
+
+            String errorResponse = String.format("""
+                {
+                    "success": false,
+                    "error": "%s",
+                    "suggestion": "请重新表述查询请求或联系管理员"
+                }
+                """, e.getMessage());
+
+            return Msg.builder()
+                    .name("SQL查询智能体")
+                    .role(MsgRole.ASSISTANT)
+                    .textContent(errorResponse)
+                    .metadata(Map.of(
+                            "duration", duration,
+                            "success", false))
+                    .build();
+        }
+    }
+
+}

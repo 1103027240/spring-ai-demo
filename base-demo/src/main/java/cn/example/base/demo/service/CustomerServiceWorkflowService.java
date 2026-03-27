@@ -7,9 +7,9 @@ import java.util.Map;
 /**
  * @author 11030
  */
-public interface WorkflowExecutionService {
+public interface CustomerServiceWorkflowService {
 
-    Map<String, Object> executeWorkflow(String userInput, Long userId, String userName);
+    Map<String, Object> executeWorkflow(String message, Long userId, String userName);
 
     Page<MessageDocumentVO> pageSearch(Long userId, String currentPage, String pageSize);
 

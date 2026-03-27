@@ -4,7 +4,7 @@ import cn.example.base.demo.dto.DocumentReviewDto;
 import cn.example.base.demo.dto.DocumentReviewResumeDto;
 import cn.example.base.demo.enums.ApprovalDecisionEnum;
 import cn.example.base.demo.enums.ApprovalStatusEnum;
-import cn.example.base.demo.service.DocumentReviewService;
+import cn.example.base.demo.service.DocumentReviewWorkflowService;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.NodeOutput;
 import com.alibaba.cloud.ai.graph.OverAllState;
@@ -23,7 +23,7 @@ import static cn.example.base.demo.enums.DocumentReviewNodeEnum.HUMAN_APPROVAL;
  */
 @Slf4j
 @Service
-public class DocumentReviewServiceImpl implements DocumentReviewService {
+public class DocumentReviewWorkflowServiceImpl implements DocumentReviewWorkflowService {
 
     @Resource(name = "documentReviewGraph")
     private CompiledGraph documentReviewGraph;

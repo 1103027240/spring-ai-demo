@@ -34,6 +34,6 @@ public class GraphCheckPoint implements Serializable {
 
     @TableField("saved_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime saved_at;
+    private LocalDateTime savedAt;
 
 }

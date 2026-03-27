@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * @author 11030
  */
-public interface DocumentReviewService {
+public interface DocumentReviewWorkflowService {
 
     Map<String, Object> startWorkflow(DocumentReviewDto dto);
 

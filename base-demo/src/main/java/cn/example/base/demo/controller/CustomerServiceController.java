@@ -1,7 +1,7 @@
 package cn.example.base.demo.controller;
 
 import cn.example.base.demo.dto.MessageDocumentVO;
-import cn.example.base.demo.service.WorkflowExecutionService;
+import cn.example.base.demo.service.CustomerServiceWorkflowService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class CustomerServiceController {
 
     @Autowired
-    private WorkflowExecutionService workflowExecutionService;
+    private CustomerServiceWorkflowService customerServiceWorkflowService;
 
     @PostMapping("/doChat")
     @Operation(summary = "客服对话", description = "处理用户咨询并返回AI回复")
@@ -27,7 +27,7 @@ public class CustomerServiceController {
             @Parameter(description = "用户消息") @RequestParam(name = "message") String message,
             @Parameter(description = "用户ID") @RequestParam(name = "userId") Long userId,
             @Parameter(description = "用户名") @RequestParam(name = "userName") String userName) {
-        return workflowExecutionService.executeWorkflow(message, userId, userName);
+        return customerServiceWorkflowService.executeWorkflow(message, userId, userName);
     }
 
     @PostMapping("/pageSearch")
@@ -36,7 +36,7 @@ public class CustomerServiceController {
             @Parameter(description = "用户ID") @RequestParam(name = "userId") Long userId,
             @Parameter(description = "当前页") @RequestParam(defaultValue = "1") String currentPage,
             @Parameter(description = "每页记录数") @RequestParam(defaultValue = "20") String pageSize) {
-        return workflowExecutionService.pageSearch(userId, currentPage, pageSize);
+        return customerServiceWorkflowService.pageSearch(userId, currentPage, pageSize);
     }
 
 }

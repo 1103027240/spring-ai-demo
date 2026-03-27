@@ -1,12 +1,11 @@
 package cn.example.base.demo.dto;
 
+import cn.example.base.demo.build.WorkflowBuild;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 import static cn.example.base.demo.constant.FieldConstant.RESULT;
 import static cn.example.base.demo.constant.FieldConstant.RESULTS;
 import static cn.example.base.demo.enums.SentimentAnalysisEnum.NEGATIVE;
@@ -109,7 +108,7 @@ public class CustomerServiceStateDto implements Serializable {
 
     public CustomerServiceStateDto() {
         this.startTime = System.currentTimeMillis();
-        this.executionId = generateExecutionId();
+        this.executionId = WorkflowBuild.generateExecutionId("CUSTOMER_");
     }
 
     public CustomerServiceStateDto(String sessionId, String userInput, Long userId, String userName) {
@@ -124,10 +123,6 @@ public class CustomerServiceStateDto implements Serializable {
         this(sessionId, userInput, userId, userName);
         this.executionId = executionId;
         this.startTime = startTime;
-    }
-
-    private String generateExecutionId() {
-        return "wf_" + UUID.randomUUID().toString().replace("-", "") + "_" + System.currentTimeMillis();
     }
 
     /**
