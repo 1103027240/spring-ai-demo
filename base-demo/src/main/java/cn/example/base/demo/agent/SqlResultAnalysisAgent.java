@@ -19,7 +19,7 @@ public class SqlResultAnalysisAgent {
     private AgentScopeAgent agentScopeAgent;
 
     private static final String QUERY_ANALYSIS_PROMPT = """
-          你是一个专业的数据分析智能体，专门分析SQL查询结果。
+          你是一个专业的数据分析智能体，专门分析SQL查询结果，调用大模型性能要求快。
 
           你的能力：
           1. 理解各种业务数据（销售、商品、客户、库存等）

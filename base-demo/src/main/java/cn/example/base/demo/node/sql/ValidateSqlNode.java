@@ -28,8 +28,10 @@ public class ValidateSqlNode implements NodeAction {
         log.info("【数据查询智能体】SQL验证节点开始执行");
 
         try {
+            // 校验请求参数
             Map<String, Object> nlToSqlResult = state.value(NL_TO_SQL_RESULT, Map.class).orElse(new HashMap<>());
-            if (!(boolean) nlToSqlResult.getOrDefault(SUCCESS, false)) {
+            boolean isValid = (boolean) nlToSqlResult.getOrDefault(SUCCESS, false);
+            if (!isValid) {
                 return Map.of(
                         ERROR, "【SQL验证节点】自然语言查询转SQL处理失败: " + nlToSqlResult.get(ERROR),
                         WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
@@ -46,9 +48,8 @@ public class ValidateSqlNode implements NodeAction {
 
             // 调用QueryTools.validateSql
             Map<String, Object> validateSqlResult = queryTools.validateSql(generatedSql);
-            boolean isValid = (boolean) validateSqlResult.getOrDefault(SUCCESS, false);
-
-            if (!isValid) {
+            boolean success = (boolean) validateSqlResult.getOrDefault(SUCCESS, false);
+            if (!success) {
                 return Map.of(
                         VALIDATE_SQL_RESULT, validateSqlResult,
                         ERROR, "【SQL验证节点】SQL验证失败: " + validateSqlResult.get(ERROR),

@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import java.util.Map;
 
+/**
+ * 调用QueryTools中nlToSql（通过智能体调用太慢）
+ */
 @Slf4j
 @Component
 public class QueryAgent {
@@ -24,15 +27,7 @@ public class QueryAgent {
     public QueryAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel,
                       @Qualifier("queryTools") QueryTools queryTools) {
         Toolkit toolkit = new Toolkit();
-
-        // 创建工具组并激活
-        toolkit.createToolGroup("nlToSqlGroup", "自然语言转SQL工具", true);
-
-        // 注册工具到激活的组
-        toolkit.registration()
-                .tool(queryTools)
-                .group("nlToSqlGroup")
-                .apply();
+        toolkit.registerTool(queryTools);
 
         this.reactAgent = ReActAgent.builder()
                 .name("SQL查询智能体")

@@ -45,6 +45,7 @@ public class ExecuteSqlNode implements NodeAction {
         Long executionTime = null;
 
         try {
+            // 校验请求参数
             generatedSql = state.value(GENERATED_SQL, String.class).orElse("");
             if (StrUtil.isBlank(generatedSql)) {
                 return Map.of(
@@ -55,7 +56,6 @@ public class ExecuteSqlNode implements NodeAction {
 
             // 调用QueryTools.executeSql
             Map<String, Object> executeSqlResult = queryTools.executeSql(generatedSql);
-
             boolean success = (boolean) executeSqlResult.getOrDefault(SUCCESS, false);
             if (!success) {
                 return Map.of(
