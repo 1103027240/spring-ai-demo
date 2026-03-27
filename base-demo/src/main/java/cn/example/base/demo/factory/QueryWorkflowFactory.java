@@ -32,8 +32,6 @@ public class QueryWorkflowFactory {
             strategies.put(EXECUTE_SQL_RESULT, new ReplaceStrategy());
             strategies.put(ANALYSIS_RESULT, new ReplaceStrategy());
             strategies.put(FINAL_RESULT, new ReplaceStrategy());
-            strategies.put(ROW_COUNT, new ReplaceStrategy());
-            strategies.put(EXECUTION_TIME, new ReplaceStrategy());
             strategies.put(DATA_JSON, new ReplaceStrategy());
             strategies.put(DATA_SUMMARY, new ReplaceStrategy());
 

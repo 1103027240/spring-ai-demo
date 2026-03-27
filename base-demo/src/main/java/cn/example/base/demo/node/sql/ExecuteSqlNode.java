@@ -36,17 +36,12 @@ public class ExecuteSqlNode implements NodeAction {
     public Map<String, Object> apply(OverAllState state) throws Exception {
         log.info("【数据查询智能体】SQL执行节点开始执行");
 
-        String queryType = "";
-        String naturalLanguageQuery = "";
-        String generatedSql = "";
         String dataJson = "";
         String dataSummary = "";
-        Integer rowCount = null;
-        Long executionTime = null;
 
         try {
             // 校验请求参数
-            generatedSql = state.value(GENERATED_SQL, String.class).orElse("");
+            String generatedSql = state.value(GENERATED_SQL, String.class).orElse("");
             if (StrUtil.isBlank(generatedSql)) {
                 return Map.of(
                         ERROR, "【SQL执行节点】SQL语句为空",
@@ -66,13 +61,9 @@ public class ExecuteSqlNode implements NodeAction {
             }
 
             // 用于数据分析
-            naturalLanguageQuery = state.value(NATURAL_LANGUAGE_QUERY, String.class).orElse("");
 
             Map<String, Object> nlToSqlResult = state.value(NL_TO_SQL_RESULT, Map.class).orElse(new HashMap<>());
-            queryType = (String) nlToSqlResult.getOrDefault(QUERY_TYPE, "");
-
-            rowCount = (int) executeSqlResult.getOrDefault(ROW_COUNT, 0);
-            executionTime = (long) executeSqlResult.getOrDefault(EXECUTION_TIME, 0L);
+            String queryType = (String) nlToSqlResult.getOrDefault(QUERY_TYPE, "");
 
             List<Map<String, Object>> data = (List<Map<String, Object>>) executeSqlResult.getOrDefault(DATA, new ArrayList<>());
             dataJson = generateDataJson(data);
@@ -80,11 +71,6 @@ public class ExecuteSqlNode implements NodeAction {
 
             Map<String, Object> result = new HashMap<>();
             result.put(EXECUTE_SQL_RESULT, executeSqlResult);
-            result.put(QUERY_TYPE, queryType);
-            result.put(NATURAL_LANGUAGE_QUERY, naturalLanguageQuery);
-            result.put(GENERATED_SQL, generatedSql);
-            result.put(ROW_COUNT, rowCount);
-            result.put(EXECUTION_TIME, executionTime);
             result.put(DATA_JSON, dataJson);
             result.put(DATA_SUMMARY, dataSummary);
             result.put(WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId());
@@ -95,11 +81,6 @@ public class ExecuteSqlNode implements NodeAction {
             log.error("【数据查询智能体】SQL执行节点执行失败", e);
 
             Map<String, Object> result = new HashMap<>();
-            result.put(QUERY_TYPE, queryType);
-            result.put(NATURAL_LANGUAGE_QUERY, naturalLanguageQuery);
-            result.put(GENERATED_SQL, generatedSql);
-            result.put(ROW_COUNT, rowCount);
-            result.put(EXECUTION_TIME, executionTime);
             result.put(DATA_JSON, dataJson);
             result.put(DATA_SUMMARY, dataSummary);
             result.put(ERROR, e.getMessage());
@@ -116,7 +97,7 @@ public class ExecuteSqlNode implements NodeAction {
             }
 
             // 限制数据量，避免instruction模板过长
-            List<Map<String, Object>> limitedData = data.subList(0, Math.min(data.size(), 20));
+            List<Map<String, Object>> limitedData = data.subList(0, Math.min(data.size(), 5));
             return objectMapper.writeValueAsString(limitedData);
         } catch (Exception e) {
             log.error("【数据查询智能体】转换数据为JSON失败", e);

@@ -47,7 +47,7 @@ public class QueryTools {
                                 AND status IN ('SUCCESS', 'COMPLETED')
                             GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
                             ORDER BY order_date DESC
-                            LIMIT 100
+                            LIMIT 10
                             """;
                 } else {
                     generatedSql = """
@@ -80,7 +80,7 @@ public class QueryTools {
                         FROM t_order 
                         WHERE create_time >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
                         ORDER BY create_time DESC
-                        LIMIT 100
+                        LIMIT 10
                         """;
             }
 
@@ -103,7 +103,7 @@ public class QueryTools {
                             AND o.create_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
                         GROUP BY o.product_id, p.name, p.category, p.brand
                         ORDER BY total_sales DESC
-                        LIMIT 20
+                        LIMIT 5
                         """;
             }
 
@@ -125,7 +125,7 @@ public class QueryTools {
                         LEFT JOIN t_order o ON c.id = o.customer_id AND o.status IN ('SUCCESS', 'COMPLETED')
                         GROUP BY c.id, c.name, c.customer_type, c.membership_level, c.credit_level
                         ORDER BY total_spent DESC
-                        LIMIT 50
+                        LIMIT 10
                         """;
             }
 
@@ -146,7 +146,7 @@ public class QueryTools {
                         FROM t_payment
                         WHERE create_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
                         ORDER BY create_time DESC
-                        LIMIT 100
+                        LIMIT 10
                         """;
             }
 
@@ -170,7 +170,7 @@ public class QueryTools {
                             END as inventory_status
                         FROM t_inventory
                         ORDER BY available_stock ASC
-                        LIMIT 50
+                        LIMIT 10
                         """;
             }
 

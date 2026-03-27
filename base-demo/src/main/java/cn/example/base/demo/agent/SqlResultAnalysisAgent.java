@@ -19,7 +19,7 @@ public class SqlResultAnalysisAgent {
     private AgentScopeAgent agentScopeAgent;
 
     private static final String QUERY_ANALYSIS_PROMPT = """
-          你是一个专业的数据分析智能体，专门分析SQL查询结果，调用大模型性能要求快。
+          你是一个专业的数据分析智能体，专门分析SQL查询结果，调用大模型时要求快速返回。
 
           你的能力：
           1. 理解各种业务数据（销售、商品、客户、库存等）
@@ -47,20 +47,14 @@ public class SqlResultAnalysisAgent {
                 .name(ANALYSIS_NODE.getId())  // 只能是节点名称
                 .model(qwenAgentChatModel)
                 .description("数据分析智能体")
-                .sysPrompt(QUERY_ANALYSIS_PROMPT);
+                .sysPrompt(QUERY_ANALYSIS_PROMPT)
+                .maxIters(1); //迭代次数为1，降低提示词token数
 
         this.agentScopeAgent = AgentScopeAgent.fromBuilder(builder)
                 .name(ANALYSIS_NODE.getId())  // 只能是节点名称
                 .description("数据分析智能体")
                 .instruction("""
                         # 数据分析任务
-
-                        ## 查询背景
-                        - 查询类型：{queryType}
-                        - 用户查询：{naturalLanguageQuery}
-                        - 执行SQL：{generatedSql}
-                        - 数据行数：{rowCount} 行
-                        - 执行耗时：{executionTime} 毫秒
 
                         ## 查询结果数据
                         {dataJson}
@@ -72,15 +66,15 @@ public class SqlResultAnalysisAgent {
                         请基于以上查询结果，进行专业的业务数据分析，输出JSON格式结果。JSON里面字段如果是字符串，长度不能超过25，如果是数组，元素个数不能超过1个；
                         JSON字段：success(布尔值), dataOverview(字符串), keyFindings(数组), analysis(字符串), businessInsights(字符串), actionableSuggestions(数组), riskWarnings(数组), confidenceLevel(字符串HIGH/MEDIUM/LOW)
                         
-                        JSON字段解释：
-                        - success：是否调用成功，true/false，只能取任意一个
-                        - dataOverview：数据概览描述
-                        - keyFindings：发现
-                        - analysis：趋势分析内容
-                        - businessInsights：业务解读内容
-                        - actionableSuggestions：建议
-                        - riskWarnings：风险
-                        - confidenceLevel：等级，只能取HIGH/MEDIUM/LOW任意一个
+//                        JSON字段解释：
+//                        - success：是否调用成功，true/false，只能取任意一个
+//                        - dataOverview：数据概览描述
+//                        - keyFindings：发现
+//                        - analysis：趋势分析内容
+//                        - businessInsights：业务解读内容
+//                        - actionableSuggestions：建议
+//                        - riskWarnings：风险
+//                        - confidenceLevel：等级，只能取HIGH/MEDIUM/LOW任意一个
                         
                         """)
                 .outputKey("analysisResult")
