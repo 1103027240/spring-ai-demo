@@ -2,15 +2,21 @@ package cn.example.base.demo.node.sql;
 
 import cn.example.base.demo.enums.QueryWorkflowStatusEnum;
 import cn.example.base.demo.tools.QueryTools;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 import static cn.example.base.demo.constant.FieldConstant.*;
+import static cn.example.base.demo.enums.QueryTypeEnum.SALES_ANALYSIS;
+import static cn.example.base.demo.enums.QueryTypeEnum.TOP_PRODUCTS;
 import static cn.example.base.demo.enums.SqlQueryNodeEnum.*;
 
 /**
@@ -22,6 +28,9 @@ public class ExecuteSqlNode implements NodeAction {
 
     @Autowired
     private QueryTools queryTools;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public Map<String, Object> apply(OverAllState state) throws Exception {
@@ -48,8 +57,29 @@ public class ExecuteSqlNode implements NodeAction {
                         NEXT_NODE, ERROR_HANDLE_NODE.getId());
             }
 
+            // 用于数据分析
+            String naturalLanguageQuery = state.value(NATURAL_LANGUAGE_QUERY, String.class).orElse("");
+
+            Map<String, Object> nlToSqlResult = state.value(NL_TO_SQL_RESULT, Map.class).orElse(new HashMap<>());
+            String queryType = (String) nlToSqlResult.getOrDefault(QUERY_TYPE, "");
+
+            int rowCount = (int) executeSqlResult.getOrDefault(ROW_COUNT, 0);
+            long executionTime = (long) executeSqlResult.getOrDefault(EXECUTION_TIME, 0L);
+
+            List<Map<String, Object>> data = (List<Map<String, Object>>) executeSqlResult.getOrDefault(DATA, new ArrayList<>());
+            String dataJson = generateDataJson(data);
+            String dataSummary = generateDataSummary(data, queryType);
+
             return Map.of(
                     EXECUTE_SQL_RESULT, executeSqlResult,
+                    SQL_RESULT_ANALYSIS, Map.of(
+                            QUERY_TYPE, queryType,
+                            NATURAL_LANGUAGE_QUERY, naturalLanguageQuery,
+                            GENERATED_SQL, generatedSql,
+                            ROW_COUNT, rowCount,
+                            EXECUTION_TIME, executionTime,
+                            DATA_JSON, dataJson,
+                            DATA_SUMMARY, dataSummary),
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId(),
                     CURRENT_NODE, EXECUTE_SQL_NODE.getId(),
                     NEXT_NODE, ANALYSIS_NODE.getId(),
@@ -61,6 +91,56 @@ public class ExecuteSqlNode implements NodeAction {
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
                     NEXT_NODE, ERROR_HANDLE_NODE.getId());
         }
+    }
+
+    private String generateDataJson(List<Map<String, Object>> data) {
+        try {
+            if (CollUtil.isEmpty(data)) {
+                return "[]";
+            }
+
+            // 限制数据量，避免instruction模板过长
+            List<Map<String, Object>> limitedData = data.subList(0, Math.min(data.size(), 20));
+            return objectMapper.writeValueAsString(limitedData);
+        } catch (Exception e) {
+            log.error("【数据查询智能体】转换数据为JSON失败", e);
+            return "[]";
+        }
+    }
+
+    private String generateDataSummary(List<Map<String, Object>> data, String queryType) {
+        if (CollUtil.isEmpty(data)) {
+            return "查询结果为空";
+        }
+
+        StringBuilder summary = new StringBuilder();
+        summary.append("共【").append(data.size()).append("】条记录\n");
+
+        // 销售分析数据摘要
+        if (SALES_ANALYSIS.getId().equals(queryType)) {
+            double totalSales = 0;
+            for (Map<String, Object> row : data) {
+                Object sales = row.get("total_sales");
+                if (sales instanceof Number) {
+                    totalSales += ((Number) sales).doubleValue();
+                }
+            }
+            summary.append("销售总额: ").append(String.format("%.2f", totalSales)).append("\n");
+        }
+
+        // 热门商品数据摘要
+        else if (TOP_PRODUCTS.getId().equals(queryType)) {
+            summary.append("热门商品前三:\n");
+            for (int i = 0; i < Math.min(3, data.size()); i++) {
+                Map<String, Object> product = data.get(i);
+                summary.append(i + 1).append(". ")
+                        .append(product.get("product_name"))
+                        .append(" - 销售额: ").append(product.get("total_sales"))
+                        .append("\n");
+            }
+        }
+
+        return summary.toString();
     }
 
 }

@@ -31,6 +31,7 @@ public class QueryWorkflowFactory {
             strategies.put(QUERY_TYPE, new ReplaceStrategy());
             strategies.put(VALIDATE_SQL_RESULT, new ReplaceStrategy());
             strategies.put(EXECUTE_SQL_RESULT, new ReplaceStrategy());
+            strategies.put(SQL_RESULT_ANALYSIS, new ReplaceStrategy());
             strategies.put(ANALYSIS_RESULT, new ReplaceStrategy());
             strategies.put(FINAL_RESULT, new ReplaceStrategy());
 

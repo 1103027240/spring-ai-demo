@@ -179,6 +179,8 @@ public class FieldConstant {
 
     public static final String EXECUTE_SQL_RESULT = "executeSqlResult";
 
+    public static final String SQL_RESULT_ANALYSIS = "sqlResultAnalysis";
+
     public static final String ANALYSIS_RESULT = "analysisResult";
 
     public static final String FINAL_RESULT = "finalResult";
@@ -187,5 +189,12 @@ public class FieldConstant {
 
     public static final String SUGGESTION = "suggestion";
 
+    public static final String DATA_JSON = "dataJson";
+
+    public static final String DATA_SUMMARY = "dataSummary";
+
+    public static final String ROW_COUNT = "rowCount";
+
+    public static final String EXECUTION_TIME = "executionTime";
 
 }

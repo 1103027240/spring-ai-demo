@@ -46,8 +46,8 @@ public class SqlResultGenerateNode implements NodeAction {
             // sql执行结果
             if (executeSqlResult.containsKey(DATA)) {
                 finalResult.put(DATA, executeSqlResult.get(DATA));
-                finalResult.put("rowCount", executeSqlResult.get("rowCount"));
-                finalResult.put("executionTime", executeSqlResult.get("executionTime"));
+                finalResult.put(ROW_COUNT, executeSqlResult.get(ROW_COUNT));
+                finalResult.put(EXECUTION_TIME, executeSqlResult.get(EXECUTION_TIME));
             }
 
             // 数据分析结果
@@ -84,7 +84,7 @@ public class SqlResultGenerateNode implements NodeAction {
         }
 
         try {
-            analysis.put("rowCount", data.size());
+            analysis.put(ROW_COUNT, data.size());
             analysis.put(QUERY_TYPE, queryType);
 
             // 销售分析

@@ -7,12 +7,14 @@ import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import io.agentscope.core.studio.StudioManager;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 import static cn.example.base.demo.constant.FieldConstant.*;
 import static cn.example.base.demo.constant.FieldConstant.THREAD_ID;
 
+@Slf4j
 @Service
 public class SqlQueryWorkflowServiceImpl implements SqlQueryWorkflowService {
 
@@ -25,7 +27,7 @@ public class SqlQueryWorkflowServiceImpl implements SqlQueryWorkflowService {
         try {
             StudioManager.init()
                     .studioUrl("http://localhost:3000")
-                    .project("顺序多智能体")
+                    .project("数据查询多智能体")
                     .runName("run_" + System.currentTimeMillis())
                     .initialize()
                     .block();
@@ -39,11 +41,19 @@ public class SqlQueryWorkflowServiceImpl implements SqlQueryWorkflowService {
             OverAllState overAllState = new OverAllState(initialState);
             RunnableConfig config = RunnableConfig.builder().threadId(workflowId).build();
 
-            return sqlQueryGraph.invoke(overAllState, config)
+            Map<String, Object> response = sqlQueryGraph.invoke(overAllState, config)
                     .map(OverAllState::data)
                     .orElse(null);
+
+            return Map.of(
+                    SUCCESS, true,
+                    FINAL_RESULT, response.get(FINAL_RESULT),
+                    WORKFLOW_STATUS, response.get(WORKFLOW_STATUS),
+                    CURRENT_NODE, response.get(CURRENT_NODE),
+                    NEXT_NODE, response.get(NEXT_NODE));
         } catch (RuntimeException e) {
-            throw new RuntimeException(e);
+            log.error("数据查询流程执行失败", e);
+            return Map.of(SUCCESS, false, MESSAGE, e.getMessage());
         } finally {
             StudioManager.shutdown();
         }
