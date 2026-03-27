@@ -31,10 +31,10 @@ public class SqlResultAnalysisNodeCondition implements EdgeAction {
             }
 
             Map<String, Object> agentResult = new HashMap<>();
-            if (result instanceof String) {
-                agentResult = workflowBuild.parseJsonResponse((String) result);
-            } else if (result instanceof Map) {
-                agentResult = (Map<String, Object>) result;
+            if (result instanceof String str) {
+                agentResult = workflowBuild.parseJsonResponse(str);
+            } else if (result instanceof Map map) {
+                agentResult = map;
             }
 
             boolean success = (boolean) agentResult.getOrDefault(SUCCESS, false);

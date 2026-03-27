@@ -45,12 +45,7 @@ public class SqlQueryWorkflowServiceImpl implements SqlQueryWorkflowService {
                     .map(OverAllState::data)
                     .orElse(null);
 
-            return Map.of(
-                    SUCCESS, true,
-                    FINAL_RESULT, response.get(FINAL_RESULT),
-                    WORKFLOW_STATUS, response.get(WORKFLOW_STATUS),
-                    CURRENT_NODE, response.get(CURRENT_NODE),
-                    NEXT_NODE, response.get(NEXT_NODE));
+            return Map.of(SUCCESS, true, FINAL_RESULT, response.get(FINAL_RESULT));
         } catch (RuntimeException e) {
             log.error("数据查询流程执行失败", e);
             return Map.of(SUCCESS, false, MESSAGE, e.getMessage());

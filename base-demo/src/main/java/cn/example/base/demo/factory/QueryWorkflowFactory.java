@@ -5,7 +5,6 @@ import com.alibaba.cloud.ai.graph.KeyStrategyFactory;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
 import java.util.HashMap;
 import java.util.Map;
-
 import static cn.example.base.demo.constant.FieldConstant.*;
 
 public class QueryWorkflowFactory {
@@ -31,9 +30,12 @@ public class QueryWorkflowFactory {
             strategies.put(QUERY_TYPE, new ReplaceStrategy());
             strategies.put(VALIDATE_SQL_RESULT, new ReplaceStrategy());
             strategies.put(EXECUTE_SQL_RESULT, new ReplaceStrategy());
-            strategies.put(SQL_RESULT_ANALYSIS, new ReplaceStrategy());
             strategies.put(ANALYSIS_RESULT, new ReplaceStrategy());
             strategies.put(FINAL_RESULT, new ReplaceStrategy());
+            strategies.put(ROW_COUNT, new ReplaceStrategy());
+            strategies.put(EXECUTION_TIME, new ReplaceStrategy());
+            strategies.put(DATA_JSON, new ReplaceStrategy());
+            strategies.put(DATA_SUMMARY, new ReplaceStrategy());
 
             // 最终结果
             strategies.put(SUCCESS, new ReplaceStrategy());

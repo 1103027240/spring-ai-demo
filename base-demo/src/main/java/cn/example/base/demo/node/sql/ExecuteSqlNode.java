@@ -36,8 +36,16 @@ public class ExecuteSqlNode implements NodeAction {
     public Map<String, Object> apply(OverAllState state) throws Exception {
         log.info("【数据查询智能体】SQL执行节点开始执行");
 
+        String queryType = "";
+        String naturalLanguageQuery = "";
+        String generatedSql = "";
+        String dataJson = "";
+        String dataSummary = "";
+        Integer rowCount = null;
+        Long executionTime = null;
+
         try {
-            String generatedSql = state.value(GENERATED_SQL, String.class).orElse("");
+            generatedSql = state.value(GENERATED_SQL, String.class).orElse("");
             if (StrUtil.isBlank(generatedSql)) {
                 return Map.of(
                         ERROR, "【SQL执行节点】SQL语句为空",
@@ -58,38 +66,46 @@ public class ExecuteSqlNode implements NodeAction {
             }
 
             // 用于数据分析
-            String naturalLanguageQuery = state.value(NATURAL_LANGUAGE_QUERY, String.class).orElse("");
+            naturalLanguageQuery = state.value(NATURAL_LANGUAGE_QUERY, String.class).orElse("");
 
             Map<String, Object> nlToSqlResult = state.value(NL_TO_SQL_RESULT, Map.class).orElse(new HashMap<>());
-            String queryType = (String) nlToSqlResult.getOrDefault(QUERY_TYPE, "");
+            queryType = (String) nlToSqlResult.getOrDefault(QUERY_TYPE, "");
 
-            int rowCount = (int) executeSqlResult.getOrDefault(ROW_COUNT, 0);
-            long executionTime = (long) executeSqlResult.getOrDefault(EXECUTION_TIME, 0L);
+            rowCount = (int) executeSqlResult.getOrDefault(ROW_COUNT, 0);
+            executionTime = (long) executeSqlResult.getOrDefault(EXECUTION_TIME, 0L);
 
             List<Map<String, Object>> data = (List<Map<String, Object>>) executeSqlResult.getOrDefault(DATA, new ArrayList<>());
-            String dataJson = generateDataJson(data);
-            String dataSummary = generateDataSummary(data, queryType);
+            dataJson = generateDataJson(data);
+            dataSummary = generateDataSummary(data, queryType);
 
-            return Map.of(
-                    EXECUTE_SQL_RESULT, executeSqlResult,
-                    SQL_RESULT_ANALYSIS, Map.of(
-                            QUERY_TYPE, queryType,
-                            NATURAL_LANGUAGE_QUERY, naturalLanguageQuery,
-                            GENERATED_SQL, generatedSql,
-                            ROW_COUNT, rowCount,
-                            EXECUTION_TIME, executionTime,
-                            DATA_JSON, dataJson,
-                            DATA_SUMMARY, dataSummary),
-                    WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId(),
-                    CURRENT_NODE, EXECUTE_SQL_NODE.getId(),
-                    NEXT_NODE, ANALYSIS_NODE.getId(),
-                    SUCCESS, true);
+            Map<String, Object> result = new HashMap<>();
+            result.put(EXECUTE_SQL_RESULT, executeSqlResult);
+            result.put(QUERY_TYPE, queryType);
+            result.put(NATURAL_LANGUAGE_QUERY, naturalLanguageQuery);
+            result.put(GENERATED_SQL, generatedSql);
+            result.put(ROW_COUNT, rowCount);
+            result.put(EXECUTION_TIME, executionTime);
+            result.put(DATA_JSON, dataJson);
+            result.put(DATA_SUMMARY, dataSummary);
+            result.put(WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId());
+            result.put(CURRENT_NODE, EXECUTE_SQL_NODE.getId());
+            result.put(NEXT_NODE, ANALYSIS_NODE.getId());
+            return result;
         } catch (Exception e) {
             log.error("【数据查询智能体】SQL执行节点执行失败", e);
-            return Map.of(
-                    ERROR, e.getMessage(),
-                    WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
-                    NEXT_NODE, ERROR_HANDLE_NODE.getId());
+
+            Map<String, Object> result = new HashMap<>();
+            result.put(QUERY_TYPE, queryType);
+            result.put(NATURAL_LANGUAGE_QUERY, naturalLanguageQuery);
+            result.put(GENERATED_SQL, generatedSql);
+            result.put(ROW_COUNT, rowCount);
+            result.put(EXECUTION_TIME, executionTime);
+            result.put(DATA_JSON, dataJson);
+            result.put(DATA_SUMMARY, dataSummary);
+            result.put(ERROR, e.getMessage());
+            result.put(WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId());
+            result.put(NEXT_NODE, ERROR_HANDLE_NODE.getId());
+            return result;
         }
     }
 

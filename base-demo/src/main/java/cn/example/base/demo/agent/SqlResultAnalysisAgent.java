@@ -54,43 +54,23 @@ public class SqlResultAnalysisAgent {
                 .description("数据分析智能体")
                 .instruction("""
                         # 数据分析任务
-                        
+
                         ## 查询背景
-                        - 查询类型：{{queryType}}
-                        - 用户查询：{{naturalLanguageQuery}}
-                        - 执行SQL：{{generatedSql}}
-                        - 数据行数：{{rowCount}} 行
-                        - 执行耗时：{{executionTime}} 毫秒
-            
+                        - 查询类型：{queryType}
+                        - 用户查询：{naturalLanguageQuery}
+                        - 执行SQL：{generatedSql}
+                        - 数据行数：{rowCount} 行
+                        - 执行耗时：{executionTime} 毫秒
+
                         ## 查询结果数据
-                        {{dataJson}}
-            
+                        {dataJson}
+
                         ## 数据摘要
-                        {{dataSummary}}
-            
+                        {dataSummary}
+
                         ## 分析要求
-                        请基于以上查询结果，进行专业的业务数据分析。
-            
-                        请按以下结构组织分析报告：
-                        1. **数据概览**：整体描述数据情况和主要特征
-                        2. **关键发现**：列出最重要的3-5个数据洞察
-                        3. **趋势分析**：如果数据包含时间维度，分析变化趋势
-                        4. **业务解读**：从业务角度解释数据的意义
-                        5. **行动建议**：基于分析结果提出具体建议
-                        6. **风险提示**：指出需要注意的风险或问题
-            
-                        ## 输出格式
-                        请输出JSON格式：
-                        {
-                            "success": true,
-                            "dataOverview": "数据概览描述",
-                            "keyFindings": ["发现1", "发现2", "发现3"],
-                            "trendAnalysis": "趋势分析内容",
-                            "businessInsights": "业务解读内容",
-                            "actionableSuggestions": ["建议1", "建议2"],
-                            "riskWarnings": ["风险1", "风险2"],
-                            "confidenceLevel": "HIGH/MEDIUM/LOW"
-                        }
+                        请基于以上查询结果，进行专业的业务数据分析，输出JSON格式结果。
+                        JSON字段：success(布尔值), dataOverview(字符串), keyFindings(数组), trendAnalysis(字符串), businessInsights(字符串), actionableSuggestions(数组), riskWarnings(数组), confidenceLevel(字符串HIGH/MEDIUM/LOW)
                         """)
                 .outputKey("analysisResult")
                 .build();

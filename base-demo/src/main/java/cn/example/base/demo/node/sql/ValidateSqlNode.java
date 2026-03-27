@@ -61,8 +61,7 @@ public class ValidateSqlNode implements NodeAction {
                     GENERATED_SQL, generatedSql,
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId(),
                     CURRENT_NODE, VALIDATE_SQL_NODE.getId(),
-                    NEXT_NODE, EXECUTE_SQL_NODE.getId(),
-                    SUCCESS, true);
+                    NEXT_NODE, EXECUTE_SQL_NODE.getId());
         } catch (Exception e) {
             log.error("【数据查询智能体】SQL验证节点执行失败", e);
             return Map.of(
