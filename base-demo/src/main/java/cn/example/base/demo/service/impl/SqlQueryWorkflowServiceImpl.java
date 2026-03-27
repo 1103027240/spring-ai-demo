@@ -33,7 +33,7 @@ public class SqlQueryWorkflowServiceImpl implements SqlQueryWorkflowService {
             Map<String, Object> initialState = new HashMap<>();
             String workflowId = WorkflowBuild.generateWorkflowId();
             initialState.put(WORKFLOW_ID, workflowId);
-            initialState.put(QUERY_REQUEST, message);
+            initialState.put(QUERY, message);
             initialState.put(THREAD_ID, workflowId);
 
             OverAllState overAllState = new OverAllState(initialState);

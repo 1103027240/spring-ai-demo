@@ -155,8 +155,6 @@ public class FieldConstant {
 
     public static final String SCORE = "score";
 
-    public static final String QUERY_REQUEST = "queryRequest";
-
     public static final String QUERY = "query";
 
     public static final String WORKFLOW_ID = "workflowId";

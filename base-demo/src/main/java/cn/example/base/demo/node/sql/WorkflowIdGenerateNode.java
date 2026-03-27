@@ -6,7 +6,6 @@ import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import java.util.HashMap;
 import java.util.Map;
 import static cn.example.base.demo.constant.FieldConstant.*;
 import static cn.example.base.demo.enums.SqlQueryNodeEnum.*;
@@ -20,11 +19,10 @@ public class WorkflowIdGenerateNode implements NodeAction {
 
     @Override
     public Map<String, Object> apply(OverAllState state) {
-        log.info("【数据查询智能体】开始节点执行");
+        log.info("【数据查询智能体】流程ID生成节点开始执行");
 
         try {
-            Map<String, Object> queryRequest = state.value(QUERY_REQUEST, Map.class).orElse(new HashMap<>());
-            String naturalLanguageQuery = (String) queryRequest.getOrDefault(QUERY, "");
+            String naturalLanguageQuery = state.value(QUERY, String.class).orElse("");
             String workflowId = state.value(WORKFLOW_ID, String.class).orElse(WorkflowBuild.generateWorkflowId());
 
             return Map.of(
@@ -34,7 +32,7 @@ public class WorkflowIdGenerateNode implements NodeAction {
                     CURRENT_NODE, WORKFLOW_ID_GENERATE_NODE.getId(),
                     NEXT_NODE, NL_TO_SQL_NODE.getId());
         } catch (Exception e) {
-            log.error("工作流开始节点失败", e);
+            log.error("【数据查询智能体】流程ID生成节点执行失败", e);
             return Map.of(
                     ERROR, e.getMessage(),
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),

@@ -45,13 +45,13 @@ public class SqlResultAnalysisAgent {
     @Autowired
     public SqlResultAnalysisAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel) {
         ReActAgent.Builder builder = ReActAgent.builder()
-                .name("数据分析智能体")
+                .name("analysisNode")  // 节点名称
                 .model(qwenAgentChatModel)
                 .description("数据分析智能体")
                 .sysPrompt(QUERY_ANALYSIS_PROMPT);
 
         this.agentScopeAgent = AgentScopeAgent.fromBuilder(builder)
-                .name("数据分析智能体")
+                .name("analysisNode")  // 节点名称
                 .description("数据分析智能体")
                 .outputKey("analysisResult")
                 .build();

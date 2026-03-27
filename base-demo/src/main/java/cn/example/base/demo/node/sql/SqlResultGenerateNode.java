@@ -68,7 +68,7 @@ public class SqlResultGenerateNode implements NodeAction {
                     NEXT_NODE, StateGraph.END,
                     SUCCESS, true);
         } catch (Exception e) {
-            log.error("查询结果生成节点失败", e);
+            log.error("【数据查询智能体】查询结果生成节点执行失败", e);
             return Map.of(
                     ERROR, e.getMessage(),
                     WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
