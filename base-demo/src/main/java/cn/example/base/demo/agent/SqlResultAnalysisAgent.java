@@ -69,8 +69,19 @@ public class SqlResultAnalysisAgent {
                         {dataSummary}
 
                         ## 分析要求
-                        请基于以上查询结果，进行专业的业务数据分析，输出JSON格式结果。
-                        JSON字段：success(布尔值), dataOverview(字符串), keyFindings(数组), trendAnalysis(字符串), businessInsights(字符串), actionableSuggestions(数组), riskWarnings(数组), confidenceLevel(字符串HIGH/MEDIUM/LOW)
+                        请基于以上查询结果，进行专业的业务数据分析，输出JSON格式结果。JSON里面字段如果是字符串，长度不能超过25，如果是数组，元素个数不能超过1个；
+                        JSON字段：success(布尔值), dataOverview(字符串), keyFindings(数组), analysis(字符串), businessInsights(字符串), actionableSuggestions(数组), riskWarnings(数组), confidenceLevel(字符串HIGH/MEDIUM/LOW)
+                        
+                        JSON字段解释：
+                        - success：是否调用成功，true/false，只能取任意一个
+                        - dataOverview：数据概览描述
+                        - keyFindings：发现
+                        - analysis：趋势分析内容
+                        - businessInsights：业务解读内容
+                        - actionableSuggestions：建议
+                        - riskWarnings：风险
+                        - confidenceLevel：等级，只能取HIGH/MEDIUM/LOW任意一个
+                        
                         """)
                 .outputKey("analysisResult")
                 .build();

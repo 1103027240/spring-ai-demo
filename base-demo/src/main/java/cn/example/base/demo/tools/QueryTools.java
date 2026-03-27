@@ -38,14 +38,14 @@ public class QueryTools {
                         naturalLanguageQuery.contains("last 7 days")) {
                     generatedSql = """
                             SELECT 
-                                DATE(create_time) as order_date,
+                                DATE_FORMAT(create_time, '%Y-%m-%d') as order_date,
                                 COUNT(*) as order_count,
                                 SUM(final_amount) as total_sales,
                                 AVG(final_amount) as avg_order_amount
                             FROM t_order 
                             WHERE create_time >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
                                 AND status IN ('SUCCESS', 'COMPLETED')
-                            GROUP BY DATE(create_time)
+                            GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
                             ORDER BY order_date DESC
                             LIMIT 100
                             """;
@@ -76,7 +76,7 @@ public class QueryTools {
                             unit_price,
                             final_amount,
                             status,
-                            create_time
+                            DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time
                         FROM t_order 
                         WHERE create_time >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
                         ORDER BY create_time DESC
@@ -120,7 +120,7 @@ public class QueryTools {
                             c.credit_level,
                             COUNT(o.id) as order_count,
                             SUM(o.final_amount) as total_spent,
-                            MAX(o.create_time) as last_order_time
+                            MAX(DATE_FORMAT(o.create_time, '%Y-%m-%d %H:%i:%s')) as last_order_time 
                         FROM t_customer c
                         LEFT JOIN t_order o ON c.id = o.customer_id AND o.status IN ('SUCCESS', 'COMPLETED')
                         GROUP BY c.id, c.name, c.customer_type, c.membership_level, c.credit_level
@@ -141,8 +141,8 @@ public class QueryTools {
                             amount,
                             payment_method,
                             status,
-                            create_time,
-                            completed_time
+                            DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time,
+                            DATE_FORMAT(completed_time, '%Y-%m-%d %H:%i:%s') as completed_time
                         FROM t_payment
                         WHERE create_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
                         ORDER BY create_time DESC

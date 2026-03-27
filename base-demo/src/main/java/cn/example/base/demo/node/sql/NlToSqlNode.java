@@ -1,7 +1,7 @@
 package cn.example.base.demo.node.sql;
 
 import cn.example.base.demo.agent.QueryAgent;
-import cn.example.base.demo.build.WorkflowBuild;
+import cn.example.base.demo.build.MultiAgentBuild;
 import cn.example.base.demo.enums.QueryWorkflowStatusEnum;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
@@ -26,7 +26,7 @@ public class NlToSqlNode implements NodeAction {
     private QueryAgent queryAgent;
 
     @Autowired
-    private WorkflowBuild workflowBuild;
+    private MultiAgentBuild multiAgentBuild;
 
     @Override
     public Map<String, Object> apply(OverAllState state) throws Exception {
@@ -50,7 +50,7 @@ public class NlToSqlNode implements NodeAction {
                             .build())
                     .getTextContent();
 
-            Map<String, Object> agentResult = workflowBuild.parseJsonResponse(agentResponse);
+            Map<String, Object> agentResult = multiAgentBuild.parseJsonResponse(agentResponse);
 
             // 解析大模型工具返回结果
             if (!(boolean) agentResult.getOrDefault(SUCCESS, false)) {

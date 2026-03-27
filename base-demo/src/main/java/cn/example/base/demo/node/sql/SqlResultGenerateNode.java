@@ -1,9 +1,10 @@
 package cn.example.base.demo.node.sql;
 
+import cn.example.base.demo.build.MultiAgentBuild;
 import cn.example.base.demo.enums.QueryWorkflowStatusEnum;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
-import com.alibaba.cloud.ai.graph.StateGraph;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -27,9 +28,11 @@ public class SqlResultGenerateNode implements NodeAction {
         log.info("【数据查询智能体】查询结果生成节点开始执行");
 
         try {
+            MultiAgentBuild multiAgentBuild = SpringUtil.getBean(MultiAgentBuild.class);
+
             Map<String, Object> nlToSqlResult = state.value(NL_TO_SQL_RESULT, Map.class).orElse(new HashMap<>());
             Map<String, Object> executeSqlResult = state.value(EXECUTE_SQL_RESULT, Map.class).orElse(new HashMap<>());
-            Map<String, Object> analysisResult = state.value(ANALYSIS_RESULT, Map.class).orElse(new HashMap<>());
+            Object result = state.value(ANALYSIS_RESULT).orElse(null);
             String naturalLanguageQuery = state.value(NATURAL_LANGUAGE_QUERY, String.class).orElse("");
             String generatedSql = state.value(GENERATED_SQL, String.class).orElse("");
             String workflowId = state.value(WORKFLOW_ID, String.class).orElse("");
@@ -39,18 +42,14 @@ public class SqlResultGenerateNode implements NodeAction {
             finalResult.put(WORKFLOW_ID, workflowId);
             finalResult.put(NATURAL_LANGUAGE_QUERY, naturalLanguageQuery);
             finalResult.put(GENERATED_SQL, generatedSql);
-            finalResult.put(QUERY_TYPE, nlToSqlResult.get(QUERY_TYPE));
-            finalResult.put(WORKFLOW_STATUS, QueryWorkflowStatusEnum.COMPLETED.getId());
-            finalResult.put(SUCCESS, true);
 
             // sql执行结果
             if (executeSqlResult.containsKey(DATA)) {
                 finalResult.put(DATA, executeSqlResult.get(DATA));
-                finalResult.put(ROW_COUNT, executeSqlResult.get(ROW_COUNT));
-                finalResult.put(EXECUTION_TIME, executeSqlResult.get(EXECUTION_TIME));
             }
 
             // 数据分析结果
+            Map<String, Object> analysisResult = multiAgentBuild.parseMap(multiAgentBuild.extractText(result));
             if (analysisResult.containsKey("analysis")) {
                 finalResult.put("aiAnalysis", analysisResult);
             } else {
@@ -61,12 +60,7 @@ public class SqlResultGenerateNode implements NodeAction {
                 }
             }
 
-            return Map.of(
-                    FINAL_RESULT, finalResult,
-                    WORKFLOW_STATUS, QueryWorkflowStatusEnum.COMPLETED.getId(),
-                    CURRENT_NODE, QUERY_RESULT_GENERATE.getId(),
-                    NEXT_NODE, StateGraph.END,
-                    SUCCESS, true);
+            return Map.of(FINAL_RESULT, finalResult, SUCCESS, true);
         } catch (Exception e) {
             log.error("【数据查询智能体】查询结果生成节点执行失败", e);
             return Map.of(
@@ -77,16 +71,14 @@ public class SqlResultGenerateNode implements NodeAction {
     }
 
     private Map<String, Object> performSimpleAnalysis(List<Map<String, Object>> data, String queryType) {
-        Map<String, Object> analysis = new HashMap<>();
         if (CollUtil.isEmpty(data)) {
-            analysis.put(MESSAGE, "sql返回结果为空");
-            return analysis;
+            return Map.of(MESSAGE, "sql返回结果为空");
         }
 
-        try {
-            analysis.put(ROW_COUNT, data.size());
-            analysis.put(QUERY_TYPE, queryType);
+        Map<String, Object> analysis = new HashMap<>();
+        analysis.put(MESSAGE, "简单数据分析完成");
 
+        try {
             // 销售分析
             if (SALES_ANALYSIS.getId().equals(queryType)) {
                 double totalSales = 0;
@@ -146,15 +138,11 @@ public class SqlResultGenerateNode implements NodeAction {
                 analysis.put("avgSpentPerCustomer", customerCount > 0 ? totalSpent / customerCount : 0);
             }
 
-            analysis.put(SUCCESS, true);
-            analysis.put(MESSAGE, "简单数据分析完成");
+            return analysis;
         } catch (Exception e) {
             log.error("【数据查询智能体】查询结果生成节点执行失败", e);
-            analysis.put(SUCCESS, false);
-            analysis.put(MESSAGE, e.getMessage());
+            return Map.of(MESSAGE, e.getMessage());
         }
-
-        return analysis;
     }
 
 }

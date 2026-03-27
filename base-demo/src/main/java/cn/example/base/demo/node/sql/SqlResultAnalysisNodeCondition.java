@@ -1,12 +1,11 @@
 package cn.example.base.demo.node.sql;
 
-import cn.example.base.demo.build.WorkflowBuild;
+import cn.example.base.demo.build.MultiAgentBuild;
+import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.EdgeAction;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.HashMap;
 import java.util.Map;
 import static cn.example.base.demo.constant.FieldConstant.*;
 import static cn.example.base.demo.enums.SqlQueryNodeEnum.QUERY_RESULT_GENERATE;
@@ -18,25 +17,17 @@ import static cn.example.base.demo.enums.SqlQueryNodeEnum.QUERY_RESULT_GENERATE;
 @Component
 public class SqlResultAnalysisNodeCondition implements EdgeAction {
 
-    @Autowired
-    private WorkflowBuild workflowBuild;
-
     @Override
     public String apply(OverAllState state) throws Exception {
         try {
+            MultiAgentBuild multiAgentBuild = SpringUtil.getBean(MultiAgentBuild.class);
             Object result = state.value(ANALYSIS_RESULT).orElse(null);
             if (result == null) {
                 log.warn("【数据分析智能体节点条件】无输出结果");
                 return QUERY_RESULT_GENERATE.getId();
             }
 
-            Map<String, Object> agentResult = new HashMap<>();
-            if (result instanceof String str) {
-                agentResult = workflowBuild.parseJsonResponse(str);
-            } else if (result instanceof Map map) {
-                agentResult = map;
-            }
-
+            Map<String, Object> agentResult = multiAgentBuild.parseMap(multiAgentBuild.extractText(result));
             boolean success = (boolean) agentResult.getOrDefault(SUCCESS, false);
             if (!success) {
                 log.warn("【数据分析智能体节点条件】分析数据处理失败: {}", agentResult.get(ERROR));
