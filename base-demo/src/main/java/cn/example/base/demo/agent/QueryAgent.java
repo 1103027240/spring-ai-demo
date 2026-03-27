@@ -6,13 +6,11 @@ import io.agentscope.core.message.Msg;
 import io.agentscope.core.message.MsgRole;
 import io.agentscope.core.model.Model;
 import io.agentscope.core.tool.Toolkit;
-import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 @Slf4j
@@ -22,11 +20,9 @@ public class QueryAgent {
     @Getter
     private ReActAgent reactAgent;
 
-    @Resource(name = "qwenAgentChatModel")
-    private Model qwenAgentChatModel;
-
     @Autowired
-    public QueryAgent(@Qualifier("queryTools") QueryTools queryTools) {
+    public QueryAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel,
+                      @Qualifier("queryTools") QueryTools queryTools) {
         Toolkit toolkit = new Toolkit();
         toolkit.registerTool(queryTools);
 

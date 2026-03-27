@@ -16,7 +16,7 @@ import static cn.example.base.demo.constant.PatternConstant.SQL_INJECTION_PATTER
 import static cn.example.base.demo.enums.QueryTypeEnum.*;
 
 @Slf4j
-@Component
+@Component("queryTools")
 public class QueryTools {
 
     @Autowired

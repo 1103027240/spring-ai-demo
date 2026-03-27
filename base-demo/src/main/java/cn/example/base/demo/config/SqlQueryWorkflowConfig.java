@@ -27,29 +27,47 @@ public class SqlQueryWorkflowConfig {
     @Autowired
     private GraphBuild graphBuild;
 
+    @Autowired
+    private WorkflowIdGenerateNode workflowIdGenerateNode;
+
+    @Autowired
+    private NlToSqlNode nlToSqlNode;
+
+    @Autowired
+    private ValidateSqlNode validateSqlNode;
+
+    @Autowired
+    private ExecuteSqlNode executeSqlNode;
+
+    @Autowired
+    private SqlResultGenerateNode sqlResultGenerateNode;
+
+    @Autowired
+    private ErrorHandleNode errorHandleNode;
+
     public StateGraph createSqlQueryGraph() throws GraphStateException {
         StateGraph graph = new StateGraph(SQL_QUERY_NAME, QueryWorkflowFactory.queryKeyStrategyFactory());
 
         // 1、流程ID生成节点
-        graph.addNode(WORKFLOW_ID_GENERATE_NODE.getId(), node_async(new WorkflowIdGenerateNode()));
+        graph.addNode(WORKFLOW_ID_GENERATE_NODE.getId(), node_async(workflowIdGenerateNode));
 
         // 2、自然语言查询转SQL节点
-        graph.addNode(NL_TO_SQL_NODE.getId(), node_async(new NlToSqlNode()));
+        graph.addNode(NL_TO_SQL_NODE.getId(), node_async(nlToSqlNode));
 
         // 3、SQL验证节点
-        graph.addNode(VALIDATE_SQL_NODE.getId(), node_async(new ValidateSqlNode()));
+        graph.addNode(VALIDATE_SQL_NODE.getId(), node_async(validateSqlNode));
 
         // 4、SQL执行节点
-        graph.addNode(EXECUTE_SQL_NODE.getId(), node_async(new ExecuteSqlNode()));
+        graph.addNode(EXECUTE_SQL_NODE.getId(), node_async(executeSqlNode));
 
         // 5、数据分析节点
         graph.addNode(ANALYSIS_NODE.getId(), sqlResultAnalysisAgent.asNode(true, true));
 
         // 6、查询结果生成节点
-        graph.addNode(QUERY_RESULT_GENERATE.getId(), node_async(new SqlResultGenerateNode()));
+        graph.addNode(QUERY_RESULT_GENERATE.getId(), node_async(sqlResultGenerateNode));
 
         // 7、错误处理节点
-        graph.addNode(ERROR_HANDLE_NODE.getId(), node_async(new ErrorHandleNode()));
+        graph.addNode(ERROR_HANDLE_NODE.getId(), node_async(errorHandleNode));
 
         // 开始节点 -> 流程ID生成节点
         graph.addEdge(StateGraph.START, WORKFLOW_ID_GENERATE_NODE.getId());
