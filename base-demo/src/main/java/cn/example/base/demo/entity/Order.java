@@ -2,6 +2,7 @@ package cn.example.base.demo.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("order")
+@Accessors(chain = true)
 public class Order implements Serializable {
     private static final long serialVersionUID = 1L;
 

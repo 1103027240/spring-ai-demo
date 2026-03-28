@@ -1,7 +1,8 @@
 package cn.example.base.demo.entity;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import java.util.Map;
 
@@ -9,7 +10,8 @@ import java.util.Map;
  * milvus数据库中rag_document集合
  * @author 11030
  */
-@Data
+@Setter
+@Getter
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 public class RagDocument extends MilvusDocument {

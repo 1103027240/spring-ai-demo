@@ -124,6 +124,7 @@ public class DetectTextTypeCheck {
         if (StrUtil.isBlank(text)) {
             return false;
         }
+
         // 句子通常以句号、问号或感叹号结尾
         String trimmed = text.trim();
         return trimmed.endsWith(".") || trimmed.endsWith("。") ||
@@ -138,6 +139,7 @@ public class DetectTextTypeCheck {
         if (StrUtil.isBlank(text)) {
             return false;
         }
+
         // 段落通常包含多个句子，以句号、问号或感叹号结尾
         return text.contains(".") || text.contains("。") ||
                 text.contains("?") || text.contains("？") ||
@@ -221,6 +223,7 @@ public class DetectTextTypeCheck {
         if (StrUtil.isBlank(text)) {
             return false;
         }
+
         long chineseCount = text.chars()
                 .filter(c -> Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN)
                 .count();

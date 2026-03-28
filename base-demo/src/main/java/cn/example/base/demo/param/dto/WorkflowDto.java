@@ -10,9 +10,9 @@ import java.io.Serializable;
  * 工作流执行请求DTO
  * @author 11030
  */
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 public class WorkflowDto implements Serializable {
     private static final long serialVersionUID = 1L;
 

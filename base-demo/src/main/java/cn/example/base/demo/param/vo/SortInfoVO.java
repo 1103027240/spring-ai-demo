@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import java.io.Serializable;
 
-@Builder
 @Data
+@Builder
 @Schema(description = "排序信息")
 public class SortInfoVO implements Serializable {
     private static final long serialVersionUID = 1L;

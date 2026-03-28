@@ -12,8 +12,8 @@ import java.util.Base64;
 import java.util.List;
 import static cn.example.base.demo.enums.CursorDirectionEnum.*;
 
-@Data
 @Slf4j
+@Data
 @Schema(description = "知识库文档搜索请求参数")
 public class KnowledgeDocumentSearchDto implements Serializable {
     private static final long serialVersionUID = 1L;

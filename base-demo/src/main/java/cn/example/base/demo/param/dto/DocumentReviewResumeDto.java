@@ -9,9 +9,9 @@ import java.io.Serializable;
 /**
  * @author 11030
  */
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 public class DocumentReviewResumeDto implements Serializable {
     private static final long serialVersionUID = 1L;
 

@@ -4,6 +4,7 @@ import cn.example.base.demo.enums.AfterSalesStatusEnum;
 import cn.example.base.demo.enums.AfterSalesTypeEnum;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("after_sales")
+@Accessors(chain = true)
 public class AfterSales implements Serializable {
     private static final long serialVersionUID = 1L;
 

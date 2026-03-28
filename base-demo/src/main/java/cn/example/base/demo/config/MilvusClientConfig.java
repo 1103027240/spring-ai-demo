@@ -85,12 +85,7 @@ public class MilvusClientConfig {
 
     @Bean
     public IVecMService vecMService(MilvusClientV2 milvusClientV2) {
-        return new IVecMService() {
-            @Override
-            public MilvusClientV2 getClient() {
-                return milvusClientV2;
-            }
-        };
+        return () -> milvusClientV2;
     }
 
 }

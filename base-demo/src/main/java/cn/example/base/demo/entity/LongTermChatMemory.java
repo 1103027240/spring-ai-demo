@@ -1,14 +1,16 @@
 package cn.example.base.demo.entity;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 /**
  * milvus数据库中long_term_memory集合
  * @author 11030
  */
-@Data
+@Setter
+@Getter
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 public class LongTermChatMemory extends MilvusDocument {

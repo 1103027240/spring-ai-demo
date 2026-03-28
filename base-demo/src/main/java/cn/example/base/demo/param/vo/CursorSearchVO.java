@@ -12,8 +12,8 @@ import java.util.List;
 /**
  * 游标搜索返回的通用数据
  */
-@Builder
 @Data
+@Builder
 @Setter
 @Getter
 @Schema(description = "游标搜索返回的通用数据")
