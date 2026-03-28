@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Configuration
 @Import({
-        OrderCheckConfig.class,
+        ReturnOrderCheckConfig.class,
         ReturnPolicyCheckConfig.class,
         RefundCalculateConfig.class,
         ReturnOrderGenerateConfig.class})
@@ -21,7 +21,7 @@ public class ReturnProcessSequentialConfig {
 
     @Bean
     public SequentialAgent returnProcessSequentialAgent (
-            @Qualifier("orderCheckAgent") AgentScopeAgent orderCheckAgent,
+            @Qualifier("returnOrderCheckAgent") AgentScopeAgent returnOrderCheckAgent,
             @Qualifier("returnPolicyCheckAgent") AgentScopeAgent returnPolicyCheckAgent,
             @Qualifier("refundCalculateAgent") AgentScopeAgent refundCalculateAgent,
             @Qualifier("returnOrderGenerateAgent") AgentScopeAgent returnOrderGenerateAgent) {
@@ -30,7 +30,7 @@ public class ReturnProcessSequentialConfig {
                 .name("退货处理顺序智能体")
                 .description("退货处理顺序执行：验证订单、检查政策、计算退款、生成退货单")
                 .subAgents(List.of(
-                        orderCheckAgent,
+                        returnOrderCheckAgent,
                         returnPolicyCheckAgent,
                         refundCalculateAgent,
                         returnOrderGenerateAgent))

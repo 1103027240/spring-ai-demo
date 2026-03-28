@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * 2、订单验证智能体
  */
 @Configuration
-public class OrderCheckConfig {
+public class ReturnOrderCheckConfig {
 
     private static final String ORDER_CHECK_PROMPT  =
         """
@@ -33,7 +33,7 @@ public class OrderCheckConfig {
         """;
 
     @Bean
-    public AgentScopeAgent orderCheckAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel) {
+    public AgentScopeAgent returnOrderCheckAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel) {
         ReActAgent.Builder builder = ReActAgent.builder()
                 .name("订单验证智能体")
                 .model(qwenAgentChatModel)
