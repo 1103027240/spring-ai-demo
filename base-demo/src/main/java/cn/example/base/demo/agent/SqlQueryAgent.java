@@ -18,14 +18,14 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class QueryAgent {
+public class SqlQueryAgent {
 
     @Getter
     private ReActAgent reactAgent;
 
     @Autowired
-    public QueryAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel,
-                      @Qualifier("queryTools") QueryTools queryTools) {
+    public SqlQueryAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel,
+                         @Qualifier("queryTools") QueryTools queryTools) {
         Toolkit toolkit = new Toolkit();
         toolkit.registerTool(queryTools);
 
