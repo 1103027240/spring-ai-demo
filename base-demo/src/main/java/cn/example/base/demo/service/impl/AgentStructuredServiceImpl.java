@@ -1,6 +1,6 @@
 package cn.example.base.demo.service.impl;
 
-import cn.example.base.demo.dto.ContactInfoVO;
+import cn.example.base.demo.param.vo.ContactInfoVO;
 import cn.example.base.demo.service.AgentStructuredService;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;

@@ -1,4 +1,4 @@
-package cn.example.base.demo.dto;
+package cn.example.base.demo.param.vo;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.annotation.write.style.ColumnWidth;
@@ -78,7 +78,7 @@ public class KnowledgeDocumentSearchVO implements Serializable {
     private String createTime;
 
     // 转换方法
-    public static KnowledgeDocumentSearchVO fromKnowledgeDocumentVO(KnowledgeDocumentVO  doc) {
+    public static KnowledgeDocumentSearchVO fromKnowledgeDocumentVO(KnowledgeDocumentVO doc) {
         KnowledgeDocumentSearchVO exportVO = new KnowledgeDocumentSearchVO();
 
         exportVO.setDocId(doc.getDocId());

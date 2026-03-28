@@ -1,6 +1,6 @@
 package cn.example.base.demo.service.impl;
 
-import cn.example.base.demo.dto.CustomerServiceStateDto;
+import cn.example.base.demo.param.dto.CustomerServiceStateDto;
 import cn.example.base.demo.entity.GraphCheckPoint;
 import cn.example.base.demo.entity.GraphThread;
 import cn.example.base.demo.mapper.GraphCheckPointMapper;

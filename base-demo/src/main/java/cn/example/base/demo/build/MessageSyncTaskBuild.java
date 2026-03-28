@@ -1,7 +1,7 @@
 package cn.example.base.demo.build;
 
 import cn.example.base.demo.constant.FieldConstant;
-import cn.example.base.demo.dto.CustomerServiceStateDto;
+import cn.example.base.demo.param.dto.CustomerServiceStateDto;
 import cn.example.base.demo.entity.ChatMessage;
 import cn.example.base.demo.entity.MessageSyncTask;
 import cn.example.base.demo.enums.ChatMessageTypeEnum;

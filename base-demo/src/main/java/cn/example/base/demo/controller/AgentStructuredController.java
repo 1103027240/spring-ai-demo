@@ -1,6 +1,6 @@
 package cn.example.base.demo.controller;
 
-import cn.example.base.demo.dto.ContactInfoVO;
+import cn.example.base.demo.param.vo.ContactInfoVO;
 import cn.example.base.demo.service.AgentStructuredService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

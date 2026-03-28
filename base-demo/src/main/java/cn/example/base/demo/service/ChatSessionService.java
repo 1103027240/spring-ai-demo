@@ -1,6 +1,6 @@
 package cn.example.base.demo.service;
 
-import cn.example.base.demo.dto.CustomerServiceStateDto;
+import cn.example.base.demo.param.dto.CustomerServiceStateDto;
 
 /**
  * @author 11030

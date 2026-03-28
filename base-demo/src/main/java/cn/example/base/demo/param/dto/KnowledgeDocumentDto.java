@@ -1,11 +1,10 @@
-package cn.example.base.demo.dto;
+package cn.example.base.demo.param.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Schema(description = "知识库文档请求参数")

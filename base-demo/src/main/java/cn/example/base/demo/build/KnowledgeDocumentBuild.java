@@ -1,6 +1,6 @@
 package cn.example.base.demo.build;
 
-import cn.example.base.demo.dto.KnowledgeDocumentDto;
+import cn.example.base.demo.param.dto.KnowledgeDocumentDto;
 import cn.example.base.demo.entity.KnowledgeDocument;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;

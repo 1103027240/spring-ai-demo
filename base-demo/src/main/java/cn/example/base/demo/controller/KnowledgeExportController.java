@@ -1,7 +1,7 @@
 package cn.example.base.demo.controller;
 
-import cn.example.base.demo.dto.KnowledgeDocumentExportDto;
-import cn.example.base.demo.dto.KnowledgeDocumentExportVO;
+import cn.example.base.demo.param.dto.KnowledgeDocumentExportDto;
+import cn.example.base.demo.param.vo.KnowledgeDocumentExportVO;
 import cn.example.base.demo.service.KnowledgeExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

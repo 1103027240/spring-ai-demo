@@ -1,4 +1,4 @@
-package cn.example.base.demo.dto;
+package cn.example.base.demo.param.vo;
 
 import cn.example.base.demo.enums.CursorSortByEnum;
 import io.swagger.v3.oas.annotations.media.Schema;

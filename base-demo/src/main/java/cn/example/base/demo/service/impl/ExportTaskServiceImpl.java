@@ -1,6 +1,6 @@
 package cn.example.base.demo.service.impl;
 
-import cn.example.base.demo.dto.KnowledgeDocumentExportDto;
+import cn.example.base.demo.param.dto.KnowledgeDocumentExportDto;
 import cn.example.base.demo.entity.ExportTask;
 import cn.example.base.demo.mapper.ExportTaskMapper;
 import cn.example.base.demo.service.ExportTaskService;

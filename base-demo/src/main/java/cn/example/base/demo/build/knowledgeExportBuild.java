@@ -1,7 +1,7 @@
 package cn.example.base.demo.build;
 
-import cn.example.base.demo.dto.KnowledgeDocumentExportDto;
-import cn.example.base.demo.dto.KnowledgeDocumentSearchDto;
+import cn.example.base.demo.param.dto.KnowledgeDocumentExportDto;
+import cn.example.base.demo.param.dto.KnowledgeDocumentSearchDto;
 import cn.example.base.demo.service.writer.CsvExportWriter;
 import cn.example.base.demo.service.writer.ExcelExportWriter;
 import cn.example.base.demo.service.writer.ExportWriter;

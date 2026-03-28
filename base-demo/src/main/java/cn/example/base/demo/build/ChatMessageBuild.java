@@ -1,6 +1,6 @@
 package cn.example.base.demo.build;
 
-import cn.example.base.demo.dto.CustomerServiceStateDto;
+import cn.example.base.demo.param.dto.CustomerServiceStateDto;
 import cn.example.base.demo.entity.ChatMessage;
 import cn.example.base.demo.enums.ChatMessageSyncStatusEnum;
 import cn.example.base.demo.enums.ChatMessageTypeEnum;
@@ -8,7 +8,7 @@ import cn.example.base.demo.mapper.ChatMessageMapper;
 import cn.hutool.core.collection.CollUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.Collections;
+
 import java.util.List;
 
 @Component

@@ -1,8 +1,11 @@
 package cn.example.base.demo.controller;
 
-import cn.example.base.demo.dto.*;
-import cn.example.base.demo.dto.*;
 import cn.example.base.demo.entity.KnowledgeDocument;
+import cn.example.base.demo.param.dto.KnowledgeDocumentAddDto;
+import cn.example.base.demo.param.dto.KnowledgeDocumentDto;
+import cn.example.base.demo.param.dto.KnowledgeDocumentSearchDto;
+import cn.example.base.demo.param.vo.CursorSearchVO;
+import cn.example.base.demo.param.vo.KnowledgeDocumentVO;
 import cn.example.base.demo.service.KnowledgeDocumentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

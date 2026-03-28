@@ -1,6 +1,6 @@
 package cn.example.base.demo.check;
 
-import cn.example.base.demo.dto.TextSegmentDto;
+import cn.example.base.demo.param.dto.TextSegmentDto;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import java.util.ArrayList;

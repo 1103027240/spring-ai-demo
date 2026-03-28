@@ -1,6 +1,6 @@
 package cn.example.base.demo.check;
 
-import cn.example.base.demo.dto.KnowledgeDocumentSearchDto;
+import cn.example.base.demo.param.dto.KnowledgeDocumentSearchDto;
 import cn.example.base.demo.enums.CursorDirectionEnum;
 import cn.example.base.demo.enums.CursorSortByEnum;
 import cn.example.base.demo.enums.SortDirectionEnum;

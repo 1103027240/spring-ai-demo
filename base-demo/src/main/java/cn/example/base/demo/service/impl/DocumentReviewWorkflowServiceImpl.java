@@ -1,7 +1,7 @@
 package cn.example.base.demo.service.impl;
 
-import cn.example.base.demo.dto.DocumentReviewDto;
-import cn.example.base.demo.dto.DocumentReviewResumeDto;
+import cn.example.base.demo.param.dto.DocumentReviewDto;
+import cn.example.base.demo.param.dto.DocumentReviewResumeDto;
 import cn.example.base.demo.enums.ApprovalDecisionEnum;
 import cn.example.base.demo.enums.ApprovalStatusEnum;
 import cn.example.base.demo.service.DocumentReviewWorkflowService;

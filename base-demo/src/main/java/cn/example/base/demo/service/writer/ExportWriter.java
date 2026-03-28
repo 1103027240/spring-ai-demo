@@ -1,7 +1,7 @@
 package cn.example.base.demo.service.writer;
 
-import cn.example.base.demo.dto.KnowledgeDocumentExportDto;
-import cn.example.base.demo.dto.KnowledgeDocumentVO;
+import cn.example.base.demo.param.dto.KnowledgeDocumentExportDto;
+import cn.example.base.demo.param.vo.KnowledgeDocumentVO;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;

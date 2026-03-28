@@ -1,8 +1,8 @@
 package cn.example.base.demo.build;
 
 import cn.example.base.demo.check.CustomerKnowledgeCheck;
-import cn.example.base.demo.dto.KnowledgeDocumentSearchDto;
-import cn.example.base.demo.dto.KnowledgeDocumentVO;
+import cn.example.base.demo.param.dto.KnowledgeDocumentSearchDto;
+import cn.example.base.demo.param.vo.KnowledgeDocumentVO;
 import cn.example.base.demo.entity.ChatMessage;
 import cn.example.base.demo.enums.MessageTaskSyncTypeEnum;
 import cn.example.base.demo.enums.SortDirectionEnum;

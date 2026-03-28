@@ -1,6 +1,6 @@
 package cn.example.base.demo.controller;
 
-import cn.example.base.demo.dto.MessageDocumentVO;
+import cn.example.base.demo.param.vo.MessageDocumentVO;
 import cn.example.base.demo.service.CustomerServiceWorkflowService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;

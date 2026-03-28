@@ -2,8 +2,8 @@ package cn.example.base.demo.build;
 
 import cn.example.base.demo.constant.FieldConstant;
 import cn.example.base.demo.converter.DocumentConverter;
-import cn.example.base.demo.dto.CustomerServiceStateDto;
-import cn.example.base.demo.dto.MessageDocumentVO;
+import cn.example.base.demo.param.dto.CustomerServiceStateDto;
+import cn.example.base.demo.param.vo.MessageDocumentVO;
 import cn.example.base.demo.entity.WorkflowExecution;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

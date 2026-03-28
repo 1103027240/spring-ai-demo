@@ -1,7 +1,7 @@
 package cn.example.base.demo.service;
 
-import cn.example.base.demo.dto.DocumentReviewDto;
-import cn.example.base.demo.dto.DocumentReviewResumeDto;
+import cn.example.base.demo.param.dto.DocumentReviewDto;
+import cn.example.base.demo.param.dto.DocumentReviewResumeDto;
 import java.util.Map;
 
 /**

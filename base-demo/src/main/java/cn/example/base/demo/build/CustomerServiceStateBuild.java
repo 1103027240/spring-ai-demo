@@ -1,7 +1,7 @@
 package cn.example.base.demo.build;
 
-import cn.example.base.demo.dto.CustomerServiceStateDto;
-import cn.example.base.demo.dto.WorkflowDto;
+import cn.example.base.demo.param.dto.CustomerServiceStateDto;
+import cn.example.base.demo.param.dto.WorkflowDto;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;

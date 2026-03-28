@@ -1,4 +1,4 @@
-package cn.example.base.demo.dto;
+package cn.example.base.demo.param.vo;
 
 import cn.hutool.core.collection.CollUtil;
 import io.swagger.v3.oas.annotations.media.Schema;

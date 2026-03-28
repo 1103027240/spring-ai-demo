@@ -2,7 +2,7 @@ package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.build.CustomerKnowledgeBuild;
 import cn.example.base.demo.build.MessageSyncTaskBuild;
-import cn.example.base.demo.dto.CustomerServiceStateDto;
+import cn.example.base.demo.param.dto.CustomerServiceStateDto;
 import cn.example.base.demo.entity.ChatMessage;
 import cn.example.base.demo.entity.MessageSyncTask;
 import cn.example.base.demo.enums.MessageTaskStatusEnum;

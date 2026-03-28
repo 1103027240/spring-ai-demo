@@ -3,7 +3,7 @@ package cn.example.base.demo.service.impl;
 import cn.example.base.demo.build.TextSplitterBuild;
 import cn.example.base.demo.check.DetectTextSegmentCheck;
 import cn.example.base.demo.check.TextSplitterCheck;
-import cn.example.base.demo.dto.TextSegmentDto;
+import cn.example.base.demo.param.dto.TextSegmentDto;
 import cn.example.base.demo.factory.TextSplitterFactory;
 import cn.example.base.demo.service.TextSplitterService;
 import cn.hutool.core.collection.CollUtil;

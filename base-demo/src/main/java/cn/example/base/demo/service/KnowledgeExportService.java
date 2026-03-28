@@ -1,7 +1,7 @@
 package cn.example.base.demo.service;
 
-import cn.example.base.demo.dto.KnowledgeDocumentExportDto;
-import cn.example.base.demo.dto.KnowledgeDocumentExportVO;
+import cn.example.base.demo.param.dto.KnowledgeDocumentExportDto;
+import cn.example.base.demo.param.vo.KnowledgeDocumentExportVO;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.concurrent.CompletableFuture;

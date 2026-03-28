@@ -1,6 +1,6 @@
 package cn.example.base.demo.build;
 
-import cn.example.base.demo.dto.CustomerServiceStateDto;
+import cn.example.base.demo.param.dto.CustomerServiceStateDto;
 import cn.example.base.demo.entity.ChatSession;
 import cn.example.base.demo.enums.ChatSessionStatusEnum;
 import cn.example.base.demo.enums.ChatSessionTypeEnum;

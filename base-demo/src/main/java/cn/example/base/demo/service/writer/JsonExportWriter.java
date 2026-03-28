@@ -1,8 +1,8 @@
 package cn.example.base.demo.service.writer;
 
-import cn.example.base.demo.dto.KnowledgeDocumentExportDto;
-import cn.example.base.demo.dto.KnowledgeDocumentSearchVO;
-import cn.example.base.demo.dto.KnowledgeDocumentVO;
+import cn.example.base.demo.param.dto.KnowledgeDocumentExportDto;
+import cn.example.base.demo.param.vo.KnowledgeDocumentSearchVO;
+import cn.example.base.demo.param.vo.KnowledgeDocumentVO;
 import cn.hutool.core.collection.CollUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

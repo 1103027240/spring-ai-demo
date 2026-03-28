@@ -1,6 +1,6 @@
 package cn.example.base.demo.service;
 
-import cn.example.base.demo.dto.MessageDocumentVO;
+import cn.example.base.demo.param.vo.MessageDocumentVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.Map;
 

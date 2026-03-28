@@ -1,6 +1,6 @@
 package cn.example.base.demo.check;
 
-import cn.example.base.demo.dto.TextMetricsDto;
+import cn.example.base.demo.param.dto.TextMetricsDto;
 import cn.hutool.core.util.StrUtil;
 
 /**

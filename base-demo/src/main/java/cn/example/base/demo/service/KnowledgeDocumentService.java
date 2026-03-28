@@ -1,7 +1,12 @@
 package cn.example.base.demo.service;
 
-import cn.example.base.demo.dto.*;
 import cn.example.base.demo.entity.KnowledgeDocument;
+import cn.example.base.demo.param.dto.KnowledgeDocumentAddDto;
+import cn.example.base.demo.param.dto.KnowledgeDocumentDto;
+import cn.example.base.demo.param.dto.KnowledgeDocumentSearchDto;
+import cn.example.base.demo.param.vo.CursorSearchVO;
+import cn.example.base.demo.param.vo.KnowledgeDocumentVO;
+
 import java.util.List;
 import java.util.Map;
 
