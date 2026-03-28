@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 import static cn.example.base.demo.constant.FieldConstant.*;
 
-public class QueryWorkflowFactory {
+public class SqlQueryFactory {
 
-    public static KeyStrategyFactory queryKeyStrategyFactory() {
+    public static KeyStrategyFactory sqlQueryKeyStrategyFactory() {
         return () -> {
             Map<String, KeyStrategy> strategies = new HashMap<>();
 

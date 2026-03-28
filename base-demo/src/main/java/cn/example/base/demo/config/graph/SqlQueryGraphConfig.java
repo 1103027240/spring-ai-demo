@@ -2,7 +2,7 @@ package cn.example.base.demo.config.graph;
 
 import cn.example.base.demo.agent.SqlResultAnalysisAgent;
 import cn.example.base.demo.build.GraphBuild;
-import cn.example.base.demo.factory.QueryWorkflowFactory;
+import cn.example.base.demo.factory.SqlQueryFactory;
 import cn.example.base.demo.node.sql.*;
 import com.alibaba.cloud.ai.graph.*;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.MysqlSaver;
@@ -46,7 +46,7 @@ public class SqlQueryGraphConfig {
     private ErrorHandleNode errorHandleNode;
 
     public StateGraph createSqlQueryGraph() throws GraphStateException {
-        StateGraph graph = new StateGraph(SQL_QUERY_NAME, QueryWorkflowFactory.queryKeyStrategyFactory());
+        StateGraph graph = new StateGraph(SQL_QUERY_NAME, SqlQueryFactory.sqlQueryKeyStrategyFactory());
 
         // 1、流程ID生成节点
         graph.addNode(WORKFLOW_ID_GENERATE_NODE.getText(), node_async(workflowIdGenerateNode));
