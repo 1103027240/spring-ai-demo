@@ -53,8 +53,7 @@ public class AgentToolCallingServiceImpl implements AgentToolCallingService {
         Mono<Msg> responseMono = agent.call(
                 Msg.builder()
                         .textContent(message)
-                        .build()
-        );
+                        .build());
 
         // 阻塞处理结果
         return responseMono.block().getTextContent();

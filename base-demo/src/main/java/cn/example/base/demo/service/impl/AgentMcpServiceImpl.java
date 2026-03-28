@@ -51,8 +51,7 @@ public class AgentMcpServiceImpl implements AgentMcpService {
         Mono<Msg> responseMono = agent.call(
                 Msg.builder()
                         .textContent(message)
-                        .build()
-        );
+                        .build());
 
         return responseMono.block(Duration.ofSeconds(60)).getTextContent();
     }

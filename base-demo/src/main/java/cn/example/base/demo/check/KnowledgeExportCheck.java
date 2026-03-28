@@ -23,6 +23,7 @@ public class KnowledgeExportCheck {
         if(obj == null){
             return false;
         }
+
         ExportTask exportTask = JSONObject.parseObject(obj.toString(), ExportTask.class);
         return exportTask != null && CANCELLED.getId().equals(exportTask.getTaskStatus());
     }

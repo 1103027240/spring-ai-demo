@@ -61,7 +61,6 @@ public class ExecuteSqlNode implements NodeAction {
             }
 
             // 用于数据分析
-
             Map<String, Object> nlToSqlResult = state.value(NL_TO_SQL_RESULT, Map.class).orElse(new HashMap<>());
             String queryType = (String) nlToSqlResult.getOrDefault(QUERY_TYPE, "");
 

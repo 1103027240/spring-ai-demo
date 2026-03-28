@@ -47,4 +47,5 @@ public class JacksonConfig {
 
         return objectMapper;
     }
+
 }
