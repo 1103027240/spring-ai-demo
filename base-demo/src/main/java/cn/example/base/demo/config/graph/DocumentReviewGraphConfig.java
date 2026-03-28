@@ -107,13 +107,10 @@ public class DocumentReviewGraphConfig {
             .addEdge(RISK_ASSESSMENT.getText(), HUMAN_APPROVAL.getText())
 
             // 创建条件边
-            .addConditionalEdges(HUMAN_APPROVAL.getText(),
-                    edge_async(new ApprovalDecisionRouter()),
-                    // 根据条件值找到对应节点
+            .addConditionalEdges(HUMAN_APPROVAL.getText(), edge_async(new ApprovalDecisionCondition()),
                     Map.of(
                             APPROVE.getId(), APPROVE_PROCESSING.getText(),  //通过
-                            REJECT.getId(), REJECT_PROCESSING.getText()  //拒绝
-                    ))
+                            REJECT.getId(), REJECT_PROCESSING.getText()))  //拒绝
 
             .addEdge(APPROVE_PROCESSING.getText(), FINAL_REPORT.getText())
             .addEdge(REJECT_PROCESSING.getText(), FINAL_REPORT.getText())

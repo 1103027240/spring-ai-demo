@@ -5,7 +5,6 @@ import com.alibaba.cloud.ai.graph.action.EdgeAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.Arrays;
-
 import static cn.example.base.demo.constant.FieldConstant.INTENT;
 import static cn.example.base.demo.constant.FieldConstant.SENTIMENT;
 import static cn.example.base.demo.enums.CustomerServiceNodeEnum.*;
@@ -18,7 +17,7 @@ import static cn.example.base.demo.enums.SentimentAnalysisEnum.*;
  */
 @Slf4j
 @Component
-public class CustomerServiceDecisionRouter implements EdgeAction {
+public class CustomerServiceDecisionCondition implements EdgeAction {
 
     @Override
     public String apply(OverAllState state) {

@@ -100,14 +100,11 @@ public class CustomerServiceGraphConfig {
             .addEdge(INTENT_RECOGNITION.getText(), SENTIMENT_ANALYSIS.getText())
 
             // 创建条件边
-            .addConditionalEdges(SENTIMENT_ANALYSIS.getText(),
-                    edge_async(new CustomerServiceDecisionRouter()),
-                    // 根据条件值找到对应节点
+            .addConditionalEdges(SENTIMENT_ANALYSIS.getText(), edge_async(new CustomerServiceDecisionCondition()),
                     Map.of(
                             ORDER_QUERY.getId(), ORDER_QUERY.getText(),  // 订单查询
                             AFTER_SALES.getId(), AFTER_SALES.getText(),  // 售后处理
-                            KNOWLEDGE_RETRIEVAL.getId(), KNOWLEDGE_RETRIEVAL.getText()  // 知识库检索
-                    ))
+                            KNOWLEDGE_RETRIEVAL.getId(), KNOWLEDGE_RETRIEVAL.getText()))  // 知识库检索
 
             .addEdge(ORDER_QUERY.getText(), RESPONSE_GENERATION.getText())
             .addEdge(AFTER_SALES.getText(), RESPONSE_GENERATION.getText())

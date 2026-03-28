@@ -14,7 +14,7 @@ import static cn.example.base.demo.enums.ApprovalDecisionEnum.REJECT;
  */
 @Component
 @Slf4j
-public class ApprovalDecisionRouter implements EdgeAction {
+public class ApprovalDecisionCondition implements EdgeAction {
 
     @Override
     public String apply(OverAllState state) {
