@@ -1,7 +1,7 @@
 package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.service.TextDeduplicationService;
-import cn.example.base.demo.service.VectorStoreService;
+import cn.example.base.demo.service.CustomVectorStoreService;
 import cn.example.base.demo.utils.CalculateUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
@@ -26,7 +26,7 @@ public class TextDeduplicationServiceImpl implements TextDeduplicationService {
     private boolean enabled;
 
     @Autowired
-    private VectorStoreService vectorStoreService;
+    private CustomVectorStoreService customVectorStoreService;
 
     /**
      * 导入时去重
@@ -47,7 +47,7 @@ public class TextDeduplicationServiceImpl implements TextDeduplicationService {
                 doc.getMetadata().put("createdAt", System.currentTimeMillis());
 
                 // 根据hash校验数据是否存在
-                if(CollUtil.isEmpty(vectorStoreService.searchByHash(doc.getText(), hashValue))){
+                if(CollUtil.isEmpty(customVectorStoreService.searchByHash(doc.getText(), hashValue))){
                     uniqueDocs.put(hashValue, doc);
                 }else{
                     // 存在，目前不做处理

@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public enum QueryTypeEnum {
+public enum SqlQueryTypeEnum {
 
     SALES_ANALYSIS("SALES_ANALYSIS", "最近7天销售额"),
 

@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import static cn.example.base.demo.constant.PatternConstant.SQL_INJECTION_PATTERN;
-import static cn.example.base.demo.enums.QueryTypeEnum.*;
+import static cn.example.base.demo.enums.SqlQueryTypeEnum.*;
 
 @Slf4j
-@Component("queryTools")
-public class QueryTools {
+@Component
+public class SqlQueryTools {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

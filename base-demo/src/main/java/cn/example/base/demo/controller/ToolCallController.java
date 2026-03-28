@@ -1,6 +1,6 @@
 package cn.example.base.demo.controller;
 
-import cn.example.base.demo.service.ToolCallingService;
+import cn.example.base.demo.service.CustomToolCallService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,19 +14,19 @@ import org.springframework.web.bind.annotation.RestController;
  * @author 11030
  */
 @Tag(name = "工具调用接口", description = "工具调用接口")
-@RequestMapping("/toolCalling")
+@RequestMapping("/toolCall")
 @RestController
-public class ToolCallingController {
+public class ToolCallController {
 
     @Autowired
-    private ToolCallingService toolCallingService;
+    private CustomToolCallService customToolCallService;
 
     @Operation(summary = "获取当前时间", description = "获取当前时间")
     @GetMapping("/getCurrentTime")
     public String getCurrentTime(
             @Parameter(description = "用户消息内容", required = true, example = "获取当前时间")
             @RequestParam(value = "msg") String msg){
-        return toolCallingService.getCurrentTime(msg);
+        return customToolCallService.getCurrentTime(msg);
     }
 
     @Operation(summary = "获取城市天气", description = "获取城市天气")
@@ -34,7 +34,7 @@ public class ToolCallingController {
     public String getCityWeather(
             @Parameter(description = "用户消息内容", required = true, example = "获取北京天气")
             @RequestParam(value = "msg") String msg){
-        return toolCallingService.getCityWeather(msg);
+        return customToolCallService.getCityWeather(msg);
     }
 
 }

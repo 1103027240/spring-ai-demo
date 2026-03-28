@@ -1,6 +1,6 @@
 package cn.example.base.demo.controller;
 
-import cn.example.base.demo.service.AgentToolCallingService;
+import cn.example.base.demo.service.AgentToolCallService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,19 +14,19 @@ import org.springframework.web.bind.annotation.RestController;
  * @author 11030
  */
 @Tag(name = "智能体工具调用接口", description = "智能体工具调用接口")
-@RequestMapping("/agentToolCalling")
+@RequestMapping("/agentToolCall")
 @RestController
-public class AgentToolCallingController {
+public class AgentToolCallController {
 
     @Autowired
-    private AgentToolCallingService agentToolCallingService;
+    private AgentToolCallService agentToolCallService;
 
     @Operation(summary = "工具组对话", description = "工具组对话")
     @GetMapping("/doChat")
     public String doChat(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
             @RequestParam(value = "msg") String message){
-        return agentToolCallingService.doChat(message);
+        return agentToolCallService.doChat(message);
     }
 
 }

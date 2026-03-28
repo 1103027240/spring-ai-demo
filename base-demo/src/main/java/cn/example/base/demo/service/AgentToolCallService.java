@@ -1,6 +1,6 @@
 package cn.example.base.demo.service;
 
-public interface AgentToolCallingService {
+public interface AgentToolCallService {
 
     String doChat(String message);
 

@@ -1,6 +1,6 @@
 package cn.example.base.demo.service.impl;
 
-import cn.example.base.demo.service.VectorStoreService;
+import cn.example.base.demo.service.CustomVectorStoreService;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.milvus.client.MilvusServiceClient;
@@ -19,7 +19,7 @@ import java.util.*;
  */
 @Slf4j
 @Service
-public class VectorStoreServiceImpl implements VectorStoreService {
+public class CustomVectorStoreServiceImpl implements CustomVectorStoreService {
 
     @Autowired
     private MilvusServiceClient milvusClient;

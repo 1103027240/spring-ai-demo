@@ -1,7 +1,7 @@
 package cn.example.base.demo.node.sql;
 
 import cn.example.base.demo.build.WorkflowBuild;
-import cn.example.base.demo.enums.QueryWorkflowStatusEnum;
+import cn.example.base.demo.enums.SqlQueryWorkflowStatusEnum;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class WorkflowIdGenerateNode implements NodeAction {
 
             return Map.of(
                     WORKFLOW_ID, workflowId,
-                    WORKFLOW_STATUS, QueryWorkflowStatusEnum.STARTED.getId(),
+                    WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.STARTED.getId(),
                     NATURAL_LANGUAGE_QUERY, naturalLanguageQuery,
                     CURRENT_NODE, WORKFLOW_ID_GENERATE_NODE.getText(),
                     NEXT_NODE, NL_TO_SQL_NODE.getText());
@@ -35,7 +35,7 @@ public class WorkflowIdGenerateNode implements NodeAction {
             log.error("【数据查询智能体】流程ID生成节点执行失败", e);
             return Map.of(
                     ERROR, e.getMessage(),
-                    WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                    WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                     NEXT_NODE, ERROR_HANDLE_NODE.getText());
         }
     }

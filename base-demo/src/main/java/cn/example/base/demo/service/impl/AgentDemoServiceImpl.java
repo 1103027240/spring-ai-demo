@@ -2,7 +2,7 @@ package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.context.UserContext;
 import cn.example.base.demo.service.AgentDemoService;
-import cn.example.base.demo.tools.SqlTools;
+import cn.example.base.demo.tools.SqlExecuteTools;
 import cn.example.base.demo.tools.WeatherTools;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
@@ -29,7 +29,7 @@ public class AgentDemoServiceImpl implements AgentDemoService {
         // 工具调用
         Toolkit toolkit = new Toolkit();
         toolkit.registerTool(new WeatherTools());
-        toolkit.registerTool(new SqlTools());
+        toolkit.registerTool(new SqlExecuteTools());
 
         // 工具调用上下文
         ToolExecutionContext toolExecutionContext = ToolExecutionContext.builder()

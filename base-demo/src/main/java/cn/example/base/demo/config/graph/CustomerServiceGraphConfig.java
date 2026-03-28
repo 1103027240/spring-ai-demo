@@ -32,30 +32,39 @@ public class CustomerServiceGraphConfig {
     private GraphBuild graphBuild;
 
     /**
-     * 工作流Graph可视化表示，用于Studio展示工作流结构
-     */
-    @Bean
-    public GraphRepresentation customerServiceGraphRepresentation() throws GraphStateException {
-        StateGraph stateGraph = createCustomerServiceGraph();
-
-        // 生成PlantUML格式的可视化图
-        GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, CUSTOMER_SERVICE_TITLE);
-
-        log.info("\n{}", "=".repeat(80));
-        log.info("=== Customer Service Graph ===");
-        log.info(representation.content());
-        log.info("========================================================\n");
-        return representation;
-    }
-
-    /**
-     * 工作流
      * 1. 意图识别
      * 2. 情感分析
      * 3. 条件路由
      * 4. 知识库检索/订单查询/售后处理
      * 5. 回复生成
      */
+    public StateGraph createCustomerServiceGraph() throws GraphStateException {
+        return new StateGraph(CUSTOMER_SERVICE_NAME, DocumentReviewFactory.documentReviewKeyStrategyFactory())
+            // 创建节点
+            .addNode(INTENT_RECOGNITION.getText(), node_async(new IntentRecognitionNode()))
+            .addNode(SENTIMENT_ANALYSIS.getText(), node_async(new SentimentAnalysisNode()))
+            .addNode(KNOWLEDGE_RETRIEVAL.getText(), node_async(new KnowledgeRetrievalNode()))
+            .addNode(ORDER_QUERY.getText(), node_async(new OrderQueryNode()))
+            .addNode(AFTER_SALES.getText(), node_async(new AfterSalesNode()))
+            .addNode(RESPONSE_GENERATION.getText(), node_async(new ResponseGenerationNode()))
+
+            // 创建边
+            .addEdge(StateGraph.START, INTENT_RECOGNITION.getText())
+            .addEdge(INTENT_RECOGNITION.getText(), SENTIMENT_ANALYSIS.getText())
+
+            // 创建条件边
+            .addConditionalEdges(SENTIMENT_ANALYSIS.getText(), edge_async(new CustomerServiceDecisionCondition()),
+                    Map.of(
+                            ORDER_QUERY.getId(), ORDER_QUERY.getText(),  // 订单查询
+                            AFTER_SALES.getId(), AFTER_SALES.getText(),  // 售后处理
+                            KNOWLEDGE_RETRIEVAL.getId(), KNOWLEDGE_RETRIEVAL.getText()))  // 知识库检索
+
+            .addEdge(ORDER_QUERY.getText(), RESPONSE_GENERATION.getText())
+            .addEdge(AFTER_SALES.getText(), RESPONSE_GENERATION.getText())
+            .addEdge(KNOWLEDGE_RETRIEVAL.getText(), RESPONSE_GENERATION.getText())
+            .addEdge(RESPONSE_GENERATION.getText(), StateGraph.END);
+    }
+
     @Bean
     public CompiledGraph customerServiceGraph(MysqlSaver mySqlSaver) throws GraphStateException {
         StateGraph stateGraph = createCustomerServiceGraph();
@@ -83,33 +92,20 @@ public class CustomerServiceGraphConfig {
     }
 
     /**
-     * 创建状态图
+     * 工作流Graph可视化表示，用于Studio展示工作流结构
      */
-    public StateGraph createCustomerServiceGraph() throws GraphStateException {
-        return new StateGraph(CUSTOMER_SERVICE_NAME, DocumentReviewFactory.documentReviewKeyStrategyFactory())
-            // 创建节点
-            .addNode(INTENT_RECOGNITION.getText(), node_async(new IntentRecognitionNode()))
-            .addNode(SENTIMENT_ANALYSIS.getText(), node_async(new SentimentAnalysisNode()))
-            .addNode(KNOWLEDGE_RETRIEVAL.getText(), node_async(new KnowledgeRetrievalNode()))
-            .addNode(ORDER_QUERY.getText(), node_async(new OrderQueryNode()))
-            .addNode(AFTER_SALES.getText(), node_async(new AfterSalesNode()))
-            .addNode(RESPONSE_GENERATION.getText(), node_async(new ResponseGenerationNode()))
+    @Bean
+    public GraphRepresentation customerServiceGraphRepresentation() throws GraphStateException {
+        StateGraph stateGraph = createCustomerServiceGraph();
 
-            // 创建边
-            .addEdge(StateGraph.START, INTENT_RECOGNITION.getText())
-            .addEdge(INTENT_RECOGNITION.getText(), SENTIMENT_ANALYSIS.getText())
+        // 生成PlantUML格式的可视化图
+        GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, CUSTOMER_SERVICE_TITLE);
 
-            // 创建条件边
-            .addConditionalEdges(SENTIMENT_ANALYSIS.getText(), edge_async(new CustomerServiceDecisionCondition()),
-                    Map.of(
-                            ORDER_QUERY.getId(), ORDER_QUERY.getText(),  // 订单查询
-                            AFTER_SALES.getId(), AFTER_SALES.getText(),  // 售后处理
-                            KNOWLEDGE_RETRIEVAL.getId(), KNOWLEDGE_RETRIEVAL.getText()))  // 知识库检索
-
-            .addEdge(ORDER_QUERY.getText(), RESPONSE_GENERATION.getText())
-            .addEdge(AFTER_SALES.getText(), RESPONSE_GENERATION.getText())
-            .addEdge(KNOWLEDGE_RETRIEVAL.getText(), RESPONSE_GENERATION.getText())
-            .addEdge(RESPONSE_GENERATION.getText(), StateGraph.END);
+        log.info("\n{}", "=".repeat(80));
+        log.info("=== Customer Service Graph ===");
+        log.info(representation.content());
+        log.info("========================================================\n");
+        return representation;
     }
 
 }

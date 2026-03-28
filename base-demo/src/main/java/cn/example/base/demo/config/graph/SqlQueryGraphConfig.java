@@ -122,7 +122,7 @@ public class SqlQueryGraphConfig {
     }
 
     @Bean
-    public GraphRepresentation customerServiceGraphRepresentation() throws GraphStateException {
+    public GraphRepresentation sqlQueryGraphRepresentation() throws GraphStateException {
         StateGraph sqlQueryGraph = createSqlQueryGraph();
 
         // 生成PlantUML格式的可视化图
@@ -132,7 +132,6 @@ public class SqlQueryGraphConfig {
         log.info("=== SQL QUERY Graph ===");
         log.info(representation.content());
         log.info("========================================================\n");
-
         return representation;
     }
 

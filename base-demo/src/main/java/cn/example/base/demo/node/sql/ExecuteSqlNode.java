@@ -1,7 +1,7 @@
 package cn.example.base.demo.node.sql;
 
-import cn.example.base.demo.enums.QueryWorkflowStatusEnum;
-import cn.example.base.demo.tools.QueryTools;
+import cn.example.base.demo.enums.SqlQueryWorkflowStatusEnum;
+import cn.example.base.demo.tools.SqlQueryTools;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
@@ -15,8 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import static cn.example.base.demo.constant.FieldConstant.*;
-import static cn.example.base.demo.enums.QueryTypeEnum.SALES_ANALYSIS;
-import static cn.example.base.demo.enums.QueryTypeEnum.TOP_PRODUCTS;
+import static cn.example.base.demo.enums.SqlQueryTypeEnum.SALES_ANALYSIS;
+import static cn.example.base.demo.enums.SqlQueryTypeEnum.TOP_PRODUCTS;
 import static cn.example.base.demo.enums.SqlQueryNodeEnum.*;
 
 /**
@@ -27,7 +27,7 @@ import static cn.example.base.demo.enums.SqlQueryNodeEnum.*;
 public class ExecuteSqlNode implements NodeAction {
 
     @Autowired
-    private QueryTools queryTools;
+    private SqlQueryTools sqlQueryTools;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -45,18 +45,18 @@ public class ExecuteSqlNode implements NodeAction {
             if (StrUtil.isBlank(generatedSql)) {
                 return Map.of(
                         ERROR, "【SQL执行节点】SQL语句为空",
-                        WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                        WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             // 调用QueryTools.executeSql
-            Map<String, Object> executeSqlResult = queryTools.executeSql(generatedSql);
+            Map<String, Object> executeSqlResult = sqlQueryTools.executeSql(generatedSql);
             boolean success = (boolean) executeSqlResult.getOrDefault(SUCCESS, false);
             if (!success) {
                 return Map.of(
                         EXECUTE_SQL_RESULT, executeSqlResult,
                         ERROR, "【SQL执行节点】SQL执行失败: " + executeSqlResult.get(ERROR),
-                        WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                        WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
@@ -72,7 +72,7 @@ public class ExecuteSqlNode implements NodeAction {
             result.put(EXECUTE_SQL_RESULT, executeSqlResult);
             result.put(DATA_JSON, dataJson);
             result.put(DATA_SUMMARY, dataSummary);
-            result.put(WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId());
+            result.put(WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.PROCESSING.getId());
             result.put(CURRENT_NODE, EXECUTE_SQL_NODE.getText());
             result.put(NEXT_NODE, ANALYSIS_NODE.getText());
             return result;
@@ -83,7 +83,7 @@ public class ExecuteSqlNode implements NodeAction {
             result.put(DATA_JSON, dataJson);
             result.put(DATA_SUMMARY, dataSummary);
             result.put(ERROR, e.getMessage());
-            result.put(WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId());
+            result.put(WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId());
             result.put(NEXT_NODE, ERROR_HANDLE_NODE.getText());
             return result;
         }

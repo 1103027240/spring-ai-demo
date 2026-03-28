@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * @author 11030
  */
-public interface VectorStoreService {
+public interface CustomVectorStoreService {
 
     //void createCollection();
 

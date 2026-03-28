@@ -7,7 +7,7 @@ import io.agentscope.core.tool.ToolParam;
 /**
  * @author 11030
  */
-public class SqlTools {
+public class SqlExecuteTools {
 
     @Tool(name = "query", description = "查询数据库数据")
     public String query(@ToolParam(name = "sql", description = "sql语句") String sql, UserContext userContext) {

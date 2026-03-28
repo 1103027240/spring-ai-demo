@@ -1,7 +1,7 @@
 package cn.example.base.demo.node.sql;
 
-import cn.example.base.demo.enums.QueryWorkflowStatusEnum;
-import cn.example.base.demo.tools.QueryTools;
+import cn.example.base.demo.enums.SqlQueryWorkflowStatusEnum;
+import cn.example.base.demo.tools.SqlQueryTools;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
@@ -21,7 +21,7 @@ import static cn.example.base.demo.enums.SqlQueryNodeEnum.*;
 public class ValidateSqlNode implements NodeAction {
 
     @Autowired
-    private QueryTools queryTools;
+    private SqlQueryTools sqlQueryTools;
 
     @Override
     public Map<String, Object> apply(OverAllState state) throws Exception {
@@ -34,7 +34,7 @@ public class ValidateSqlNode implements NodeAction {
             if (!isValid) {
                 return Map.of(
                         ERROR, "【SQL验证节点】自然语言查询转SQL处理失败: " + nlToSqlResult.get(ERROR),
-                        WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                        WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
@@ -42,32 +42,32 @@ public class ValidateSqlNode implements NodeAction {
             if (StrUtil.isBlank(generatedSql) || StrUtil.isBlank(generatedSql.trim())) {
                 return Map.of(
                         ERROR, "【SQL验证节点】生成的SQL为空",
-                        WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                        WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             // 调用QueryTools.validateSql
-            Map<String, Object> validateSqlResult = queryTools.validateSql(generatedSql);
+            Map<String, Object> validateSqlResult = sqlQueryTools.validateSql(generatedSql);
             boolean success = (boolean) validateSqlResult.getOrDefault(SUCCESS, false);
             if (!success) {
                 return Map.of(
                         VALIDATE_SQL_RESULT, validateSqlResult,
                         ERROR, "【SQL验证节点】SQL验证失败: " + validateSqlResult.get(ERROR),
-                        WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                        WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             return Map.of(
                     VALIDATE_SQL_RESULT, validateSqlResult,
                     GENERATED_SQL, generatedSql,
-                    WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId(),
+                    WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.PROCESSING.getId(),
                     CURRENT_NODE, VALIDATE_SQL_NODE.getText(),
                     NEXT_NODE, EXECUTE_SQL_NODE.getText());
         } catch (Exception e) {
             log.error("【数据查询智能体】SQL验证节点执行失败", e);
             return Map.of(
                     ERROR, e.getMessage(),
-                    WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                    WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                     NEXT_NODE, ERROR_HANDLE_NODE.getText());
         }
     }

@@ -1,7 +1,7 @@
 package cn.example.base.demo.node.sql;
 
 import cn.example.base.demo.build.MultiAgentBuild;
-import cn.example.base.demo.enums.QueryWorkflowStatusEnum;
+import cn.example.base.demo.enums.SqlQueryWorkflowStatusEnum;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import static cn.example.base.demo.constant.FieldConstant.*;
-import static cn.example.base.demo.enums.QueryTypeEnum.*;
+import static cn.example.base.demo.enums.SqlQueryTypeEnum.*;
 import static cn.example.base.demo.enums.SqlQueryNodeEnum.*;
 
 /**
@@ -65,7 +65,7 @@ public class SqlResultGenerateNode implements NodeAction {
             log.error("【数据查询智能体】查询结果生成节点执行失败", e);
             return Map.of(
                     ERROR, e.getMessage(),
-                    WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                    WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                     NEXT_NODE, ERROR_HANDLE_NODE.getText());
         }
     }

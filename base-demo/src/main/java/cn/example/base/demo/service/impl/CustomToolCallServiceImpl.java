@@ -1,6 +1,6 @@
 package cn.example.base.demo.service.impl;
 
-import cn.example.base.demo.service.ToolCallingService;
+import cn.example.base.demo.service.CustomToolCallService;
 import cn.example.base.demo.tools.DateTimeTools;
 import cn.example.base.demo.tools.WeatherV2Tools;
 import cn.hutool.core.util.ReflectUtil;
@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
  * @author 11030
  */
 @Service
-public class ToolCallingServiceImpl implements ToolCallingService {
+public class CustomToolCallServiceImpl implements CustomToolCallService {
 
     @Resource(name = "qwenChatClient")
     private ChatClient qwenChatClient;

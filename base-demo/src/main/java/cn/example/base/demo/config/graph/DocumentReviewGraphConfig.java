@@ -34,24 +34,6 @@ public class DocumentReviewGraphConfig {
     private GraphBuild graphBuild;
 
     /**
-     * 工作流Graph可视化表示，用于Studio展示工作流结构
-     */
-    @Bean
-    public GraphRepresentation documentReviewGraphRepresentation() throws GraphStateException {
-        StateGraph stateGraph = createDocumentReviewGraph();
-
-        // 生成PlantUML格式的可视化图
-        GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, DOCUMENT_REVIEW_TITLE);
-
-        log.info("\n{}", "=".repeat(80));
-        log.info("=== Document Review Graph ===");
-        log.info(representation.content());
-        log.info("========================================================\n");
-        return representation;
-    }
-
-    /**
-     * 工作流
      * 1.内容分析
      * 2.合规检查
      * 3.风险评估
@@ -59,6 +41,34 @@ public class DocumentReviewGraphConfig {
      * 5.根据审批结果分支处理
      * 6.最终报告
      */
+    private StateGraph createDocumentReviewGraph() throws GraphStateException {
+        return new StateGraph(DOCUMENT_REVIEW_NAME, DocumentReviewFactory.documentReviewKeyStrategyFactory())
+            // 创建节点
+            .addNode(CONTENT_ANALYSIS.getText(), node_async(new ContentAnalysisNode()))
+            .addNode(COMPLIANCE_CHECK.getText(), node_async(new ComplianceCheckNode()))
+            .addNode(RISK_ASSESSMENT.getText(), node_async(new RiskAssessmentNode()))
+            .addNode(HUMAN_APPROVAL.getText(), node_async(new HumanApprovalNode()))
+            .addNode(APPROVE_PROCESSING.getText(), node_async(new ApproveProcessingNode()))
+            .addNode(REJECT_PROCESSING.getText(), node_async(new RejectProcessingNode()))
+            .addNode(FINAL_REPORT.getText(), node_async(new FinalReportNode()))
+
+            // 创建边
+            .addEdge(StateGraph.START, CONTENT_ANALYSIS.getText())
+            .addEdge(CONTENT_ANALYSIS.getText(), COMPLIANCE_CHECK.getText())
+            .addEdge(COMPLIANCE_CHECK.getText(), RISK_ASSESSMENT.getText())
+            .addEdge(RISK_ASSESSMENT.getText(), HUMAN_APPROVAL.getText())
+
+            // 创建条件边
+            .addConditionalEdges(HUMAN_APPROVAL.getText(), edge_async(new ApprovalDecisionCondition()),
+                    Map.of(
+                            APPROVE.getId(), APPROVE_PROCESSING.getText(),  //通过
+                            REJECT.getId(), REJECT_PROCESSING.getText()))  //拒绝
+
+            .addEdge(APPROVE_PROCESSING.getText(), FINAL_REPORT.getText())
+            .addEdge(REJECT_PROCESSING.getText(), FINAL_REPORT.getText())
+            .addEdge(FINAL_REPORT.getText(), StateGraph.END);
+    }
+
     @Bean
     public CompiledGraph documentReviewGraph(MysqlSaver mySqlSaver) throws GraphStateException {
         StateGraph stateGraph = createDocumentReviewGraph();
@@ -87,34 +97,20 @@ public class DocumentReviewGraphConfig {
     }
 
     /**
-     * 创建状态图
+     * 工作流Graph可视化表示，用于Studio展示工作流结构
      */
-    private StateGraph createDocumentReviewGraph() throws GraphStateException {
-        return new StateGraph(DOCUMENT_REVIEW_NAME, DocumentReviewFactory.documentReviewKeyStrategyFactory())
-            // 创建节点
-            .addNode(CONTENT_ANALYSIS.getText(), node_async(new ContentAnalysisNode()))
-            .addNode(COMPLIANCE_CHECK.getText(), node_async(new ComplianceCheckNode()))
-            .addNode(RISK_ASSESSMENT.getText(), node_async(new RiskAssessmentNode()))
-            .addNode(HUMAN_APPROVAL.getText(), node_async(new HumanApprovalNode()))
-            .addNode(APPROVE_PROCESSING.getText(), node_async(new ApproveProcessingNode()))
-            .addNode(REJECT_PROCESSING.getText(), node_async(new RejectProcessingNode()))
-            .addNode(FINAL_REPORT.getText(), node_async(new FinalReportNode()))
+    @Bean
+    public GraphRepresentation documentReviewGraphRepresentation() throws GraphStateException {
+        StateGraph stateGraph = createDocumentReviewGraph();
 
-            // 创建边
-            .addEdge(StateGraph.START, CONTENT_ANALYSIS.getText())
-            .addEdge(CONTENT_ANALYSIS.getText(), COMPLIANCE_CHECK.getText())
-            .addEdge(COMPLIANCE_CHECK.getText(), RISK_ASSESSMENT.getText())
-            .addEdge(RISK_ASSESSMENT.getText(), HUMAN_APPROVAL.getText())
+        // 生成PlantUML格式的可视化图
+        GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, DOCUMENT_REVIEW_TITLE);
 
-            // 创建条件边
-            .addConditionalEdges(HUMAN_APPROVAL.getText(), edge_async(new ApprovalDecisionCondition()),
-                    Map.of(
-                            APPROVE.getId(), APPROVE_PROCESSING.getText(),  //通过
-                            REJECT.getId(), REJECT_PROCESSING.getText()))  //拒绝
-
-            .addEdge(APPROVE_PROCESSING.getText(), FINAL_REPORT.getText())
-            .addEdge(REJECT_PROCESSING.getText(), FINAL_REPORT.getText())
-            .addEdge(FINAL_REPORT.getText(), StateGraph.END);
+        log.info("\n{}", "=".repeat(80));
+        log.info("=== Document Review Graph ===");
+        log.info(representation.content());
+        log.info("========================================================\n");
+        return representation;
     }
 
 }

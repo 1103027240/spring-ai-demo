@@ -1,7 +1,7 @@
 package cn.example.base.demo.node.sql;
 
-import cn.example.base.demo.enums.QueryWorkflowStatusEnum;
-import cn.example.base.demo.tools.QueryTools;
+import cn.example.base.demo.enums.SqlQueryWorkflowStatusEnum;
+import cn.example.base.demo.tools.SqlQueryTools;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
@@ -20,7 +20,7 @@ import static cn.example.base.demo.enums.SqlQueryNodeEnum.*;
 public class NlToSqlNode implements NodeAction {
 
     @Autowired
-    private QueryTools queryTools;
+    private SqlQueryTools sqlQueryTools;
 
     @Override
     public Map<String, Object> apply(OverAllState state) throws Exception {
@@ -32,18 +32,18 @@ public class NlToSqlNode implements NodeAction {
             if (StrUtil.isBlank(naturalLanguageQuery)) {
                 return Map.of(
                         ERROR, "【转SQL节点】自然语言查询为空",
-                        WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                        WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             // 调用QueryTools.nlToSql
-            Map<String, Object> nlToSqlResult = queryTools.nlToSql(naturalLanguageQuery);
+            Map<String, Object> nlToSqlResult = sqlQueryTools.nlToSql(naturalLanguageQuery);
             boolean success = (boolean) nlToSqlResult.getOrDefault(SUCCESS, false);
             if (!success) {
                 return Map.of(
                         NL_TO_SQL_RESULT, nlToSqlResult,
                         ERROR, "【转SQL节点】自然语言查询转SQL处理失败: " + nlToSqlResult.get(ERROR),
-                        WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                        WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
@@ -52,21 +52,21 @@ public class NlToSqlNode implements NodeAction {
                 return Map.of(
                         NL_TO_SQL_RESULT, nlToSqlResult,
                         ERROR, "【转SQL节点】生成的SQL为空",
-                        WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                        WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                         NEXT_NODE, ERROR_HANDLE_NODE.getText());
             }
 
             return Map.of(
                     NL_TO_SQL_RESULT, nlToSqlResult,
                     GENERATED_SQL, generatedSql,
-                    WORKFLOW_STATUS, QueryWorkflowStatusEnum.PROCESSING.getId(),
+                    WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.PROCESSING.getId(),
                     CURRENT_NODE, NL_TO_SQL_NODE.getText(),
                     NEXT_NODE, VALIDATE_SQL_NODE.getText());
         } catch (Exception e) {
             log.error("【数据查询智能体】自然语言查询转SQL节点执行失败", e);
             return Map.of(
                     ERROR, e.getMessage(),
-                    WORKFLOW_STATUS, QueryWorkflowStatusEnum.ERROR.getId(),
+                    WORKFLOW_STATUS, SqlQueryWorkflowStatusEnum.ERROR.getId(),
                     NEXT_NODE, ERROR_HANDLE_NODE.getText());
         }
     }

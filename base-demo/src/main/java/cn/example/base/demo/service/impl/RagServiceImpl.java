@@ -1,7 +1,6 @@
 package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.service.*;
-import cn.example.base.demo.service.*;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +32,7 @@ public class RagServiceImpl implements RagService {
     private QueryRewriteService queryRewriteService;
 
     @Autowired
-    private VectorStoreService vectorStoreService;
+    private CustomVectorStoreService customVectorStoreService;
 
     @Resource(name = "qwenChatClient")
     private ChatClient qwenChatClient;
@@ -56,7 +55,7 @@ public class RagServiceImpl implements RagService {
         List<Document> uniqueResults = textDeduplicationService.deduplicateImport(chunks);
 
         // 3. 存储到向量数据库
-        vectorStoreService.storeDocuments(uniqueResults);
+        customVectorStoreService.storeDocuments(uniqueResults);
     }
 
     /**
@@ -70,7 +69,7 @@ public class RagServiceImpl implements RagService {
         // 2. 执行搜索
         List<Document> allResults = new ArrayList<>();
         for (String rewrittenQuery : rewrittenQueries) {
-            List<Document> results = vectorStoreService.search(rewrittenQuery, topK * 2);
+            List<Document> results = customVectorStoreService.search(rewrittenQuery, topK * 2);
             allResults.addAll(results);
         }
 
@@ -125,7 +124,7 @@ public class RagServiceImpl implements RagService {
         // 2. 执行搜索
         List<Document> allResults = new ArrayList<>();
         for (String rewrittenQuery : rewrittenQueries) {
-            List<Document> results = vectorStoreService.search(rewrittenQuery, 100); // 获取较多结果用于分页
+            List<Document> results = customVectorStoreService.search(rewrittenQuery, 100); // 获取较多结果用于分页
             allResults.addAll(results);
         }
 
@@ -169,7 +168,7 @@ public class RagServiceImpl implements RagService {
             uniqueChunks += unique.size();
 
             // 存储
-            vectorStoreService.storeDocuments(unique);
+            customVectorStoreService.storeDocuments(unique);
 
             result.put(docId + "_original_chunks", chunks.size());
             result.put(docId + "_unique_chunks", unique.size());

@@ -1,6 +1,6 @@
 package cn.example.base.demo.service.impl;
 
-import cn.example.base.demo.service.AgentToolCallingService;
+import cn.example.base.demo.service.AgentToolCallService;
 import cn.example.base.demo.tools.WeatherTools;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 
 @Service
-public class AgentToolCallingServiceImpl implements AgentToolCallingService {
+public class AgentToolCallServiceImpl implements AgentToolCallService {
 
     @Resource(name = "qwenAgentChatModel")
     private Model qwenAgentChatModel;
