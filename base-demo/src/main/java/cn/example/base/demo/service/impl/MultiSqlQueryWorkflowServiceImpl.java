@@ -1,7 +1,7 @@
 package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.build.WorkflowBuild;
-import cn.example.base.demo.service.SqlQueryWorkflowService;
+import cn.example.base.demo.service.MultiSqlQueryWorkflowService;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
@@ -16,7 +16,7 @@ import static cn.example.base.demo.constant.FieldConstant.THREAD_ID;
 
 @Slf4j
 @Service
-public class SqlQueryWorkflowServiceImpl implements SqlQueryWorkflowService {
+public class MultiSqlQueryWorkflowServiceImpl implements MultiSqlQueryWorkflowService {
 
     @Resource(name = "sqlQueryGraph")
     private CompiledGraph sqlQueryGraph;

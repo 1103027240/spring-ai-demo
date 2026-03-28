@@ -1,6 +1,6 @@
 package cn.example.base.demo.controller;
 
-import cn.example.base.demo.service.SqlQueryWorkflowService;
+import cn.example.base.demo.service.MultiSqlQueryWorkflowService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,18 +15,18 @@ import java.util.Map;
  * @author 11030
  */
 @Tag(name = "数据查询工作流接口", description = "数据查询工作流接口")
-@RequestMapping("/sqlQuery")
+@RequestMapping("/multiSqlQuery")
 @RestController
-public class SqlQueryController {
+public class MultiSqlQueryController {
 
     @Autowired
-    private SqlQueryWorkflowService sqlQueryWorkflowService;
+    private MultiSqlQueryWorkflowService multiSqlQueryWorkflowService;
 
     @PostMapping("/doChat")
     @Operation(summary = "客服对话", description = "处理用户咨询并返回AI回复")
     public Map<String, Object> doChat(
             @Parameter(description = "用户消息") @RequestParam(name = "message") String message) {
-        return sqlQueryWorkflowService.executeWorkflow(message);
+        return multiSqlQueryWorkflowService.executeWorkflow(message);
     }
 
 }
