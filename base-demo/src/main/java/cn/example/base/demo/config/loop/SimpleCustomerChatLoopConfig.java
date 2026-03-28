@@ -11,7 +11,7 @@ public class SimpleCustomerChatLoopConfig {
                 .name("客服对话循环智能体")
                 .description("客服对话多轮执行，直到问题解决")
                 .subAgent(simpleCustomerServiceAgent)
-                .loopStrategy(LoopMode.condition(new SimpleCustomerServiceLoopCondition()))  //先执行subAgent，再执行loopStrategy
+                .loopStrategy(LoopMode.condition(new SimpleCustomerChatLoopCondition()))  //先执行subAgent，再执行loopStrategy
                 .build();
     }
 

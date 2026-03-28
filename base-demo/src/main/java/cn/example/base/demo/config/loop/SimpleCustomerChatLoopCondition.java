@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 import static cn.example.base.demo.constant.FieldValueConstant.MAX_LOOP_TIMES;
 
 @Component
-public class SimpleCustomerServiceLoopCondition implements Predicate<List<Message>> {
+public class SimpleCustomerChatLoopCondition implements Predicate<List<Message>> {
 
     private int count = 0;
 

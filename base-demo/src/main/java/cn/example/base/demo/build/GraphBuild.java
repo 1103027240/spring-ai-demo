@@ -23,7 +23,7 @@ public class GraphBuild {
                 .saverConfig(SaverConfig.builder()
                         .register(mySqlSaver) // Mysql状态存储
                         .build());
-        if(BooleanUtil.isTrue(interruptFlag)){
+        if (BooleanUtil.isTrue(interruptFlag)) {
             builder.interruptBefore(interruptBefore); // 在此节点前中断
         }
         return builder.build();

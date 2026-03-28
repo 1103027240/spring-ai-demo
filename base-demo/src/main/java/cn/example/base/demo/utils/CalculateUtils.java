@@ -21,7 +21,7 @@ public class CalculateUtils {
         }
     }
 
-    private static String bytesToHex(byte[] bytes) {
+    public static String bytesToHex(byte[] bytes) {
         StringBuilder result = new StringBuilder();
         for (byte b : bytes) {
             result.append(String.format("%02x", b));

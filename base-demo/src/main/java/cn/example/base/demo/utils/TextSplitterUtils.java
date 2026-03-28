@@ -61,7 +61,7 @@ public class TextSplitterUtils {
      * @param formatProcessor 格式化处理器
      * @return 分割后的文本块列表
      */
-    private static List<String> splitWithPattern(String text, Pattern pattern, int chunkSize, int chunkOverlap, TextSplitterFormatProcessor formatProcessor) {
+    public static List<String> splitWithPattern(String text, Pattern pattern, int chunkSize, int chunkOverlap, TextSplitterFormatProcessor formatProcessor) {
         if (StrUtil.isBlank(text)) {
             return Collections.emptyList();
         }
@@ -573,7 +573,7 @@ public class TextSplitterUtils {
      * @param overlap 重叠量
      * @return 应用重叠后的文本块列表
      */
-    private static List<String> applyOverlap(List<String> chunks, int overlap) {
+    public static List<String> applyOverlap(List<String> chunks, int overlap) {
         if (overlap <= 0 || chunks == null || chunks.size() <= 1) {
             return chunks != null ? new ArrayList<>(chunks) : Collections.emptyList();
         }
@@ -606,7 +606,7 @@ public class TextSplitterUtils {
      * @param tag 标签字符串
      * @return 开标签数量
      */
-    private static int countOpenTags(String tag) {
+    public static int countOpenTags(String tag) {
         if (StrUtil.isBlank(tag)) {
             return 0;
         }
@@ -624,7 +624,7 @@ public class TextSplitterUtils {
      * @param tag 标签字符串
      * @return 闭标签数量
      */
-    private static int countCloseTags(String tag) {
+    public static int countCloseTags(String tag) {
         if (StrUtil.isBlank(tag)) {
             return 0;
         }
@@ -641,7 +641,7 @@ public class TextSplitterUtils {
      * 从对象池获取 StringBuilder
      * @return StringBuilder实例
      */
-    private static StringBuilder acquireStringBuilder() {
+    public static StringBuilder acquireStringBuilder() {
         StringBuilder sb = POOL.pollFirst();
         return sb != null ? sb : new StringBuilder(STRING_BUILDER_CAPACITY);
     }
@@ -650,7 +650,7 @@ public class TextSplitterUtils {
      * 归还 StringBuilder 到对象池
      * @param sb StringBuilder实例
      */
-    private static void releaseStringBuilder(StringBuilder sb) {
+    public static void releaseStringBuilder(StringBuilder sb) {
         if (sb != null) {
             sb.setLength(0);
             if (POOL.size() < POOL_MAX_SIZE) {
