@@ -191,8 +191,6 @@ public class FieldConstant {
 
     public static final String DATA_SUMMARY = "dataSummary";
 
-    public static final String ROW_COUNT = "rowCount";
-
-    public static final String EXECUTION_TIME = "executionTime";
+    public static final String MERGED_RESULT = "merged_result";
 
 }

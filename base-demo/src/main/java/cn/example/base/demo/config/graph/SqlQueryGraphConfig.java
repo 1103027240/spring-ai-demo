@@ -110,26 +110,26 @@ public class SqlQueryGraphConfig {
 
     @Bean
     public CompiledGraph sqlQueryGraph(MysqlSaver mySqlSaver) throws GraphStateException {
-        StateGraph sqlQueryGraph = createSqlQueryGraph();
+        StateGraph stateGraph = createSqlQueryGraph();
 
         // 生成PlantUML格式的可视化图
-        GraphRepresentation representation = graphBuild.buildGraphRepresentation(sqlQueryGraph, SQL_QUERY_TITLE);
+        GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, SQL_QUERY_TITLE);
 
         // 配置持久化
         CompileConfig compileConfig = graphBuild.buildCompileConfig(mySqlSaver, false, null);
 
-        return sqlQueryGraph.compile(compileConfig);
+        return stateGraph.compile(compileConfig);
     }
 
     @Bean
     public GraphRepresentation sqlQueryGraphRepresentation() throws GraphStateException {
-        StateGraph sqlQueryGraph = createSqlQueryGraph();
+        StateGraph stateGraph = createSqlQueryGraph();
 
         // 生成PlantUML格式的可视化图
-        GraphRepresentation representation = graphBuild.buildGraphRepresentation(sqlQueryGraph, SQL_QUERY_TITLE);
+        GraphRepresentation representation = graphBuild.buildGraphRepresentation(stateGraph, SQL_QUERY_TITLE);
 
         log.info("\n{}", "=".repeat(80));
-        log.info("=== SQL QUERY Graph ===");
+        log.info("=== Sql Query Graph ===");
         log.info(representation.content());
         log.info("========================================================\n");
         return representation;

@@ -18,4 +18,8 @@ public class WorkflowConstant {
 
     public final static String SQL_QUERY_TITLE = "数据查询";
 
+    public final static String CODE_SEARCH_NAME = "代码搜索工作流";
+
+    public final static String CODE_SEARCH_TITLE = "代码搜索";
+
 }
