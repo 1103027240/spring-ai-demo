@@ -1,0 +1,35 @@
+DROP TABLE IF EXISTS `knowledge_category`;
+CREATE TABLE `knowledge_category`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `category_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '分类名称',
+  `category_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '分类编码',
+  `category_path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '分类路径',
+  `parent_id` bigint NULL DEFAULT 0 COMMENT '父分类ID',
+  `level` int NULL DEFAULT 1 COMMENT '层级',
+  `sort_order` int NULL DEFAULT 0 COMMENT '排序序号',
+  `icon` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '分类图标',
+  `color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '分类颜色',
+  `description` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '分类描述',
+  `document_count` int NULL DEFAULT 0 COMMENT '文档数量统计',
+  `status` tinyint NULL DEFAULT 1 COMMENT '状态：0-禁用，1-启用，2-待审核',
+  `is_system` tinyint NULL DEFAULT 0 COMMENT '是否系统内置：0-否，1-是',
+  `allow_delete` tinyint NULL DEFAULT 1 COMMENT '是否允许删除：0-否，1-是',
+  `ext_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '扩展字段（JSON格式）',
+  `create_user_id` bigint NULL DEFAULT NULL COMMENT '创建人ID',
+  `create_user_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '创建人名称',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_user_id` bigint NULL DEFAULT NULL COMMENT '更新人ID',
+  `update_user_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '更新人名称',
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `is_deleted` tinyint NULL DEFAULT 0 COMMENT '逻辑删除标识：0-未删除，1-已删除',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_category_name`(`category_name` ASC, `is_deleted` ASC) USING BTREE,
+  UNIQUE INDEX `uk_category_code`(`category_code` ASC, `is_deleted` ASC) USING BTREE,
+  INDEX `idx_parent_id`(`parent_id` ASC) USING BTREE,
+  INDEX `idx_status`(`status` ASC) USING BTREE,
+  INDEX `idx_sort_order`(`sort_order` ASC) USING BTREE,
+  INDEX `idx_create_time`(`create_time` ASC) USING BTREE,
+  INDEX `idx_update_time`(`update_time` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 102 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '知识库分类表' ROW_FORMAT = Dynamic;
+
+SET FOREIGN_KEY_CHECKS = 1;
