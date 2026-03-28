@@ -21,8 +21,7 @@ public class DocumentUtils {
                         Map.Entry::getKey,
                         Map.Entry::getValue,
                         (oldVal, newVal) -> newVal,
-                        HashMap::new
-                ));
+                        HashMap::new));
     }
 
     /**

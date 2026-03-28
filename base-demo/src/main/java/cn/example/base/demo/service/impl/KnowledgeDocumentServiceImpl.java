@@ -487,8 +487,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     public void afterCommit() {
                         vectorizeDocumentAsync(document, dto);
                     }
-                }
-        );
+                });
     }
 
     /**

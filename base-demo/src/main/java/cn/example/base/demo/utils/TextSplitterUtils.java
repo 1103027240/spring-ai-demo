@@ -455,6 +455,7 @@ public class TextSplitterUtils {
         // 按标题分割
         List<String> chunks = new ArrayList<>();
         String[] parts = MARKDOWN_HEADING_PATTERN.split(text);
+
         for (String part : parts) {
             if (StrUtil.isNotBlank(part)) {
                 // 对每个标题部分进行段落分割
@@ -462,6 +463,7 @@ public class TextSplitterUtils {
                 chunks.addAll(paraChunks);
             }
         }
+
         return chunks.isEmpty() ? List.of(text) : chunks;
     }
 
@@ -471,6 +473,7 @@ public class TextSplitterUtils {
     public static List<String> splitHtmlContent(String text) {
         // 按HTML标签分割
         List<String> chunks = new ArrayList<>();
+
         // 简单实现：按主要标签分割
         String[] parts = HTML_TAG_PATTERN.split(text);
         for (String part : parts) {
@@ -478,6 +481,7 @@ public class TextSplitterUtils {
                 chunks.add(part);
             }
         }
+
         return chunks.isEmpty() ? List.of(text) : chunks;
     }
 
@@ -487,6 +491,7 @@ public class TextSplitterUtils {
     public static List<String> splitJsonContent(String text) {
         // 尝试按对象和数组分割
         List<String> chunks = new ArrayList<>();
+
         // 简单实现：按大括号和中括号分割
         String[] parts = JSON_BRACKET_PATTERN.split(text);
         for (String part : parts) {
@@ -494,6 +499,7 @@ public class TextSplitterUtils {
                 chunks.add(part);
             }
         }
+
         return chunks.isEmpty() ? List.of(text) : chunks;
     }
 
@@ -506,11 +512,13 @@ public class TextSplitterUtils {
         if (paraChunks.size() > 1) {
             return paraChunks;
         }
+
         // 然后按语句分割
         List<String> sentChunks = splitBySentence(text);
         if (sentChunks.size() > 1) {
             return sentChunks;
         }
+
         // 最后按固定字符数分割
         return splitByCharacterCount(text, 800, 80);
     }
@@ -521,6 +529,7 @@ public class TextSplitterUtils {
     public static List<String> splitCodeContent(String text) {
         // 按函数和类分割
         List<String> chunks = new ArrayList<>();
+
         // 简单实现：按函数定义分割
         String[] parts = CODE_FUNCTION_PATTERN.split(text);
         for (String part : parts) {
@@ -528,6 +537,7 @@ public class TextSplitterUtils {
                 chunks.add(part);
             }
         }
+
         return chunks.isEmpty() ? List.of(text) : chunks;
     }
 
@@ -569,6 +579,7 @@ public class TextSplitterUtils {
         }
 
         List<String> overlappedChunks = new ArrayList<>(chunks.size());
+
         // 第一块保持不变
         overlappedChunks.add(chunks.get(0));
 
@@ -586,6 +597,7 @@ public class TextSplitterUtils {
                 overlappedChunks.add(prev + curr);
             }
         }
+
         return overlappedChunks;
     }
 

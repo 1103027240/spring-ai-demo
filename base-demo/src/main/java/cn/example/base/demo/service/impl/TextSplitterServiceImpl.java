@@ -47,9 +47,9 @@ public class TextSplitterServiceImpl implements TextSplitterService {
 
         try {
             TextSplitterCheck.validateAlgorithm(algorithm);
+
             TextSplitter splitter = textSplitterFactory.getTextSplitter(algorithm);
             Document doc = textSplitterBuild.createDocument(text, metadata);
-
             List<Document> documents = textSplitterBuild.splitDocument(splitter, doc);
             documents = enrichDocuments(documents, algorithm);
 
@@ -110,8 +110,9 @@ public class TextSplitterServiceImpl implements TextSplitterService {
         }
 
         try {
-            List<Document> documents = new ArrayList<>();
             TextSplitterCheck.validateAlgorithm(algorithm);
+
+            List<Document> documents = new ArrayList<>();
             TextSplitter splitter = textSplitterFactory.getTextSplitter(algorithm);
             texts.forEach((docId, text) -> processBatchSplit(results, documents, docId, text, splitter, algorithm));
 
