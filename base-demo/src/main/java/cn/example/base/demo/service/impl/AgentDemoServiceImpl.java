@@ -71,8 +71,7 @@ public class AgentDemoServiceImpl implements AgentDemoService {
         Mono<Msg> responseMono = agent.call(
                 Msg.builder()
                         .textContent(message)
-                        .build()
-        );
+                        .build());
 
         // 阻塞处理结果
         String response = responseMono.block().getTextContent();

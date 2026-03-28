@@ -341,6 +341,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         if (DESC.getId().equalsIgnoreCase(direction)) {
             comparator = comparator.reversed();
         }
+
         return comparator;
     }
 

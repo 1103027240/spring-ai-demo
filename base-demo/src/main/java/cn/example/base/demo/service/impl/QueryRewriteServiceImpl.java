@@ -1,6 +1,7 @@
 package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.service.QueryRewriteService;
+import cn.hutool.core.collection.CollUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -148,7 +149,7 @@ public class QueryRewriteServiceImpl implements QueryRewriteService {
      * 查询增强：添加上下文
      */
     public String enhanceQueryWithContext(String query, List<String> contextKeywords) {
-        if (!contextKeywords.isEmpty()) {
+        if (CollUtil.isNotEmpty(contextKeywords)) {
             String context = String.join(" ", contextKeywords);
             return query + " " + context;
         }

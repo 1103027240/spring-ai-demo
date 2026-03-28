@@ -150,13 +150,14 @@ public class TextSplitterServiceImpl implements TextSplitterService {
      */
     private List<Document> enrichDocuments(List<Document> documents, String algorithm) {
         long timestamp = System.currentTimeMillis();
-        return documents.stream().map(doc -> {
-            Map<String, Object> docMetadata = new HashMap<>(doc.getMetadata());
-            docMetadata.put("splitAlgorithm", algorithm);
-            docMetadata.put("chunkSize", doc.getText().length());
-            docMetadata.put("createdAt", timestamp);
-            return new Document(doc.getText(), docMetadata);
-        }).collect(Collectors.toList());
+        return documents.stream()
+                .map(doc -> {
+                    Map<String, Object> docMetadata = new HashMap<>(doc.getMetadata());
+                    docMetadata.put("splitAlgorithm", algorithm);
+                    docMetadata.put("chunkSize", doc.getText().length());
+                    docMetadata.put("createdAt", timestamp);
+                    return new Document(doc.getText(), docMetadata);
+                }).collect(Collectors.toList());
     }
 
     /**

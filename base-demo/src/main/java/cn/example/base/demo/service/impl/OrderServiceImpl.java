@@ -186,6 +186,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             log.warn("【按用户最近订单查询】用户ID为空");
             return Collections.emptyList();
         }
+
         int limit = (Integer) queryParams.getOrDefault(LIMIT, DEFAULT_USER_RECENT_LIMIT);
         return convertOrders(baseMapper.selectRecentOrdersByUserId(userId, limit));
     }

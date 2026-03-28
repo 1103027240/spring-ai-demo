@@ -49,8 +49,7 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
                 "RS",
                 "退货",
                 "客服将在24小时内处理",
-                Arrays.asList("1. 保持商品完好", "2. 等待客服联系", "3. 按指导寄回商品")
-        );
+                Arrays.asList("1. 保持商品完好", "2. 等待客服联系", "3. 按指导寄回商品"));
     }
 
     /**
@@ -67,8 +66,7 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
                 "ES",
                 "换货",
                 "客服将尽快处理",
-                Arrays.asList("1. 保持商品完好", "2. 等待客服联系", "3. 确认换货商品")
-        );
+                Arrays.asList("1. 保持商品完好", "2. 等待客服联系", "3. 确认换货商品"));
     }
 
     /**
@@ -85,8 +83,7 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
                 "RP",
                 "维修",
                 "维修中心将尽快联系您",
-                Arrays.asList("1. 描述具体故障现象", "2. 等待维修中心联系", "3. 确认维修方案")
-        );
+                Arrays.asList("1. 描述具体故障现象", "2. 等待维修中心联系", "3. 确认维修方案"));
     }
 
     /**

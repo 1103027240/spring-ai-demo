@@ -154,6 +154,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
                 .build();
 
         List<Document> allResults = ragDocumentVectorStore.similaritySearch(searchRequest);
+
         resultPage.setRecords(allResults);
         resultPage.setTotal(allResults.size());
         return resultPage;
