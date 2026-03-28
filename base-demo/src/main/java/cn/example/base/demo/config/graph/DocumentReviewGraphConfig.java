@@ -1,8 +1,7 @@
-package cn.example.base.demo.config;
+package cn.example.base.demo.config.graph;
 
 import cn.example.base.demo.build.GraphBuild;
 import cn.example.base.demo.factory.DocumentReviewFactory;
-import cn.example.base.demo.node.document.*;
 import cn.example.base.demo.node.document.*;
 import com.alibaba.cloud.ai.graph.CompileConfig;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
@@ -29,7 +28,7 @@ import static com.alibaba.cloud.ai.graph.action.AsyncNodeActionWithConfig.node_a
  */
 @Configuration
 @Slf4j
-public class DocumentReviewConfig {
+public class DocumentReviewGraphConfig {
 
     @Autowired
     private GraphBuild graphBuild;
@@ -48,7 +47,6 @@ public class DocumentReviewConfig {
         log.info("=== Document Review Graph ===");
         log.info(representation.content());
         log.info("========================================================\n");
-
         return representation;
     }
 
@@ -85,7 +83,6 @@ public class DocumentReviewConfig {
         log.info("     - {} -> {} -> {}", REJECT.getId(), REJECT_PROCESSING.getText(), FINAL_REPORT.getText());
         log.info("  6. {} -> {}", FINAL_REPORT.getText(), StateGraph.END);
         log.info("========================================================\n");
-
         return stateGraph.compile(compileConfig);
     }
 

@@ -1,8 +1,8 @@
 package cn.example.base.demo.service.impl;
 
-import cn.example.base.demo.build.CustomerKnowledgeBuild;
+import cn.example.base.demo.build.KnowledgeDocumentSearchBuild;
 import cn.example.base.demo.build.KnowledgeDocumentBuild;
-import cn.example.base.demo.check.CustomerKnowledgeCheck;
+import cn.example.base.demo.check.KnowledgeDocumentCheck;
 import cn.example.base.demo.entity.KnowledgeDocument;
 import cn.example.base.demo.enums.CursorSortByEnum;
 import cn.example.base.demo.enums.KnowledgeDocumentStatusEnum;
@@ -73,13 +73,13 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
     private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    private CustomerKnowledgeBuild customerKnowledgeBuild;
-
-    @Autowired
     private IVecMService vecMService;
 
     @Autowired
-    private CustomerKnowledgeCheck customerKnowledgeCheck;
+    private KnowledgeDocumentSearchBuild knowledgeDocumentSearchBuild;
+
+    @Autowired
+    private KnowledgeDocumentCheck knowledgeDocumentCheck;
 
     @Autowired
     private KnowledgeDocumentBuild knowledgeDocumentBuild;
@@ -224,7 +224,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             return CursorSearchVO.empty();
         }
 
-        customerKnowledgeCheck.validateSearchParams(dto);
+        knowledgeDocumentCheck.validateSearchParams(dto);
 
         // 搜索并排序
         List<KnowledgeDocumentVO> sortedResults = doSearchAndSort(dto);
@@ -259,7 +259,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         }
 
         // 转换搜索结果
-        List<KnowledgeDocumentVO> results = customerKnowledgeBuild.convertSearchResults(searchResp);
+        List<KnowledgeDocumentVO> results = knowledgeDocumentSearchBuild.convertSearchResults(searchResp);
 
         // 多级排序
         return multiLevelSort(results, dto);
@@ -275,10 +275,10 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
             FloatVec floatVec = new FloatVec(embed);
 
             // 构建搜索参数
-            Map<String, Object> searchParams = customerKnowledgeBuild.buildSearchParams(dto);
+            Map<String, Object> searchParams = knowledgeDocumentSearchBuild.buildSearchParams(dto);
 
             // 计算动态 topK 值
-            int dynamicTopK = customerKnowledgeBuild.calculateDynamicTopK(dto);
+            int dynamicTopK = knowledgeDocumentSearchBuild.calculateDynamicTopK(dto);
 
             // 执行向量搜索 + 标量过滤
             return vecMService.search(
@@ -286,7 +286,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
                     Collections.emptyList(),
                     EMBEDDING,
                     dynamicTopK,
-                    customerKnowledgeBuild.buildAdvancedFilterExpression(dto),
+                    knowledgeDocumentSearchBuild.buildAdvancedFilterExpression(dto),
                     Arrays.asList(DOC_ID, CONTENT, METADATA),
                     Collections.singletonList(floatVec),
                     0L,
@@ -379,7 +379,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         // nextCursor: 当前页最后一条数据，页码为0
         String nextCursor = hasNext
-                ? customerKnowledgeBuild.buildCursor(dto, currentPageList.get(currentPageList.size() - 1), 0)
+                ? knowledgeDocumentSearchBuild.buildCursor(dto, currentPageList.get(currentPageList.size() - 1), 0)
                 : null;
 
         return CursorSearchVO.success(currentPageList, nextCursor, null, hasNext, false, pageSize);
@@ -396,7 +396,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         String[] cursorValues = dto.decodeCursor(dto.getNextCursor());
         int currentPage = Integer.parseInt(cursorValues[0]);
 
-        int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
+        int cursorIndex = knowledgeDocumentSearchBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
         if (cursorIndex < 0 || cursorIndex >= sortedResults.size()) {
             return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
@@ -415,7 +415,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         String[] cursorValues = dto.decodeCursor(dto.getPrevCursor());
         int currentPage = Integer.parseInt(cursorValues[0]);
 
-        int cursorIndex = customerKnowledgeBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
+        int cursorIndex = knowledgeDocumentSearchBuild.findCursorIndex(sortedResults, cursorValues[1], cursorValues[2], dto);
         if (cursorIndex < 0 || cursorIndex >= sortedResults.size()) {
             return CursorSearchVO.success(Collections.emptyList(), null, null, false, false, dto.getPageSize());
         }
@@ -455,10 +455,10 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
         // nextCursor: 当前页最后一条数据（用于"下一页"）
         // prevCursor: 当前页第一条数据（用于"上一页"，从它往前推pageSize条）
         String nextCursor = hasNext
-                ? customerKnowledgeBuild.buildCursor(dto, sortedResults.get(endIndex - 1), actualPageNum)
+                ? knowledgeDocumentSearchBuild.buildCursor(dto, sortedResults.get(endIndex - 1), actualPageNum)
                 : null;
         String prevCursor = hasPrev
-                ? customerKnowledgeBuild.buildCursor(dto, sortedResults.get(startIndex), actualPageNum)
+                ? knowledgeDocumentSearchBuild.buildCursor(dto, sortedResults.get(startIndex), actualPageNum)
                 : null;
 
         return CursorSearchVO.success(currentPageList, nextCursor, prevCursor, hasNext, hasPrev, dto.getPageSize());

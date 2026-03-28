@@ -1,4 +1,4 @@
-package cn.example.base.demo.config;
+package cn.example.base.demo.config.graph;
 
 import cn.example.base.demo.agent.SqlResultAnalysisAgent;
 import cn.example.base.demo.build.GraphBuild;
@@ -19,7 +19,7 @@ import static com.alibaba.cloud.ai.graph.action.AsyncNodeAction.node_async;
 
 @Slf4j
 @Configuration
-public class SqlQueryWorkflowConfig {
+public class SqlQueryGraphConfig {
 
     @Autowired
     private SqlResultAnalysisAgent sqlResultAnalysisAgent;

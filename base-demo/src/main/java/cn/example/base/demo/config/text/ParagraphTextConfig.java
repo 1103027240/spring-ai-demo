@@ -1,4 +1,4 @@
-package cn.example.base.demo.config;
+package cn.example.base.demo.config.text;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -6,22 +6,22 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Markdown分割器配置类
+ * 段落分割器配置类
  * @author 11030
  */
 @Slf4j
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "rag.text-splitting.markdown")
-public class MarkdownTextConfig {
+@ConfigurationProperties(prefix = "rag.text-splitting.paragraph")
+public class ParagraphTextConfig {
 
-    /** Markdown 分割 */
+    /** 段落分割 */
     private String pattern;
 
-    /** Markdown 分割 - 块大小（字符数） */
+    /** 段落分割 - 块大小（字符数） */
     private int chunkSize;
 
-    /** Markdown 分割 - 块重叠量 */
+    /** 段落分割 - 块重叠量 */
     private int chunkOverlap;
 
 }

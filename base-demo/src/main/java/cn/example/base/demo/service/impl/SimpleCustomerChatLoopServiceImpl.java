@@ -2,9 +2,9 @@ package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.build.ChatMessageBuild;
 import cn.example.base.demo.build.MultiAgentBuild;
-import cn.example.base.demo.config.loop.SimpleChatLoopConfig;
+import cn.example.base.demo.config.loop.SimpleCustomerChatLoopConfig;
 import cn.example.base.demo.service.ChatMessageService;
-import cn.example.base.demo.service.SimpleChatLoopService;
+import cn.example.base.demo.service.SimpleCustomerChatLoopService;
 import cn.example.base.demo.utils.ParamUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
@@ -25,7 +25,7 @@ import static cn.example.base.demo.constant.FieldValueConstant.DEFAULT_LIMIT;
 
 @Slf4j
 @Service
-public class SimpleChatLoopServiceImpl implements SimpleChatLoopService {
+public class SimpleCustomerChatLoopServiceImpl implements SimpleCustomerChatLoopService {
 
     @Autowired
     private ChatMessageBuild chatMessageBuild;
@@ -48,8 +48,8 @@ public class SimpleChatLoopServiceImpl implements SimpleChatLoopService {
         String combinedMessage = buildCombinedMessage(conversationHistory, message);
 
         // 2. 调用多智能体
-        LoopAgent simpleChatLoopAgent = new SimpleChatLoopConfig().getSimpleChatLoopAgent(simpleCustomerServiceAgent);
-        OverAllState overAllState = simpleChatLoopAgent.invoke(initMap(userId, sessionId, combinedMessage)).orElse(null);
+        LoopAgent simpleCustomerChatLoopAgent = new SimpleCustomerChatLoopConfig().getSimpleCustomerChatLoopAgent(simpleCustomerServiceAgent);
+        OverAllState overAllState = simpleCustomerChatLoopAgent.invoke(initMap(userId, sessionId, combinedMessage)).orElse(null);
         if (overAllState == null || CollUtil.isEmpty(overAllState.data())) {
             return Map.of("status", "fail", "userId", userId, "sessionId", sessionId,"msg", "智能体未返回结果");
         }

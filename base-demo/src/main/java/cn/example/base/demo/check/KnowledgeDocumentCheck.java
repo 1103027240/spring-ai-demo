@@ -10,7 +10,7 @@ import static cn.example.base.demo.enums.CursorDirectionEnum.FIRST;
 import static cn.example.base.demo.enums.CursorSortByEnum.*;
 
 @Component
-public class CustomerKnowledgeCheck {
+public class KnowledgeDocumentCheck {
 
     /**
      * 验证搜索参数的合法性

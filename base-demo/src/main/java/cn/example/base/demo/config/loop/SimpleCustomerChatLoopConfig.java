@@ -4,9 +4,9 @@ import com.alibaba.cloud.ai.agent.agentscope.AgentScopeAgent;
 import com.alibaba.cloud.ai.graph.agent.flow.agent.LoopAgent;
 import com.alibaba.cloud.ai.graph.agent.flow.agent.loop.LoopMode;
 
-public class SimpleChatLoopConfig {
+public class SimpleCustomerChatLoopConfig {
 
-    public LoopAgent getSimpleChatLoopAgent(AgentScopeAgent simpleCustomerServiceAgent) {
+    public LoopAgent getSimpleCustomerChatLoopAgent(AgentScopeAgent simpleCustomerServiceAgent) {
         return LoopAgent.builder()
                 .name("客服对话循环智能体")
                 .description("客服对话多轮执行，直到问题解决")

@@ -1,5 +1,6 @@
 package cn.example.base.demo.config;
 
+import cn.example.base.demo.config.text.*;
 import cn.example.base.demo.function.TextSplitterFunction;
 import cn.example.base.demo.utils.TextSplitterUtils;
 import cn.hutool.core.util.StrUtil;

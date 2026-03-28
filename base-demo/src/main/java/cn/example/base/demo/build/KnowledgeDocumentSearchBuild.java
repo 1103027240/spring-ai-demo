@@ -1,82 +1,30 @@
 package cn.example.base.demo.build;
 
-import cn.example.base.demo.check.CustomerKnowledgeCheck;
+import cn.example.base.demo.check.KnowledgeDocumentCheck;
 import cn.example.base.demo.param.dto.KnowledgeDocumentSearchDto;
 import cn.example.base.demo.param.vo.KnowledgeDocumentVO;
-import cn.example.base.demo.entity.ChatMessage;
-import cn.example.base.demo.enums.MessageTaskSyncTypeEnum;
 import cn.example.base.demo.enums.SortDirectionEnum;
-import cn.example.base.demo.service.ChatMessageService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import io.milvus.v2.service.vector.response.SearchResp;
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 import static cn.example.base.demo.constant.FieldConstant.*;
-import static cn.example.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
 
 @Slf4j
 @Component
-public class CustomerKnowledgeBuild {
+public class KnowledgeDocumentSearchBuild {
 
     @Value("${customer.milvus.search.nprobe:128}")
     private Integer nprobe;
 
-    @Resource(name = "chatMessageVectorStore")
-    private VectorStore chatMessageVectorStore;
-
     @Autowired
-    private MessageSyncTaskBuild messageSyncTaskBuild;
-
-    @Autowired
-    private ChatMessageService chatMessageService;
-
-    @Autowired
-    private CustomerKnowledgeCheck customerKnowledgeCheck;
-
-    /**
-     * 同步消息到Milvus
-     */
-    public boolean syncMessagesToMilvus(String sessionId, Integer syncType) {
-        try {
-            List<ChatMessage> chatMessages = selectMessagesBySyncType(sessionId, syncType);
-            log.info("【异步同步】同步类型: {}, sessionId: {}, 消息数量: {}", MessageTaskSyncTypeEnum.getText(syncType), sessionId, chatMessages.size());
-
-            if (CollUtil.isEmpty(chatMessages)) {
-                log.info("【异步同步】没有需要同步的消息，sessionId: {}", sessionId);
-                return true;
-            }
-
-            List<Document> documents = messageSyncTaskBuild.buildDocument(chatMessages);
-            if (CollUtil.isEmpty(documents)) {
-                log.warn("【异步同步】没有有效的文档需要同步，sessionId: {}", sessionId);
-                return true;
-            }
-            chatMessageVectorStore.add(documents);
-            return true;
-        } catch (Exception e) {
-            log.error("【异步同步】同步消息到Milvus失败，sessionId: {}", sessionId, e);
-            return false;
-        }
-    }
-
-    /**
-     * 根据同步类型选择消息
-     */
-    public List<ChatMessage> selectMessagesBySyncType(String sessionId, Integer syncType) {
-        if (INCREMENTAL.getId().equals(syncType)) {
-            return chatMessageService.selectUnsyncedMessages(sessionId);
-        }
-        return chatMessageService.selectAllValidMessages(sessionId);
-    }
+    private KnowledgeDocumentCheck knowledgeDocumentCheck;
 
     /**
      * 构建标量过滤表达式（向量+标量混合查询）
@@ -157,9 +105,9 @@ public class CustomerKnowledgeBuild {
             String docPrimarySortKey = doc.getSortKey(dto.getSortField());
             String docSecondSortKey = doc.getSortKey(dto.getSecondSortField());
 
-            int primaryCompare = customerKnowledgeCheck.compareSortKey(docPrimarySortKey, primaryCursor, dto.getSortField());
+            int primaryCompare = knowledgeDocumentCheck.compareSortKey(docPrimarySortKey, primaryCursor, dto.getSortField());
             if (primaryCompare == 0) {
-                int secondCompare = customerKnowledgeCheck.compareSortKey(docSecondSortKey, secondCursor, dto.getSecondSortField());
+                int secondCompare = knowledgeDocumentCheck.compareSortKey(docSecondSortKey, secondCursor, dto.getSecondSortField());
                 if (secondCompare == 0) {
                     return mid;
                 }

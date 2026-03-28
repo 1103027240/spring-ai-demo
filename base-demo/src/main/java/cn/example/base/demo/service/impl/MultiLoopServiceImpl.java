@@ -1,7 +1,7 @@
 package cn.example.base.demo.service.impl;
 
 import cn.example.base.demo.service.MultiLoopService;
-import cn.example.base.demo.service.SimpleChatLoopService;
+import cn.example.base.demo.service.SimpleCustomerChatLoopService;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
 import io.agentscope.core.studio.StudioManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,7 @@ import java.util.Map;
 public class MultiLoopServiceImpl implements MultiLoopService {
 
     @Autowired
-    private SimpleChatLoopService simpleChatLoopService;
+    private SimpleCustomerChatLoopService simpleCustomerChatLoopService;
 
     @Override
     public Map<String, Object> doChat(String message, Long userId, String sessionId) {
@@ -24,7 +24,7 @@ public class MultiLoopServiceImpl implements MultiLoopService {
                 .block();
 
         try {
-            return simpleChatLoopService.runLoop(userId, sessionId, message);
+            return simpleCustomerChatLoopService.runLoop(userId, sessionId, message);
         } catch (GraphRunnerException e) {
             return Map.of("status", "error","userId", userId,"sessionId", sessionId,"msg", e.getMessage());
         } finally {

@@ -1,4 +1,4 @@
-package cn.example.base.demo.config;
+package cn.example.base.demo.config.text;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

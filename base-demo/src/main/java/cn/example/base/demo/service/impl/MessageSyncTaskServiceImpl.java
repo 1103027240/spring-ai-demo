@@ -1,6 +1,5 @@
 package cn.example.base.demo.service.impl;
 
-import cn.example.base.demo.build.CustomerKnowledgeBuild;
 import cn.example.base.demo.build.MessageSyncTaskBuild;
 import cn.example.base.demo.param.dto.CustomerServiceStateDto;
 import cn.example.base.demo.entity.ChatMessage;
@@ -46,9 +45,6 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
     @Autowired
     private MessageSyncTaskBuild messageSyncTaskBuild;
 
-    @Autowired
-    private CustomerKnowledgeBuild customerKnowledgeBuild;
-
     @Override
     public void createSyncTask(CustomerServiceStateDto state, List<ChatMessage> messages) {
         ChatMessage userMessage = messages.get(0);
@@ -79,7 +75,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
             updateTaskStatus(task, MessageTaskStatusEnum.PROCESSING.getId());
 
             // 3.会话消息同步到Milvus
-            if (!customerKnowledgeBuild.syncMessagesToMilvus(sessionId, task.getSyncType())) {
+            if (!messageSyncTaskBuild.syncMessagesToMilvus(sessionId, task.getSyncType())) {
                 throw new RuntimeException("会话消息同步到Milvus失败");
             }
 

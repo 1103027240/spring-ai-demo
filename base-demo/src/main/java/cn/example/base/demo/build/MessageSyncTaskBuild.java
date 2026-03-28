@@ -1,14 +1,20 @@
 package cn.example.base.demo.build;
 
 import cn.example.base.demo.constant.FieldConstant;
+import cn.example.base.demo.enums.MessageTaskSyncTypeEnum;
 import cn.example.base.demo.param.dto.CustomerServiceStateDto;
 import cn.example.base.demo.entity.ChatMessage;
 import cn.example.base.demo.entity.MessageSyncTask;
 import cn.example.base.demo.enums.ChatMessageTypeEnum;
 import cn.example.base.demo.enums.MessageTaskStatusEnum;
+import cn.example.base.demo.service.ChatMessageService;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,6 +27,38 @@ import static cn.example.base.demo.enums.MessageTaskSyncTypeEnum.INCREMENTAL;
 @Slf4j
 @Component
 public class MessageSyncTaskBuild {
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
+    @Resource(name = "chatMessageVectorStore")
+    private VectorStore chatMessageVectorStore;
+
+    /**
+     * 同步消息到Milvus
+     */
+    public boolean syncMessagesToMilvus(String sessionId, Integer syncType) {
+        try {
+            List<ChatMessage> chatMessages = selectMessagesBySyncType(sessionId, syncType);
+            log.info("【异步同步】同步类型: {}, sessionId: {}, 消息数量: {}", MessageTaskSyncTypeEnum.getText(syncType), sessionId, chatMessages.size());
+
+            if (CollUtil.isEmpty(chatMessages)) {
+                log.info("【异步同步】没有需要同步的消息，sessionId: {}", sessionId);
+                return true;
+            }
+
+            List<Document> documents = buildDocument(chatMessages);
+            if (CollUtil.isEmpty(documents)) {
+                log.warn("【异步同步】没有有效的文档需要同步，sessionId: {}", sessionId);
+                return true;
+            }
+            chatMessageVectorStore.add(documents);
+            return true;
+        } catch (Exception e) {
+            log.error("【异步同步】同步消息到Milvus失败，sessionId: {}", sessionId, e);
+            return false;
+        }
+    }
 
     /**
      * 创建同步任务
@@ -38,6 +76,16 @@ public class MessageSyncTaskBuild {
     }
 
     /**
+     * 根据同步类型选择消息
+     */
+    public List<ChatMessage> selectMessagesBySyncType(String sessionId, Integer syncType) {
+        if (INCREMENTAL.getId().equals(syncType)) {
+            return chatMessageService.selectUnsyncedMessages(sessionId);
+        }
+        return chatMessageService.selectAllValidMessages(sessionId);
+    }
+
+    /**
      * 构建文档列表
      */
     public List<Document> buildDocument(List<ChatMessage> messages) {
@@ -50,16 +98,6 @@ public class MessageSyncTaskBuild {
             }
         }
         return documents;
-    }
-
-    /**
-     * 确定最后的消息ID
-     */
-    private Long determineLastMessageId(ChatMessage userMessage, ChatMessage aiMessage) {
-        if (aiMessage != null) {
-            return aiMessage.getId();
-        }
-        return userMessage != null ? userMessage.getId() : null;
     }
 
     /**
@@ -120,6 +158,16 @@ public class MessageSyncTaskBuild {
         }
 
         return metadata;
+    }
+
+    /**
+     * 确定最后的消息ID
+     */
+    private Long determineLastMessageId(ChatMessage userMessage, ChatMessage aiMessage) {
+        if (aiMessage != null) {
+            return aiMessage.getId();
+        }
+        return userMessage != null ? userMessage.getId() : null;
     }
 
 }

@@ -1,8 +1,7 @@
-package cn.example.base.demo.config;
+package cn.example.base.demo.config.graph;
 
 import cn.example.base.demo.build.GraphBuild;
 import cn.example.base.demo.factory.DocumentReviewFactory;
-import cn.example.base.demo.node.customer.*;
 import cn.example.base.demo.node.customer.*;
 import com.alibaba.cloud.ai.graph.CompileConfig;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
@@ -46,7 +45,6 @@ public class CustomerServiceGraphConfig {
         log.info("=== Customer Service Graph ===");
         log.info(representation.content());
         log.info("========================================================\n");
-
         return representation;
     }
 
@@ -81,7 +79,6 @@ public class CustomerServiceGraphConfig {
         log.info("     - {} -> {} -> {}", KNOWLEDGE_RETRIEVAL.getId(), KNOWLEDGE_RETRIEVAL.getText(), RESPONSE_GENERATION.getText());
         log.info("  4. {} -> {}", RESPONSE_GENERATION.getText(), StateGraph.END);
         log.info("{}\n", "=".repeat(80));
-
         return stateGraph.compile(compileConfig);
     }
 

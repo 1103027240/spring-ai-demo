@@ -56,17 +56,17 @@ public class CustomerServiceWorkflowServiceImpl implements CustomerServiceWorkfl
     @Autowired
     private MessageSyncTaskService messageSyncTaskService;
 
-    @Autowired
-    private CustomerServiceStateBuild customerServiceStateBuild;
-
-    @Autowired
-    private WorkflowExecutionBuild workflowExecutionBuild;
-
     @Resource(name = "chatMessageVectorStore")
     private VectorStore chatMessageVectorStore;
 
     @Autowired
     private GraphCheckPointService graphCheckPointService;
+
+    @Autowired
+    private CustomerServiceStateBuild customerServiceStateBuild;
+
+    @Autowired
+    private WorkflowExecutionBuild workflowExecutionBuild;
 
     /**
      * 生产环境加分布式锁处理
