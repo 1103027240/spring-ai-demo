@@ -1,5 +1,5 @@
-# 构建阶段 - OpenJDK 21
-FROM maven:3.9-openjdk-21-slim AS builder
+# 构建阶段 - Eclipse Temurin JDK 21
+FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /build
 
@@ -9,8 +9,8 @@ COPY . .
 # 只构建 base-demo 模块
 RUN mvn clean package -B -pl base-demo -am -DskipTests
 
-# 运行阶段 - OpenJDK 21
-FROM openjdk:21-slim
+# 运行阶段 - Eclipse Temurin JRE 21
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
