@@ -2,9 +2,12 @@ package cn.example.base.demo.build;
 
 import cn.example.base.demo.param.dto.CustomerServiceStateDto;
 import cn.example.base.demo.param.dto.WorkflowDto;
+import cn.hutool.core.util.StrUtil;
 import org.springframework.stereotype.Component;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import static cn.example.base.demo.constant.FieldConstant.*;
 import static cn.example.base.demo.constant.FieldConstant.AFTER_SALES_RESULT;
 import static cn.example.base.demo.constant.FieldConstant.ORDER_RESULTS;
@@ -48,15 +51,24 @@ public class CustomerServiceStateBuild {
      * 从输出中提取AI回复
      */
     private String extractAiResponse(Map<String, Object> output) {
-        for (String key : AI_RESPONSE_KEYS) {
-            if (output.containsKey(key)) {
-                Object aiResponseObj = output.get(key);
-                if (aiResponseObj != null) {
-                    return aiResponseObj.toString();
-                }
-            }
+        String aiResponse = Arrays.stream(AI_RESPONSE_KEYS)
+                .map(e -> {
+                    Object aiResponseObj = output.get(e);
+                    if (aiResponseObj != null) {
+                        return aiResponseObj.toString();
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+
+        if (StrUtil.isNotBlank(aiResponse)) {
+            return aiResponse;
         }
+
         return DEFAULT_CUSTOMER_AI_RESPONSE;
+
     }
 
 }
