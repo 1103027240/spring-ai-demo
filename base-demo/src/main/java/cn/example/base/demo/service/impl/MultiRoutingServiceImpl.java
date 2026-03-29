@@ -45,7 +45,8 @@ public class MultiRoutingServiceImpl implements MultiRoutingService {
 
         try {
             // 调用大模型
-            OverAllState state = codeSearchRoutingAgent.invoke(message).orElse(null);
+            Map<String, Object> inputs = Map.of(QUERY, message);
+            OverAllState state = codeSearchRoutingAgent.invoke(inputs).orElse(null);
             Object mergedResult = state.value(RoutingMergeNode.DEFAULT_MERGED_OUTPUT_KEY).orElse(null);
 
             // 封装返回结果
