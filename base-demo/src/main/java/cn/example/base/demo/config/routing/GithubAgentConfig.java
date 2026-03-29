@@ -34,7 +34,7 @@ public class GithubAgentConfig {
                 .name("GitHub搜索代理")
                 .description("专门搜索GitHub开源项目的代理")
                 .instruction("""
-                        用户输入：{github_input}
+                        用户输入：{query}
                         """)
                 .includeContents(true)
                 .returnReasoningContents(false)
