@@ -33,6 +33,9 @@ public class GithubAgentConfig {
         return AgentScopeAgent.fromBuilder(reactBuilder)
                 .name("GitHub搜索代理")
                 .description("专门搜索GitHub开源项目的代理")
+                .instruction("""
+                        响应下面请求：{github_input}
+                        """)
                 .includeContents(true)
                 .returnReasoningContents(false)
                 .outputKey("github_result")

@@ -33,6 +33,9 @@ public class CSDNAgentConfig {
         return AgentScopeAgent.fromBuilder(reactBuilder)
                 .name("CSDN搜索代理")
                 .description("专门搜索CSDN技术文章的代理")
+                .instruction("""
+                        响应下面请求：{csdn_input}
+                        """)
                 .includeContents(true)
                 .returnReasoningContents(false)
                 .outputKey("csdn_result")

@@ -6,6 +6,7 @@ import cn.example.base.demo.service.MultiRoutingService;
 import com.alibaba.cloud.ai.agent.agentscope.flow.AgentScopeRoutingAgent;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
+import com.alibaba.cloud.ai.graph.agent.flow.node.RoutingMergeNode;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
 import io.agentscope.core.studio.StudioManager;
 import jakarta.annotation.Resource;
@@ -45,7 +46,7 @@ public class MultiRoutingServiceImpl implements MultiRoutingService {
         try {
             // 调用大模型
             OverAllState state = codeSearchRoutingAgent.invoke(message).orElse(null);
-            Object mergedResult = state.value(MERGED_RESULT).orElse(null);
+            Object mergedResult = state.value(RoutingMergeNode.DEFAULT_MERGED_OUTPUT_KEY).orElse(null);
 
             // 封装返回结果
             String result;

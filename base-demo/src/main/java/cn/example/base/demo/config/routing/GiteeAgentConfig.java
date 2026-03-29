@@ -33,6 +33,9 @@ public class GiteeAgentConfig {
         return AgentScopeAgent.fromBuilder(reactBuilder)
                 .name("Gitee搜索代理")
                 .description("专门搜索Gitee开源项目的代理")
+                .instruction("""
+                        响应下面请求：{gitee_input}
+                        """)
                 .includeContents(true)
                 .returnReasoningContents(false)
                 .outputKey("gitee_result")

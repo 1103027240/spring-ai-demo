@@ -191,6 +191,16 @@ public class FieldConstant {
 
     public static final String DATA_SUMMARY = "dataSummary";
 
-    public static final String MERGED_RESULT = "merged_result";
+    public static final String GITHUB_RESULT = "github_result";
+
+    public static final String GITEE_RESULT = "gitee_result";
+
+    public static final String CSDN_RESULT = "csdn_result";
+
+    public static final String GITHUB_INPUT = "github_input";
+
+    public static final String GITEE_INPUT = "gitee_input";
+
+    public static final String CSDN_INPUT = "csdn_input";
 
 }
