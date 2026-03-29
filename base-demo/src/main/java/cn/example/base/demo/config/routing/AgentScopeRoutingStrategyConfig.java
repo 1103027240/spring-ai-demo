@@ -17,6 +17,7 @@ public class AgentScopeRoutingStrategyConfig {
     @PostConstruct
     public void registerAgentScopeRoutingStrategy() {
         log.info("【AgentScopeRoutingStrategyConfig】开始手动注册AGENT_SCOPE_ROUTING策略...");
+
         try {
             FlowGraphBuildingStrategyRegistry registry = FlowGraphBuildingStrategyRegistry.getInstance();
 

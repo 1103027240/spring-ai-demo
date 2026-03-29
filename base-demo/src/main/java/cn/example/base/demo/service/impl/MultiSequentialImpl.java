@@ -1,20 +1,22 @@
 package cn.example.base.demo.service.impl;
 
+import cn.example.base.demo.build.StudioBuild;
 import cn.example.base.demo.service.MultiSequentialService;
 import cn.example.base.demo.service.ReturnProcessSequentialService;
 import cn.hutool.core.util.StrUtil;
-import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
 import io.agentscope.core.message.TextBlock;
 import io.agentscope.core.model.Model;
 import io.agentscope.core.studio.StudioManager;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class MultiSequentialImpl implements MultiSequentialService {
 
@@ -24,17 +26,16 @@ public class MultiSequentialImpl implements MultiSequentialService {
     @Autowired
     private ReturnProcessSequentialService returnProcessSequentialService;
 
+    @Autowired
+    private StudioBuild studioBuild;
+
     @Override
     public Map<String, Object> doChat(String message) {
-        StudioManager.init()
-                .studioUrl("http://localhost:3000")
-                .project("顺序多智能体")
-                .runName("run_" + System.currentTimeMillis())
-                .initialize()
-                .block();
-
         String orderId = "";
+
         try {
+            studioBuild.initStudio("顺序多智能体");
+
             // 1、调用大模型提取订单号
             orderId = extractOrderId(message);
             if(StrUtil.isBlank(orderId)){
@@ -43,7 +44,8 @@ public class MultiSequentialImpl implements MultiSequentialService {
 
             // 2、调用顺序退货流程处理智能体
             return returnProcessSequentialService.runSequential(orderId);
-        } catch (GraphRunnerException e) {
+        } catch (Exception e) {
+            log.error("【顺序多智能体】执行失败", e);
             return Map.of("status", "error", "orderId", orderId, "msg", e.getMessage());
         } finally {
             StudioManager.shutdown();

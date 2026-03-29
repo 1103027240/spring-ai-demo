@@ -1,15 +1,19 @@
 package cn.example.base.demo.build;
 
 import cn.hutool.core.collection.CollUtil;
+import com.alibaba.cloud.ai.graph.OverAllState;
 import io.agentscope.core.message.Msg;
 import io.agentscope.core.message.MsgRole;
 import io.agentscope.core.message.TextBlock;
 import io.agentscope.core.model.ChatResponse;
 import io.agentscope.core.model.Model;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -17,6 +21,23 @@ public class CodeSearchRoutingBuild {
 
     @Resource(name = "qwenAgentChatModel")
     private Model qwenAgentChatModel;
+
+    @Autowired
+    private MultiAgentBuild multiAgentBuild;
+
+    public String extractText(Object mergedResult, String message, OverAllState state){
+        if (mergedResult != null) {
+            return multiAgentBuild.extractText(mergedResult);
+        }
+
+        List<String> resultTexts = Arrays.asList("github_result", "gitee_result", "csdn_result").stream()
+                .map(e -> state.value(e, null))
+                .filter(Objects::nonNull)
+                .map(e -> multiAgentBuild.extractText(e))
+                .collect(Collectors.toList());
+
+        return synthesize(message, resultTexts);
+    }
 
     public String synthesize(String query, List<String> agentResults) {
         if (CollUtil.isEmpty(agentResults)) {

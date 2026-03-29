@@ -1,5 +1,6 @@
 package cn.example.base.demo.service.impl;
 
+import cn.example.base.demo.build.StudioBuild;
 import cn.example.base.demo.build.WorkflowBuild;
 import cn.example.base.demo.service.MultiSqlQueryWorkflowService;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
@@ -8,6 +9,7 @@ import com.alibaba.cloud.ai.graph.RunnableConfig;
 import io.agentscope.core.studio.StudioManager;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,16 +23,13 @@ public class MultiSqlQueryWorkflowServiceImpl implements MultiSqlQueryWorkflowSe
     @Resource(name = "sqlQueryGraph")
     private CompiledGraph sqlQueryGraph;
 
+    @Autowired
+    private StudioBuild studioBuild;
+
     @Override
     public Map<String, Object> executeWorkflow(String message) {
-
         try {
-            StudioManager.init()
-                    .studioUrl("http://localhost:3000")
-                    .project("数据查询多智能体")
-                    .runName("run_" + System.currentTimeMillis())
-                    .initialize()
-                    .block();
+            studioBuild.initStudio("数据查询多智能体");
 
             Map<String, Object> initialState = new HashMap<>();
             String workflowId = WorkflowBuild.generateWorkflowId();
@@ -46,8 +45,8 @@ public class MultiSqlQueryWorkflowServiceImpl implements MultiSqlQueryWorkflowSe
                     .orElse(null);
 
             return Map.of(SUCCESS, true, FINAL_RESULT, response.get(FINAL_RESULT));
-        } catch (RuntimeException e) {
-            log.error("数据查询流程执行失败", e);
+        } catch (Exception e) {
+            log.error("【数据查询多智能体】执行失败", e);
             return Map.of(SUCCESS, false, MESSAGE, e.getMessage());
         } finally {
             StudioManager.shutdown();
