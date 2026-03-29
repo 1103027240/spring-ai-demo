@@ -68,7 +68,9 @@ public class MultiRoutingServiceImpl implements MultiRoutingService {
     public Map<String, Object> doChatGraph(String message) {
         Map<String, Object> inputs = Map.of(QUERY, message);
         OverAllState overAllState = codeSearchGraph.invoke(inputs).orElse(null);
-        return Map.of(SUCCESS, true, DATA, overAllState.value(FINAL_RESULT));
+
+        Object value = overAllState.value(FINAL_RESULT).orElse(null);
+        return Map.of(SUCCESS, true, DATA, multiAgentBuild.extractText(value));
     }
 
     public String synthesize(String query, OverAllState overAllState) {

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class GiteeTools {
 
     @Tool(name = "searchGitee", description = "在Gitee（码云）上搜索中文开源项目和代码")
-    public String searchGitee(@ToolParam(name = "query", description = "用户搜索查询内容") String query) {
+    public String searchGitee(@ToolParam(name = "query", description = "Gitee搜索代理") String query) {
 
         return """
                ## Gitee 搜索结果

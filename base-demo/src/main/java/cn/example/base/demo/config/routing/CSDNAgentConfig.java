@@ -15,7 +15,7 @@ public class CSDNAgentConfig {
     private static final String CSDN_AGENT_PROMPT =
             """
             你是一个专业的CSDN搜索助手，专门帮助用户查找技术文章、博客和教程。
-            当用户需要学习资料、技术文档或解决方案时，使用search_csdn工具搜索。
+            当用户需要学习资料、技术文档或解决方案时，使用searchCSDN工具搜索。
             注意：CSDN主要包含中文技术博客和文章，适合学习和技术问题解答。
             """;
 

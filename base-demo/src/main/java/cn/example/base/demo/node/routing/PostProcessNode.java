@@ -14,7 +14,7 @@ public class PostProcessNode implements NodeAction {
 
     @Override
     public Map<String, Object> apply(OverAllState state) throws Exception {
-        String result = state.value(RoutingMergeNode.DEFAULT_MERGED_OUTPUT_KEY, "");
+        String result = state.value(RoutingMergeNode.DEFAULT_MERGED_OUTPUT_KEY, String.class).orElse("");
         return Map.of(FINAL_RESULT, result);
     }
 

@@ -20,7 +20,7 @@ public class CodeSearchRoutingConfig {
         return AgentScopeRoutingAgent.builder()
                 .name("代码智能搜索代理")
                 .model(qwenAgentChatModel)
-                .description("根据查询内容智能路由到GitHub、Gitee、CSDN搜索代理，可同时调用一个或多个子代理")
+                .description("根据查询内容智能路由到GitHub、Gitee、CSDN搜索代理，可同时调用多个子代理")
                 .systemPrompt(
                     """
                     你是一个智能路由代理，负责分析用户查询并决定调用哪些搜索代理。

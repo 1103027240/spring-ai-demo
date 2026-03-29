@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class GitHubTools {
 
     @Tool(name = "searchGitHub", description = "在GitHub上搜索代码仓库、开源项目和代码片段")
-    public String searchGitHub(@ToolParam(name = "query", description = "用户搜索查询内容") String query) {
+    public String searchGitHub(@ToolParam(name = "query", description = "GitHub搜索代理") String query) {
 
         return """
                ## GitHub 搜索结果

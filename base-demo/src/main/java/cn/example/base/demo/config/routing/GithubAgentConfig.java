@@ -15,7 +15,7 @@ public class GithubAgentConfig {
     private static final String GITHUB_AGENT_PROMPT =
             """
             你是一个专业的GitHub搜索助手，专门帮助用户在GitHub上查找开源代码、项目和仓库。
-            当用户提出技术问题或需要代码示例时，使用search_github工具搜索相关资源。
+            当用户提出技术问题或需要代码示例时，使用searchGitHub工具搜索相关资源。
             注意：GitHub主要包含国际开源项目，搜索结果以英文内容为主。
             """;
 

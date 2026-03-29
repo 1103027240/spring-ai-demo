@@ -8,9 +8,8 @@ import org.springframework.stereotype.Component;
 public class CSDNTools {
 
     @Tool(name = "searchCSDN", description = "在CSDN上搜索技术文章、博客和教程")
-    public String searchCSDN(@ToolParam(name = "query", description = "用户搜索查询内容") String query) {
+    public String searchCSDN(@ToolParam(name = "query", description = "CSDN搜索代理") String query) {
 
-        // 模拟真实CSDN搜索结果
         return """
                ## CSDN 搜索结果
                
