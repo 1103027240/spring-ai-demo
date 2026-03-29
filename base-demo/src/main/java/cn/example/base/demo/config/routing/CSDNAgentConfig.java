@@ -28,6 +28,7 @@ public class CSDNAgentConfig {
                 .name("CSDN搜索代理")
                 .model(qwenAgentChatModel)
                 .sysPrompt(CSDN_AGENT_PROMPT)
+                .maxIters(1)  // 限制迭代次数
                 .toolkit(toolkit);
 
         return AgentScopeAgent.fromBuilder(reactBuilder)
@@ -36,8 +37,7 @@ public class CSDNAgentConfig {
                 .instruction("""
                         用户输入：{query}
                         """)
-                .includeContents(true)
-                .returnReasoningContents(false)
+                .includeContents(false)
                 .outputKey("csdn_result")
                 .build();
     }

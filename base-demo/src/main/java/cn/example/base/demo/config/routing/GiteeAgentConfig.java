@@ -28,6 +28,7 @@ public class GiteeAgentConfig {
                 .name("Gitee搜索代理")
                 .model(qwenAgentChatModel)
                 .sysPrompt(GITEE_AGENT_PROMPT)
+                .maxIters(1)  // 限制迭代次数
                 .toolkit(toolkit);
 
         return AgentScopeAgent.fromBuilder(reactBuilder)
@@ -36,8 +37,7 @@ public class GiteeAgentConfig {
                 .instruction("""
                         用户输入：{query}
                         """)
-                .includeContents(true)
-                .returnReasoningContents(false)
+                .includeContents(false)
                 .outputKey("gitee_result")
                 .build();
     }

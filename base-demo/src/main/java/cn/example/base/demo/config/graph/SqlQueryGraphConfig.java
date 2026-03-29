@@ -61,7 +61,7 @@ public class SqlQueryGraphConfig {
         graph.addNode(EXECUTE_SQL_NODE.getText(), node_async(executeSqlNode));
 
         // 5、数据分析节点
-        graph.addNode(ANALYSIS_NODE.getText(), sqlResultAnalysisAgent.asNode(true, false));
+        graph.addNode(ANALYSIS_NODE.getText(), sqlResultAnalysisAgent.asNode(false, false));
 
         // 6、查询结果生成节点
         graph.addNode(QUERY_RESULT_GENERATE.getText(), node_async(sqlResultGenerateNode));

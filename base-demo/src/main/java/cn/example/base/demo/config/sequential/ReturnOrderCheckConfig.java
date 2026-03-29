@@ -43,7 +43,7 @@ public class ReturnOrderCheckConfig {
         return AgentScopeAgent.fromBuilder(builder)
                 .name("订单验证智能体")
                 .description("校验订单是否存在且状态为Shipped")
-                .includeContents(false)  //是否将状态数据OverAllState传入提示词（默认是true），如果只要instruction，设为false
+                .includeContents(false)  //默认true，表示将上下文消息（Msg）也传入提示词；设为false，只有instrction参数；不管是true/false，都能从state获取数据
                 .instruction("""
                         订单ID：{orderId} 
                         订单状态：{status}
