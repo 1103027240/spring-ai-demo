@@ -7,6 +7,7 @@ import com.alibaba.cloud.ai.agent.agentscope.flow.AgentScopeRoutingAgent;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
+import io.agentscope.core.studio.StudioManager;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,13 @@ public class MultiRoutingServiceImpl implements MultiRoutingService {
 
     @Override
     public Map<String, Object> doChatSimple(String message) {
+        StudioManager.init()
+                .studioUrl("http://localhost:3000")
+                .project("代码搜索多智能体")
+                .runName("run_" + System.currentTimeMillis())
+                .initialize()
+                .block();
+
         try {
             // 调用大模型
             OverAllState state = codeSearchRoutingAgent.invoke(message).orElse(null);

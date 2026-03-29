@@ -2,6 +2,7 @@ package cn.example.base.demo.config.routing;
 
 import com.alibaba.cloud.ai.agent.agentscope.AgentScopeAgent;
 import com.alibaba.cloud.ai.agent.agentscope.flow.AgentScopeRoutingAgent;
+import io.agentscope.core.model.Model;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -14,10 +15,11 @@ public class CodeSearchRoutingConfig {
     public AgentScopeRoutingAgent codeSearchRoutingAgent (
             @Qualifier("githubAgent") AgentScopeAgent githubAgent,
             @Qualifier("giteeAgent") AgentScopeAgent giteeAgent,
-            @Qualifier("csdnAgent") AgentScopeAgent csdnAgent) {
-
+            @Qualifier("csdnAgent") AgentScopeAgent csdnAgent,
+            @Qualifier("qwenAgentChatModel") Model qwenAgentChatModel) {
         return AgentScopeRoutingAgent.builder()
                 .name("代码智能搜索代理")
+                .model(qwenAgentChatModel)
                 .description("根据查询内容智能路由到GitHub、Gitee、CSDN搜索代理，可同时调用一个或多个子代理")
                 .systemPrompt(
                     """
