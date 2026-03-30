@@ -33,6 +33,15 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- AgentScope Parent -->
+            <dependency>
+                <groupId>io.agentscope</groupId>
+                <artifactId>agentscope-parent</artifactId>
+                <version>${agentscope.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- OpenTelemetry BOM -->
             <dependency>
                 <groupId>io.opentelemetry.instrumentation</groupId>
@@ -111,7 +120,6 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-transformers</artifactId>
-            <version>${spring-ai.version}</version>
         </dependency>
 
         <!-- AgentScope -->
@@ -268,6 +276,12 @@
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
             <version>${knife4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>RELEASE</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
