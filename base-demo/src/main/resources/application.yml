@@ -66,9 +66,9 @@ spring:
       base-url: https://dashscope.aliyuncs.com
 #      chat:
 #        options:
-#          model: qwen-max
+#          model: qwen-plus
       qwen:
-        model: qwen-max
+        model: qwen-plus
       deepseek:
         model: deepseek-v3
       # 向量化模型配置

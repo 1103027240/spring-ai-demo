@@ -21,7 +21,7 @@ public class SaaLLMConfig {
     @Value("${spring.ai.dashscope.api-key}")
     private String apiKey;
 
-    @Value("${spring.ai.dashscope.qwen.model:qwen-max}")
+    @Value("${spring.ai.dashscope.qwen.model:qwen-plus}")
     private String qwenModel;
 
     @Value("${spring.ai.dashscope.deepseek.model:deepseek-chat}")

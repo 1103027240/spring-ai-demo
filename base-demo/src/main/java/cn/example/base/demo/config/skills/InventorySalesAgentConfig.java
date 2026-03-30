@@ -75,7 +75,7 @@ public class InventorySalesAgentConfig {
                 .sysPrompt(SQL_PROMPT)
                 .toolkit(toolkit)
                 .skillBox(skillBox)
-                .maxIters(1)
+                .maxIters(2)
                 .build();
     }
 
@@ -87,7 +87,7 @@ public class InventorySalesAgentConfig {
                 .sysPrompt(INVENTORY_PROMPT)
                 .toolkit(toolkit)
                 .skillBox(skillBox)
-                .maxIters(1)
+                .maxIters(2)
                 .build();
     }
 
@@ -99,7 +99,7 @@ public class InventorySalesAgentConfig {
                 .sysPrompt(SALES_PROMPT)
                 .toolkit(toolkit)
                 .skillBox(skillBox)
-                .maxIters(1)
+                .maxIters(2)
                 .build();
     }
 
