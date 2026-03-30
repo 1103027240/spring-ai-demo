@@ -74,7 +74,8 @@ INNER JOIN order_items oi ON o.order_id = oi.order_id
 WHERE o.order_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
     AND o.status = 'delivered'
 GROUP BY DATE_FORMAT(o.order_date, '%Y-%m')
-ORDER BY sales_month DESC;
+ORDER BY sales_month DESC
+limit 10;
 
 ### 2.产品销售排行榜
 sql
@@ -94,7 +95,7 @@ WHERE o.order_date >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
     AND o.status = 'delivered'
 GROUP BY p.product_id, p.product_name, p.category
 ORDER BY total_revenue DESC
-LIMIT 20;
+limit 10;
 
 ### 3.客户价值分析 (RFM模型)
 sql
@@ -139,7 +140,8 @@ SELECT
         ELSE '潜在客户'
     END as monetary_segment
 FROM customer_rfm
-ORDER BY monetary DESC;
+ORDER BY monetary DESC
+limit 10;
 
 ### 4.销售趋势分析
 sql
@@ -161,7 +163,8 @@ SELECT
     AVG(daily_revenue) OVER (ORDER BY order_date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) as weekly_avg_revenue,
     AVG(daily_orders) OVER (ORDER BY order_date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) as weekly_avg_orders
 FROM daily_sales
-ORDER BY order_date DESC;
+ORDER BY order_date DESC
+limit 10;
 
 ### 5.客户购买行为分析
 sql
@@ -184,7 +187,8 @@ LEFT JOIN orders o ON c.customer_id = o.customer_id
 WHERE o.status = 'delivered'
 GROUP BY c.customer_id, c.customer_name, c.customer_tier
 HAVING total_orders > 0
-ORDER BY total_spent DESC;
+ORDER BY total_spent DESC
+limit 10;
 
 ## 示例数据查询
 
@@ -201,7 +205,7 @@ SELECT
 FROM orders o
 JOIN customers c ON o.customer_id = c.customer_id
 ORDER BY o.order_date DESC
-LIMIT 50;
+limit 10;
 
 ### 2.查询订单详情
 sql
@@ -218,7 +222,8 @@ INNER JOIN orders o ON oi.order_id = o.order_id
 INNER JOIN products p ON oi.product_id = p.product_id
 INNER JOIN customers c ON o.customer_id = c.customer_id
 WHERE o.order_id = ?
-ORDER BY oi.item_id;
+ORDER BY oi.item_id
+limit 10;
 
 ### 3.查询客户订单历史
 sql
@@ -231,7 +236,8 @@ SELECT
     o.payment_method
 FROM orders o
 WHERE o.customer_id = ?
-ORDER BY o.order_date DESC;
+ORDER BY o.order_date DESC
+limit 10;
 
 ### 4.查询产品销售历史
 sql
@@ -247,7 +253,8 @@ INNER JOIN orders o ON oi.order_id = o.order_id
 INNER JOIN customers c ON o.customer_id = c.customer_id
 INNER JOIN products p ON oi.product_id = p.product_id
 WHERE p.product_id = ?
-ORDER BY o.order_date DESC;
+ORDER BY o.order_date DESC
+limit 10;
 
 ## 高级分析查询
 
@@ -290,7 +297,8 @@ SELECT
 FROM retention_data rd
 INNER JOIN cohort_sizes cs ON rd.cohort_month = cs.cohort_month
 WHERE rd.months_since_first <= 6
-ORDER BY rd.cohort_month DESC, rd.months_since_first;
+ORDER BY rd.cohort_month DESC, rd.months_since_first
+limit 10;
 
 ### 2.交叉销售分析
 sql
@@ -314,7 +322,7 @@ FROM product_pairs pp
 INNER JOIN products p1 ON pp.product_a = p1.product_id
 INNER JOIN products p2 ON pp.product_b = p2.product_id
 ORDER BY pp.times_bought_together DESC
-LIMIT 20;
+limit 10;
 
 ### 3.购物车分析
 sql
@@ -334,20 +342,13 @@ FROM
     WHERE o.order_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
         AND o.status = 'delivered'
     GROUP BY oi.order_id
-) as order_stats;
+) as order_stats
+limit 10;
 
 ## 使用方法
 1. 确保数据库连接配置正确
-2. 在ReActAgent中使用`load_skill_through_path`工具加载此技能
-3. 使用技能ID: `sales_analysis_mysql_agentscope_agentscope_skills`
-4. 调用技能中的查询方法进行销售分析
+2. 使用技能ID: `sales_analysis_classpath-skills`
+3. 调用技能中的查询方法进行销售分析
 
 ## 工具说明
 此技能不包含建表或数据修改功能，只提供查询和分析功能。所有查询均为只读操作，不会修改数据库数据。
-
-## 性能提示
-1. 建议为orders表创建索引：`CREATE INDEX idx_orders_order_date ON orders(order_date);`
-2. 建议为orders表创建索引：`CREATE INDEX idx_orders_customer_id ON orders(customer_id);`
-3. 建议为order_items表创建索引：`CREATE INDEX idx_order_items_order_id ON order_items(order_id);`
-4. 建议定期归档历史数据以提高查询性能
-5. 对于大数据量查询，建议使用分页查询

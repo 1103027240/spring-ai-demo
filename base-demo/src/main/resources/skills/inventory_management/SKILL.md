@@ -77,7 +77,8 @@ SELECT
 FROM products p
 LEFT JOIN inventory i ON p.product_id = i.product_id
 GROUP BY p.product_id, p.product_name, p.category, p.unit_price, p.reorder_level
-ORDER BY inventory_status, total_quantity ASC;
+ORDER BY inventory_status, total_quantity ASC
+limit 10;
 
 ### 2.查询需要补货的产品
 sql
@@ -94,7 +95,8 @@ FROM products p
 LEFT JOIN inventory i ON p.product_id = i.product_id
 GROUP BY p.product_id, p.product_name, p.category, p.unit_price, p.reorder_level
 HAVING COALESCE(SUM(i.quantity), 0) <= p.reorder_level
-ORDER BY reorder_quantity DESC;
+ORDER BY reorder_quantity DESC
+limit 10;
 
 ### 3.月度库存变动报表
 sql
@@ -129,7 +131,8 @@ FROM
     WHERE so.shipped_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
 ) as movements
 GROUP BY DATE_FORMAT(date, '%Y-%m'), product_name, category
-ORDER BY month DESC, net_change DESC;
+ORDER BY month DESC, net_change DESC
+limit 10;
 
 ### 4.库存周转率分析
 sql
@@ -149,7 +152,8 @@ LEFT JOIN inventory i ON p.product_id = i.product_id
 LEFT JOIN stock_out so ON p.product_id = so.product_id
 AND so.shipped_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
 GROUP BY p.product_id, p.product_name, p.category
-ORDER BY turnover_ratio DESC;
+ORDER BY turnover_ratio DESC
+limit 10;
 
 ### 5.仓库库存分布查询
 sql
@@ -163,14 +167,18 @@ SELECT
     i.quantity * p.unit_price as inventory_value
 FROM inventory i
 JOIN products p ON i.product_id = p.product_id
-ORDER BY i.warehouse_id, inventory_value DESC;
+ORDER BY i.warehouse_id, inventory_value DESC
+limit 10;
 
 ## 示例数据查询
 
 ### 1.查询所有产品
 sql
 
-SELECT * FROM products ORDER BY product_name;
+SELECT * 
+FROM products 
+ORDER BY product_name 
+limit 10;
 
 ### 2.查询产品库存详情
 sql
@@ -185,7 +193,8 @@ SELECT
     i.last_updated
 FROM products p
 LEFT JOIN inventory i ON p.product_id = i.product_id
-WHERE p.product_id = ?;
+WHERE p.product_id = ?
+limit 10;
 
 ### 3.查询入库记录
 sql
@@ -201,7 +210,7 @@ SELECT
 FROM stock_in si
 INNER JOIN products p ON si.product_id = p.product_id
 ORDER BY si.received_date DESC
-LIMIT 50;
+limit 10;
 
 ### 4.查询出库记录
 sql
@@ -217,7 +226,7 @@ SELECT
 FROM stock_out so
 INNER JOIN products p ON so.product_id = p.product_id
 ORDER BY so.shipped_date DESC
-LIMIT 50;
+limit 10;
 
 ## 高级分析查询
 
@@ -259,7 +268,8 @@ SELECT
         ELSE 'C类'
     END as abc_class
 FROM cumulative
-ORDER BY total_value DESC;
+ORDER BY total_value DESC
+limit 10;
 
 ### 2.呆滞库存识别
 sql
@@ -277,22 +287,16 @@ LEFT JOIN stock_out so ON p.product_id = so.product_id
 WHERE so.shipped_date IS NOT NULL
 GROUP BY p.product_id, p.product_name, p.category
 HAVING DATEDIFF(CURDATE(), MAX(so.shipped_date)) > 90 AND COALESCE(SUM(i.quantity), 0) > 0
-ORDER BY days_since_last_sale DESC;
+ORDER BY days_since_last_sale DESC
+limit 10;
 
 ## 使用方法
 1. 确保数据库连接配置正确
-2. 在ReActAgent中使用`load_skill_through_path`工具加载此技能
-3. 使用技能ID: `inventory_management_classpath-skills`
-4. 调用技能中的查询方法进行库存分析
+2. 使用技能ID: `inventory_management_classpath-skills`
+3. 调用技能中的查询方法进行库存分析
 
 ## 工具说明
 此技能不包含建表或数据修改功能，只提供查询和分析功能。所有查询均为只读操作，不会修改数据库数据。
-
-## 性能提示
-1. 建议为products表创建索引：`CREATE INDEX idx_products_category ON products(category);`
-2. 建议为inventory表创建索引：`CREATE INDEX idx_inventory_product_id ON inventory(product_id);`
-3. 建议为stock_in和stock_out表创建日期索引
-4. 定期清理历史数据以提高查询性能
 
 
 

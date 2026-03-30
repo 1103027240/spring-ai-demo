@@ -1,11 +1,13 @@
 package cn.example.base.demo.config.skills;
 
+import cn.example.base.demo.tools.SqlQueryTools;
 import com.alibaba.fastjson.JSONObject;
 import io.agentscope.core.skill.AgentSkill;
 import io.agentscope.core.skill.SkillBox;
 import io.agentscope.core.skill.repository.ClasspathSkillRepository;
 import io.agentscope.core.tool.Toolkit;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import java.io.IOException;
@@ -14,6 +16,9 @@ import java.util.List;
 @Slf4j
 @Configuration
 public class AgentSkillConfig {
+
+    @Autowired
+    private SqlQueryTools sqlQueryTools;
 
     @Bean
     public ClasspathSkillRepository classpathSkillRepository() throws IOException {
@@ -24,8 +29,9 @@ public class AgentSkillConfig {
     }
 
     @Bean
-    public Toolkit toolkit() {
+    public Toolkit sqlQueryToolkit() {
         Toolkit toolkit = new Toolkit();
+        toolkit.registerTool(sqlQueryTools);
         return toolkit;
     }
 
