@@ -56,12 +56,17 @@ public class MultiSkillServiceImpl implements MultiSkillService {
         }
         
         // 2. 调用Agent
+        long start = System.currentTimeMillis();
+
         Msg msg = Msg.builder().content(TextBlock.builder().text(message).build()).build();
         String result = agent.call(msg).block().getTextContent();
+
+        long cost = System.currentTimeMillis() - start;
+        log.info("Agent调用耗时: {}ms, 结果长度: {}", cost, result.length());
         
         // 3. 写缓存
         redisTemplate.opsForValue().set(cacheKey, result, THREE_HUNDRED, TimeUnit.SECONDS);
-        return Map.of(DATA, result, "fromCache", false);
+        return Map.of(DATA, result, "fromCache", false, "costMs", cost);
     }
 
 }
