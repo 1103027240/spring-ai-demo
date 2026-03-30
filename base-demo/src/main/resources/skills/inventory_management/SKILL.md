@@ -221,7 +221,7 @@ LIMIT 50;
 
 ## 高级分析查询
 
-### 1. ABC库存分类分析
+### 1.ABC库存分类分析
 sql
 
 WITH inventory_value AS (
@@ -261,7 +261,7 @@ SELECT
 FROM cumulative
 ORDER BY total_value DESC;
 
-### 2. 呆滞库存识别
+### 2.呆滞库存识别
 sql
 
 SELECT

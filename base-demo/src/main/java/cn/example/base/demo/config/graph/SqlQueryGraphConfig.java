@@ -1,6 +1,6 @@
 package cn.example.base.demo.config.graph;
 
-import cn.example.base.demo.agent.SqlResultAnalysisAgent;
+import cn.example.base.demo.agent.SqlResultAnalysisAgentScopeAgent;
 import cn.example.base.demo.build.GraphBuild;
 import cn.example.base.demo.factory.SqlQueryFactory;
 import cn.example.base.demo.node.sql.*;
@@ -22,7 +22,7 @@ import static com.alibaba.cloud.ai.graph.action.AsyncNodeAction.node_async;
 public class SqlQueryGraphConfig {
 
     @Autowired
-    private SqlResultAnalysisAgent sqlResultAnalysisAgent;
+    private SqlResultAnalysisAgentScopeAgent sqlResultAnalysisAgentScopeAgent;
 
     @Autowired
     private GraphBuild graphBuild;
@@ -61,7 +61,7 @@ public class SqlQueryGraphConfig {
         graph.addNode(EXECUTE_SQL_NODE.getText(), node_async(executeSqlNode));
 
         // 5、数据分析节点
-        graph.addNode(ANALYSIS_NODE.getText(), sqlResultAnalysisAgent.asNode(false, false));
+        graph.addNode(ANALYSIS_NODE.getText(), sqlResultAnalysisAgentScopeAgent.asNode(false, false));
 
         // 6、查询结果生成节点
         graph.addNode(QUERY_RESULT_GENERATE.getText(), node_async(sqlResultGenerateNode));

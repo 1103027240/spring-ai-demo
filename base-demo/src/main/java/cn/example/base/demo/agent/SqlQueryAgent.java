@@ -24,13 +24,13 @@ public class SqlQueryAgent {
     private ReActAgent reactAgent;
 
     @Autowired
-    public SqlQueryAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel,
-                         @Qualifier("sqlQueryTools") SqlQueryTools sqlQueryTools) {
+    public SqlQueryAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel) {
         Toolkit toolkit = new Toolkit();
-        toolkit.registerTool(sqlQueryTools);
+        toolkit.registerTool(new SqlQueryTools());
 
         this.reactAgent = ReActAgent.builder()
                 .name("SQL查询智能体")
+                .model(qwenAgentChatModel)
                 .description("自然语言转SQL查询智能体")
                 .sysPrompt("""
                     你是一个专业的SQL查询智能体。你的职责是将用户的自然语言查询请求转换为准确的SQL查询语句。
@@ -61,7 +61,6 @@ public class SqlQueryAgent {
                         "error": "失败原因"
                     }
                     """)
-                .model(qwenAgentChatModel)
                 .toolkit(toolkit)
                 .maxIters(5)
                 .build();

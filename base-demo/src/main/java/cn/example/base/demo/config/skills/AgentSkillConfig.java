@@ -1,0 +1,51 @@
+package cn.example.base.demo.config.skills;
+
+import com.alibaba.fastjson.JSONObject;
+import io.agentscope.core.skill.AgentSkill;
+import io.agentscope.core.skill.SkillBox;
+import io.agentscope.core.skill.repository.ClasspathSkillRepository;
+import io.agentscope.core.tool.Toolkit;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import java.io.IOException;
+import java.util.List;
+
+@Slf4j
+@Configuration
+public class AgentSkillConfig {
+
+    @Bean
+    public ClasspathSkillRepository classpathSkillRepository() throws IOException {
+        ClasspathSkillRepository repository = new ClasspathSkillRepository("skills");
+        List<AgentSkill> allSkills = repository.getAllSkills();
+        allSkills.forEach(e -> log.info("classpathSkillRepository: {}", JSONObject.toJSONString(e)));
+        return repository;
+    }
+
+    @Bean
+    public Toolkit toolkit() {
+        Toolkit toolkit = new Toolkit();
+        return toolkit;
+    }
+
+    @Bean
+    public SkillBox skillBox(Toolkit toolkit, ClasspathSkillRepository classpathSkillRepository) {
+        SkillBox skillBox = new SkillBox(toolkit);
+
+        // 注册AgentSkill
+        classpathSkillRepository.getAllSkills().forEach(agentSkill -> skillBox.registration().skill(agentSkill).apply());
+
+        // 注册脚本、代码等
+        skillBox.codeExecution()
+                .workDir("./workdir")
+                .uploadDir("./workdir/skills")
+                .withRead()
+                .withWrite()
+                .withShell()
+                .enable();
+
+        return skillBox;
+    }
+
+}

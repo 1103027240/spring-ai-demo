@@ -13,7 +13,7 @@ import static cn.example.base.demo.enums.SqlQueryNodeEnum.ANALYSIS_NODE;
 
 @Slf4j
 @Component
-public class SqlResultAnalysisAgent {
+public class SqlResultAnalysisAgentScopeAgent {
 
     @Getter
     private AgentScopeAgent agentScopeAgent;
@@ -42,7 +42,7 @@ public class SqlResultAnalysisAgent {
           """;
 
     @Autowired
-    public SqlResultAnalysisAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel) {
+    public SqlResultAnalysisAgentScopeAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel) {
         ReActAgent.Builder builder = ReActAgent.builder()
                 .name(ANALYSIS_NODE.getText())  // 只能是节点名称
                 .model(qwenAgentChatModel)
