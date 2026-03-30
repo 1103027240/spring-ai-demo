@@ -14,10 +14,10 @@ import static cn.example.base.demo.enums.SqlQueryTypeEnum.PAYMENT_INFO;
 
 @Slf4j
 @Component
-public class DemoSqlQueryTools {
+public class NlToSqlDemoTools {
 
-    @Tool(name = "nlToSql", description = "将自然语言查询转SQL语句")
-    public Map<String, Object> nlToSql(@ToolParam(name = "naturalLanguageQuery", description = "自然语言查询") String naturalLanguageQuery) {
+    @Tool(name = "nlToSqlDemo", description = "将自然语言查询转SQL语句")
+    public Map<String, Object> nlToSqlDemo(@ToolParam(name = "naturalLanguageQuery", description = "自然语言查询") String naturalLanguageQuery) {
         Map<String, Object> result = new HashMap<>();
         String generatedSql;
         String queryType;

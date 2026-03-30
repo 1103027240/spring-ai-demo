@@ -61,7 +61,6 @@ public class MultiSkillServiceImpl implements MultiSkillService {
         
         // 3. 写缓存
         redisTemplate.opsForValue().set(cacheKey, result, THREE_HUNDRED, TimeUnit.SECONDS);
-
         return Map.of(DATA, result, "fromCache", false);
     }
 
