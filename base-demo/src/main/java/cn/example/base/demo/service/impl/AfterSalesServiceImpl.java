@@ -170,7 +170,7 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
      */
     private String generateServiceNumber(String prefix) {
         String dateStr = DateUtil.format(LocalDateTime.now(), PURE_DATE_PATTERN);
-        String randomNum = String.format("%0" + RANDOM_NUMBER_FORMAT_LENGTH + "d", random.nextInt(RANDOM_NUMBER_BOUND));
+        String randomNum = String.format("%0" + EIGHT + "d", random.nextInt(Integer.MAX_VALUE));
         return prefix + dateStr + randomNum;
     }
 

@@ -24,8 +24,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import static cn.example.base.demo.constant.FieldValueConstant.EXPORT_FILE_PREFIX;
-import static cn.example.base.demo.constant.RedisKeyConstant.REDIS_TASK_STATUS_PREFIX;
+import static cn.example.base.demo.constant.RedisKeyConstant.EXPORT_FILE_PREFIX;
+import static cn.example.base.demo.constant.RedisKeyConstant.EXPORT_TASK_PREFIX;
 import static cn.example.base.demo.enums.ExportTaskStatusEnum.INITIALIZED;
 import static cn.example.base.demo.enums.ExportTaskStatusEnum.PROCESSING;
 import static cn.hutool.core.date.DatePattern.PURE_DATE_PATTERN;
@@ -81,7 +81,7 @@ public class ExportTaskServiceImpl extends ServiceImpl<ExportTaskMapper, ExportT
         save(exportTask);
 
         // 缓存
-        String statusKey = REDIS_TASK_STATUS_PREFIX + taskId;
+        String statusKey = EXPORT_TASK_PREFIX + taskId;
         redisTemplate.opsForValue().set(statusKey, JSONObject.toJSONString(exportTask), taskTtlMinutes, TimeUnit.HOURS);
         return exportTask;
     }
@@ -114,10 +114,10 @@ public class ExportTaskServiceImpl extends ServiceImpl<ExportTaskMapper, ExportT
 
         // 缓存处理
         if(Arrays.asList(INITIALIZED.getId(), PROCESSING.getId()).contains(exportTask.getTaskStatus())){
-            String statusKey = REDIS_TASK_STATUS_PREFIX + exportTask.getTaskId();
+            String statusKey = EXPORT_TASK_PREFIX + exportTask.getTaskId();
             redisTemplate.opsForValue().set(statusKey, JSONObject.toJSONString(exportTask), taskTtlMinutes, TimeUnit.HOURS);
         } else {
-            redisTemplate.delete(REDIS_TASK_STATUS_PREFIX + exportTask.getTaskId());
+            redisTemplate.delete(EXPORT_TASK_PREFIX + exportTask.getTaskId());
         }
     }
 

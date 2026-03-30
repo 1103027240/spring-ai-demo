@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static cn.example.base.demo.constant.FieldValueConstant.DEFAULT_LIMIT;
+import static cn.example.base.demo.constant.FieldValueConstant.TWENTY;
 
 @Slf4j
 @Service
@@ -42,7 +42,7 @@ public class SimpleCustomerChatLoopServiceImpl implements SimpleCustomerChatLoop
     @Override
     public Map<String, Object> runLoop(Long userId, String sessionId, String message) throws GraphRunnerException {
         // 1. 查询历史对话
-        String conversationHistory = chatMessageBuild.buildChatMessageHistory(userId, sessionId, DEFAULT_LIMIT);
+        String conversationHistory = chatMessageBuild.buildChatMessageHistory(userId, sessionId, TWENTY);
 
         // 组合对话历史和用户消息
         String combinedMessage = buildCombinedMessage(conversationHistory, message);

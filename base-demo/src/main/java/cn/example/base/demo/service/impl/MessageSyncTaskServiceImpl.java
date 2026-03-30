@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import static cn.example.base.demo.constant.FieldValueConstant.SYNC_TASK_CACHE_EXPIRE_SECONDS;
+import static cn.example.base.demo.constant.FieldValueConstant.THREE_THOUSAND_AND_SIX_HUNDRED;
 import static cn.example.base.demo.constant.RedisKeyConstant.SYNC_TASKS;
 
 /**
@@ -165,7 +165,7 @@ public class MessageSyncTaskServiceImpl implements MessageSyncTaskService {
         String taskKey = SYNC_TASKS + ":" + sessionId;
         try {
             String taskJson = objectMapper.writeValueAsString(task);
-            redisTemplate.opsForValue().set(taskKey, taskJson, SYNC_TASK_CACHE_EXPIRE_SECONDS, TimeUnit.SECONDS);
+            redisTemplate.opsForValue().set(taskKey, taskJson, THREE_THOUSAND_AND_SIX_HUNDRED, TimeUnit.SECONDS);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

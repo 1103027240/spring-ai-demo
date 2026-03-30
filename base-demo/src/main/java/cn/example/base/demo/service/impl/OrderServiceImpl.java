@@ -109,7 +109,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         //setDefaultTimeRange(params, queryParams, DEFAULT_QUERY_DAYS);
 
         // 设置分页
-        params.put(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
+        params.put(LIMIT, queryParams.getOrDefault(LIMIT, TWENTY));
 
         return convertOrders(baseMapper.selectByStatusAndTimeRange(params));
     }
@@ -125,10 +125,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         ParamUtils.putIfValid(queryParams, params, paramKeys);
 
         // 处理时间范围
-        setDefaultTimeRange(params, queryParams, DEFAULT_QUERY_DAYS);
+        setDefaultTimeRange(params, queryParams, THIRTY);
 
         // 设置分页
-        params.put(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
+        params.put(LIMIT, queryParams.getOrDefault(LIMIT, TWENTY));
 
         return convertOrders(baseMapper.selectByTimeRange(params));
     }
@@ -150,10 +150,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         ParamUtils.putIfValid(queryParams, params, paramKeys);
 
         // 设置时间范围
-        //setDefaultTimeRange(params, queryParams, DEFAULT_PRODUCT_QUERY_DAYS);
+        //setDefaultTimeRange(params, queryParams, NINETY);
 
         // 设置分页
-        params.put(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
+        params.put(LIMIT, queryParams.getOrDefault(LIMIT, TWENTY));
 
         return convertOrders(baseMapper.selectByProductKeyword(params));
     }
@@ -172,7 +172,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         //setDefaultTimeRange(params, params, DEFAULT_QUERY_DAYS);
 
         // 设置分页
-        params.putIfAbsent(LIMIT, queryParams.getOrDefault(LIMIT, DEFAULT_LIMIT));
+        params.putIfAbsent(LIMIT, queryParams.getOrDefault(LIMIT, TWENTY));
 
         return convertOrders(baseMapper.selectByCondition(params));
     }
@@ -187,7 +187,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             return Collections.emptyList();
         }
 
-        int limit = (Integer) queryParams.getOrDefault(LIMIT, DEFAULT_USER_RECENT_LIMIT);
+        int limit = (Integer) queryParams.getOrDefault(LIMIT, TEN);
         return convertOrders(baseMapper.selectRecentOrdersByUserId(userId, limit));
     }
 
@@ -230,7 +230,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         //setDefaultTimeRange(params, params, DEFAULT_QUERY_DAYS);
 
         // 设置默认分页
-        condition.putIfAbsent(LIMIT, DEFAULT_LIMIT);
+        condition.putIfAbsent(LIMIT, TWENTY);
 
         log.debug("【智能查询】构建查询条件: {}", condition);
         return condition;

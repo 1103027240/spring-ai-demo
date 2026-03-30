@@ -5,7 +5,7 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.function.Predicate;
-import static cn.example.base.demo.constant.FieldValueConstant.MAX_LOOP_TIMES;
+import static cn.example.base.demo.constant.FieldValueConstant.ONE;
 
 @Component
 public class SimpleCustomerChatLoopCondition implements Predicate<List<Message>> {
@@ -16,7 +16,7 @@ public class SimpleCustomerChatLoopCondition implements Predicate<List<Message>>
     public boolean test(List<Message> messages) {
         // 检查最大迭代次数
         count++;
-        if (count > MAX_LOOP_TIMES) {
+        if (count > ONE) {
             return true;  // 超过最大次数，返回true结束循环
         }
 

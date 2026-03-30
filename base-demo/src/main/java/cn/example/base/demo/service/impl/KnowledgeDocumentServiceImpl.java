@@ -207,7 +207,7 @@ public class KnowledgeDocumentServiceImpl extends ServiceImpl<KnowledgeDocumentM
 
         KnowledgeDocument document = baseMapper.selectById(documentId);
         if (document != null && document.getStatus() != KnowledgeDocumentStatusEnum.DELETED.getId()) {
-            redisTemplate.opsForValue().set(cacheKey, document, CACHE_TTL, TimeUnit.SECONDS);
+            redisTemplate.opsForValue().set(cacheKey, document, THREE_THOUSAND_AND_SIX_HUNDRED, TimeUnit.SECONDS);
         }
         return document;
     }

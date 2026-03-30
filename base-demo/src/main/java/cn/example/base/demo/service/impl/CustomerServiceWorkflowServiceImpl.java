@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import static cn.example.base.demo.constant.FieldConstant.*;
 import static cn.example.base.demo.constant.FieldConstant.CREATE_TIME;
-import static cn.example.base.demo.constant.FieldValueConstant.TRANSACTION_COMMIT_DELAY_MS;
+import static cn.example.base.demo.constant.FieldValueConstant.ONE_HUNDRED;
 import static cn.example.base.demo.enums.WorkflowExecutionStatusEnum.SUCCESS;
 
 /**
@@ -199,7 +199,7 @@ public class CustomerServiceWorkflowServiceImpl implements CustomerServiceWorkfl
     public void asyncProcessSyncTask(String sessionId) {
         CompletableFuture.runAsync(() -> {
             try {
-                Thread.sleep(TRANSACTION_COMMIT_DELAY_MS);
+                Thread.sleep(ONE_HUNDRED);
                 messageSyncTaskService.processSyncTask(sessionId);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

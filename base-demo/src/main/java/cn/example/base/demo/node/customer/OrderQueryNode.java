@@ -211,7 +211,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
         queryParams.put(ORDER_DESC, DEFAULT_ORDER_DESC);
 
         // 设置默认分页
-        queryParams.put(LIMIT, DEFAULT_LIMIT);
+        queryParams.put(LIMIT, TWENTY);
 
         log.debug("【订单查询节点】构建查询参数: {}", queryParams);
         return queryParams;
@@ -282,7 +282,7 @@ public class OrderQueryNode implements NodeActionWithConfig {
     private void setDefaultTimeRange(Map<String, Object> orderInfo) {
         LocalDateTime now = LocalDateTime.now();
         if (!orderInfo.containsKey(START_TIME) || orderInfo.get(START_TIME) == null) {
-            orderInfo.put(START_TIME, now.minusDays(DEFAULT_DAYS_RANGE));
+            orderInfo.put(START_TIME, now.minusDays(THIRTY));
         }
         if (!orderInfo.containsKey(END_TIME) || orderInfo.get(END_TIME) == null) {
             orderInfo.put(END_TIME, now);
@@ -318,14 +318,14 @@ public class OrderQueryNode implements NodeActionWithConfig {
         StringBuilder summary = new StringBuilder();
         summary.append(String.format(ORDERS_FOUND_TEMPLATE, orders.size()));
 
-        int displayCount = Math.min(orders.size(), SUMMARY_DISPLAY_COUNT);
+        int displayCount = Math.min(orders.size(), THREE);
         for (int i = 0; i < displayCount; i++) {
             Map<String, Object> order = orders.get(i);
             appendOrderItem(summary, i + 1, order);
         }
 
-        if (orders.size() > SUMMARY_DISPLAY_COUNT) {
-            summary.append(String.format(MORE_ORDERS_TEMPLATE, orders.size() - SUMMARY_DISPLAY_COUNT));
+        if (orders.size() > THREE) {
+            summary.append(String.format(MORE_ORDERS_TEMPLATE, orders.size() - THREE));
         }
 
         return summary.toString();

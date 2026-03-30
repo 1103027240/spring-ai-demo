@@ -31,8 +31,6 @@ public class FieldValueConstant {
 
     public static final String SOURCE_MYSQL_SYNC = "mysql_sync";
 
-    public static final String CUSTOMER_CURSOR_SEPARATOR = "|"; // 游标字段分隔符
-
     public static final String DEFAULT_ORDER_DESC = "DESC";
 
     public static final String DEFAULT_ORDER_ASC = "ASC";
@@ -45,38 +43,26 @@ public class FieldValueConstant {
 
     public static final String CUSTOMER_COLLECTION_NAME = "customer_knowledge";
 
-    public static final String EXPORT_FILE_PREFIX = "export_";
-
     public static final String AGENT_MULTI_MODAL_NAME = "qwen-vl-max";
 
-    /**
-     * 事务提交后延迟时间（毫秒）
-     */
-    public static final long TRANSACTION_COMMIT_DELAY_MS = 100L;
+    public static final int ONE = 1;
 
-    /**
-     * 同步任务缓存过期时间（秒）
-     */
-    public static final long SYNC_TASK_CACHE_EXPIRE_SECONDS = 3600L;
+    public static final int THREE = 3;
 
-    public static final int DEFAULT_DAYS_RANGE = 30;
+    public static final int EIGHT = 8;
 
-    public static final int DEFAULT_LIMIT = 20;
+    public static final int TEN = 10;
 
-    public static final int SUMMARY_DISPLAY_COUNT = 3;
+    public static final int TWENTY = 20;
 
-    public static final int DEFAULT_QUERY_DAYS = 30;
+    public static final int THIRTY = 30;
 
-    public static final int DEFAULT_PRODUCT_QUERY_DAYS = 90;
+    public static final int NINETY = 90;
 
-    public static final int DEFAULT_USER_RECENT_LIMIT = 5;
+    public static final long ONE_HUNDRED = 100;
 
-    public static final int RANDOM_NUMBER_BOUND = 99999999;
+    public static final long THREE_HUNDRED = 300;
 
-    public static final int RANDOM_NUMBER_FORMAT_LENGTH = 8;
-
-    public static final int CACHE_TTL = 3600; // 1小时
-
-    public static final int MAX_LOOP_TIMES = 1;
+    public static final int THREE_THOUSAND_AND_SIX_HUNDRED = 3600;
 
 }

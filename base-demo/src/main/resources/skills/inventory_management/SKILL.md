@@ -1,67 +1,62 @@
 ---
 name: inventory_management
-description: 库存管理技能，提供产品库存查询、库存状态监控、库存分析功能
+description: 库存管理技能
 ---
 
 # 库存管理技能
 
-## 支持的业务关键词
-库存状态、库存查询、补货、库存预警、库存变动、周转率、仓库分布、入库、出库、库存记录、呆滞库存、ABC分类
+## 意图映射表
 
-## 数据库表
+| 用户意图 | 关键词 | 对应查询 |
+|---------|-------|---------|
+| 库存状态 | 库存、库存查询、库存情况、查看库存 | 查询1 |
+| 补货提醒 | 补货、缺货、需要进货、进货提醒 | 查询2 |
+| 库存变动 | 库存变动、出入库统计、进销存 | 查询3 |
+| 周转率 | 周转、周转率、库存周转 | 查询4 |
+| 仓库分布 | 仓库、仓库分布、各仓库库存 | 查询5 |
+| 产品列表 | 产品、所有产品、产品信息 | 查询6 |
+| 产品详情 | 产品详情、产品库存详情 | 查询7 |
+| 入库记录 | 入库、进货记录、入库明细 | 查询8 |
+| 出库记录 | 出库、发货记录、出库明细 | 查询9 |
+| ABC分类 | ABC分类、库存分类、价值分类 | 查询10 |
+| 呆滞库存 | 呆滞、滞销、不动销、积压 | 查询11 |
 
-### products 产品表
-```sql
-CREATE TABLE products (
-    product_id INT PRIMARY KEY AUTO_INCREMENT,
-    product_name VARCHAR(255) NOT NULL,
-    category VARCHAR(100),
-    unit_price DECIMAL(10,2),
-    reorder_level INT DEFAULT 10,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+## 表结构
+
 ```
+products(产品表):
+  product_id      -- 产品ID
+  product_name    -- 产品名称
+  category        -- 分类
+  unit_price      -- 单价
+  reorder_level   -- 补货阈值
 
-### inventory 库存表
-```sql
-CREATE TABLE inventory (
-    inventory_id INT PRIMARY KEY AUTO_INCREMENT,
-    product_id INT NOT NULL,
-    warehouse_id INT,
-    quantity INT NOT NULL DEFAULT 0,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+inventory(库存表):
+  inventory_id    -- 库存ID
+  product_id      -- 产品ID
+  warehouse_id    -- 仓库ID
+  quantity        -- 库存数量
 
-### stock_in 入库记录表
-```sql
-CREATE TABLE stock_in (
-    record_id INT PRIMARY KEY AUTO_INCREMENT,
-    product_id INT NOT NULL,
-    quantity INT NOT NULL,
-    unit_cost DECIMAL(10,2),
-    supplier VARCHAR(255),
-    received_date DATE,
-    received_by VARCHAR(100)
-);
-```
+stock_in(入库表):
+  record_id       -- 记录ID
+  product_id      -- 产品ID
+  quantity        -- 入库数量
+  supplier        -- 供应商
+  received_date   -- 入库日期
 
-### stock_out 出库记录表
-```sql
-CREATE TABLE stock_out (
-    record_id INT PRIMARY KEY AUTO_INCREMENT,
-    product_id INT NOT NULL,
-    quantity INT NOT NULL,
-    order_id VARCHAR(100),
-    customer_name VARCHAR(255),
-    shipped_date DATE,
-    shipped_by VARCHAR(100)
-);
+stock_out(出库表):
+  record_id       -- 记录ID
+  product_id      -- 产品ID
+  quantity        -- 出库数量
+  order_id        -- 订单号
+  shipped_date    -- 出库日期
 ```
 
 ## 业务查询
 
-### 1. 查看当前库存状态
+### 查询1: 库存状态
+> 返回产品库存数量及状态（充足/需要补货/缺货）
+
 ```sql
 SELECT
     p.product_id,
@@ -82,7 +77,9 @@ ORDER BY inventory_status, total_quantity ASC
 limit 10;
 ```
 
-### 2. 查询需要补货的产品
+### 查询2: 补货提醒
+> 返回库存低于补货阈值的产品
+
 ```sql
 SELECT
     p.product_id,
@@ -100,7 +97,9 @@ ORDER BY reorder_quantity DESC
 limit 10;
 ```
 
-### 3. 月度库存变动报表
+### 查询3: 库存变动
+> 返回近6个月的入库、出库及净变动统计
+
 ```sql
 SELECT
     DATE_FORMAT(date, '%Y-%m') as month,
@@ -136,7 +135,9 @@ ORDER BY month DESC, net_change DESC
 limit 10;
 ```
 
-### 4. 库存周转率分析
+### 查询4: 周转率
+> 返回近30天产品库存周转率
+
 ```sql
 SELECT
     p.product_id,
@@ -157,7 +158,9 @@ ORDER BY turnover_ratio DESC
 limit 10;
 ```
 
-### 5. 仓库库存分布查询
+### 查询5: 仓库分布
+> 返回各仓库产品库存分布及库存价值
+
 ```sql
 SELECT
     p.product_name,
@@ -172,7 +175,9 @@ ORDER BY i.warehouse_id, inventory_value DESC
 limit 10;
 ```
 
-### 6. 查询所有产品
+### 查询6: 产品列表
+> 返回所有产品基本信息
+
 ```sql
 SELECT * 
 FROM products 
@@ -180,7 +185,9 @@ ORDER BY product_name
 limit 10;
 ```
 
-### 7. 查询产品库存详情
+### 查询7: 产品详情
+> 返回指定产品的库存详情（需替换?为产品ID）
+
 ```sql
 SELECT
     p.product_id,
@@ -196,7 +203,9 @@ WHERE p.product_id = ?
 limit 10;
 ```
 
-### 8. 查询入库记录
+### 查询8: 入库记录
+> 返回最近的入库记录
+
 ```sql
 SELECT
     si.record_id,
@@ -212,7 +221,9 @@ ORDER BY si.received_date DESC
 limit 10;
 ```
 
-### 9. 查询出库记录
+### 查询9: 出库记录
+> 返回最近的出库记录
+
 ```sql
 SELECT
     so.record_id,
@@ -228,7 +239,9 @@ ORDER BY so.shipped_date DESC
 limit 10;
 ```
 
-### 10. ABC库存分类分析
+### 查询10: ABC分类
+> 按库存价值进行ABC分类（A类占80%价值，B类占15%，C类占5%）
+
 ```sql
 WITH inventory_value AS (
     SELECT
@@ -269,7 +282,9 @@ ORDER BY total_value DESC
 limit 10;
 ```
 
-### 11. 呆滞库存识别
+### 查询11: 呆滞库存
+> 返回超过90天未销售的库存产品
+
 ```sql
 SELECT
     p.product_id,

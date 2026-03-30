@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import static cn.example.base.demo.constant.RedisKeyConstant.REDIS_TASK_STATUS_PREFIX;
+import static cn.example.base.demo.constant.RedisKeyConstant.EXPORT_TASK_PREFIX;
 import static cn.example.base.demo.enums.ExportTaskStatusEnum.CANCELLED;
 
 @Component
@@ -18,7 +18,7 @@ public class KnowledgeExportCheck {
      * 检查任务是否被取消
      */
     public boolean isTaskCancelled(String taskId) {
-        String statusKey = REDIS_TASK_STATUS_PREFIX + taskId;
+        String statusKey = EXPORT_TASK_PREFIX + taskId;
         Object obj = redisTemplate.opsForValue().get(statusKey);
         if(obj == null){
             return false;

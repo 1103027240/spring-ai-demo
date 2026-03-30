@@ -1,66 +1,64 @@
 ---
 name: sales_analysis
-description: 销售分析技能，提供销售数据查询、业绩分析、客户行为分析功能
+description: 销售分析技能
 ---
 
 # 销售分析技能
 
-## 支持的业务关键词
-销售业绩、销售排行、产品排行、客户分析、RFM分析、销售趋势、订单查询、客户购买、留存率、交叉销售、购物车分析
+## 意图映射表
 
-## 数据库表
+| 用户意图 | 关键词 | 对应查询 |
+|---------|-------|---------|
+| 销售业绩 | 销售、销售业绩、销售情况、月度销售 | 查询1 |
+| 产品排行 | 产品排行、销量排名、销售排行、热销产品 | 查询2 |
+| 客户分析 | 客户分析、RFM、客户价值、客户分类 | 查询3 |
+| 销售趋势 | 销售趋势、趋势分析、销售走势 | 查询4 |
+| 购买行为 | 购买行为、客户行为、消费行为 | 查询5 |
+| 订单列表 | 订单、所有订单、订单列表 | 查询6 |
+| 订单详情 | 订单详情、订单明细 | 查询7 |
+| 客户订单 | 客户订单、订单历史、购买历史 | 查询8 |
+| 产品销售 | 产品销售、销售历史 | 查询9 |
+| 留存率 | 留存、留存率、客户留存 | 查询10 |
+| 交叉销售 | 交叉销售、关联产品、搭配购买 | 查询11 |
+| 购物车 | 购物车、客单价、平均订单 | 查询12 |
 
-### customers 客户表
-```sql
-CREATE TABLE customers (
-    customer_id INT PRIMARY KEY AUTO_INCREMENT,
-    customer_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255),
-    phone VARCHAR(50),
-    registration_date DATE,
-    customer_tier VARCHAR(20) DEFAULT 'regular'
-);
+## 表结构
+
 ```
+customers(客户表):
+  customer_id      -- 客户ID
+  customer_name    -- 客户名称
+  email            -- 邮箱
+  phone            -- 电话
+  customer_tier    -- 客户等级
 
-### orders 订单表
-```sql
-CREATE TABLE orders (
-    order_id INT PRIMARY KEY AUTO_INCREMENT,
-    customer_id INT NOT NULL,
-    order_date DATE NOT NULL,
-    total_amount DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) DEFAULT 'pending',
-    payment_method VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+orders(订单表):
+  order_id         -- 订单ID
+  customer_id      -- 客户ID
+  order_date       -- 订单日期
+  total_amount     -- 订单金额
+  status           -- 订单状态
+  payment_method   -- 支付方式
 
-### order_items 订单明细表
-```sql
-CREATE TABLE order_items (
-    item_id INT PRIMARY KEY AUTO_INCREMENT,
-    order_id INT NOT NULL,
-    product_id INT NOT NULL,
-    quantity INT NOT NULL,
-    unit_price DECIMAL(10,2) NOT NULL
-);
-```
+order_items(订单明细表):
+  item_id          -- 明细ID
+  order_id         -- 订单ID
+  product_id       -- 产品ID
+  quantity         -- 数量
+  unit_price       -- 单价
 
-### products 产品表
-```sql
-CREATE TABLE products (
-    product_id INT PRIMARY KEY AUTO_INCREMENT,
-    product_name VARCHAR(255) NOT NULL,
-    category VARCHAR(100),
-    unit_price DECIMAL(10,2),
-    reorder_level INT DEFAULT 10,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+products(产品表):
+  product_id       -- 产品ID
+  product_name     -- 产品名称
+  category         -- 分类
+  unit_price       -- 单价
 ```
 
 ## 业务查询
 
-### 1. 月度销售业绩分析
+### 查询1: 销售业绩
+> 返回近12个月的销售业绩统计（订单数、客户数、收入、平均订单价值）
+
 ```sql
 SELECT
     DATE_FORMAT(o.order_date, '%Y-%m') as sales_month,
@@ -78,7 +76,9 @@ ORDER BY sales_month DESC
 limit 10;
 ```
 
-### 2. 产品销售排行榜
+### 查询2: 产品排行
+> 返回近3个月产品销量及收入排行榜
+
 ```sql
 SELECT
     p.product_id,
@@ -98,7 +98,9 @@ ORDER BY total_revenue DESC
 limit 10;
 ```
 
-### 3. 客户价值分析 (RFM模型)
+### 查询3: 客户分析(RFM)
+> 按RFM模型分析客户价值（最近购买时间、购买频次、消费金额）
+
 ```sql
 WITH customer_rfm AS (
     SELECT
@@ -144,7 +146,9 @@ ORDER BY monetary DESC
 limit 10;
 ```
 
-### 4. 销售趋势分析
+### 查询4: 销售趋势
+> 返回近90天销售趋势及7日移动平均
+
 ```sql
 WITH daily_sales AS (
     SELECT
@@ -167,7 +171,9 @@ ORDER BY order_date DESC
 limit 10;
 ```
 
-### 5. 客户购买行为分析
+### 查询5: 购买行为
+> 分析客户购买行为（订单数、消费金额、购买间隔）
+
 ```sql
 SELECT
     c.customer_id,
@@ -191,7 +197,9 @@ ORDER BY total_spent DESC
 limit 10;
 ```
 
-### 6. 查询所有订单
+### 查询6: 订单列表
+> 返回最近的订单列表
+
 ```sql
 SELECT
     o.order_id,
@@ -206,7 +214,9 @@ ORDER BY o.order_date DESC
 limit 10;
 ```
 
-### 7. 查询订单详情
+### 查询7: 订单详情
+> 返回指定订单的明细（需替换?为订单ID）
+
 ```sql
 SELECT
     o.order_id,
@@ -224,7 +234,9 @@ ORDER BY oi.item_id
 limit 10;
 ```
 
-### 8. 查询客户订单历史
+### 查询8: 客户订单
+> 返回指定客户的订单历史（需替换?为客户ID）
+
 ```sql
 SELECT
     o.order_id,
@@ -238,7 +250,9 @@ ORDER BY o.order_date DESC
 limit 10;
 ```
 
-### 9. 查询产品销售历史
+### 查询9: 产品销售
+> 返回指定产品的销售记录（需替换?为产品ID）
+
 ```sql
 SELECT
     o.order_date,
@@ -255,7 +269,9 @@ ORDER BY o.order_date DESC
 limit 10;
 ```
 
-### 10. 客户留存率分析
+### 查询10: 留存率
+> 返回近12个月客户留存率分析
+
 ```sql
 WITH first_purchases AS (
     SELECT
@@ -297,7 +313,9 @@ ORDER BY rd.cohort_month DESC, rd.months_since_first
 limit 10;
 ```
 
-### 11. 交叉销售分析
+### 查询11: 交叉销售
+> 返回经常一起购买的产品组合
+
 ```sql
 WITH product_pairs AS (
     SELECT
@@ -321,7 +339,9 @@ ORDER BY pp.times_bought_together DESC
 limit 10;
 ```
 
-### 12. 购物车分析
+### 查询12: 购物车
+> 返回近30天购物车分析（平均商品数、平均订单金额）
+
 ```sql
 SELECT
     COUNT(DISTINCT oi.order_id) as total_orders,
