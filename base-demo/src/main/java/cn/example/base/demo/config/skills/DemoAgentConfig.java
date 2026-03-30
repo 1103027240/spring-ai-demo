@@ -63,16 +63,13 @@ public class DemoAgentConfig {
 
     @Bean
     public ReActAgent demoSqlAssistantAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel, Toolkit toolkit, SkillBox skillBox) {
-        ReActAgent agent = ReActAgent.builder()
+        return ReActAgent.builder()
                 .name("SQL助手智能体")
                 .model(qwenAgentChatModel)
                 .sysPrompt(SQL_PROMPT)
                 .toolkit(toolkit)
                 .skillBox(skillBox)
                 .build();
-
-        log.info("ReActAgent 'sql_assistant' created successfully");
-        return agent;
     }
 
     @Bean
