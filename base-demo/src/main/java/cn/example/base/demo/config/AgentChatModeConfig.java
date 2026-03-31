@@ -27,7 +27,7 @@ public class AgentChatModeConfig {
         // 配置生成参数优化性能
 //        GenerateOptions options = GenerateOptions.builder()
 //                .temperature(0.7)          // 降低温度，减少随机性，加快响应
-//                .maxTokens(1048)           // 限制最大token数，减少输出时间
+//                .maxTokens(2048)           // 限制最大token数，减少输出时间
 //                .topP(0.9)                 // 降低topP，减少计算量
 //                .build();
 
