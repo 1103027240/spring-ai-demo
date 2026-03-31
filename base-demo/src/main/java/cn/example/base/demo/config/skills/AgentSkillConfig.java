@@ -42,15 +42,6 @@ public class AgentSkillConfig {
         // 注册AgentSkill
         classpathSkillRepository.getAllSkills().forEach(agentSkill -> skillBox.registration().skill(agentSkill).apply());
 
-        // 注册脚本、代码等
-        skillBox.codeExecution()
-                .workDir("./workdir")
-                .uploadDir("./workdir/skills")
-                .withRead()
-                .withWrite()
-                .withShell()
-                .enable();
-
         return skillBox;
     }
 

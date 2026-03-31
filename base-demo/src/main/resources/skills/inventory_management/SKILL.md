@@ -1,108 +1,49 @@
 ---
 name: inventory_management
-description: 库存管理技能
+description: 库存管理技能，支持库存状态查询、补货提醒、库存变动分析、周转率分析、仓库分布、ABC分类、呆滞库存识别、入库记录查询、出库记录查询
 ---
-
-## 意图映射表
-
-| 用户意图 | 关键词 | 对应查询 |
-|---------|-------|---------|
-| 库存状态 | 库存、库存查询、库存情况、查看库存 | 查询1 |
-| 补货提醒 | 补货、缺货、需要进货、进货提醒 | 查询2 |
-| 库存变动 | 库存变动、出入库统计、进销存 | 查询3 |
-| 周转率 | 周转、周转率、库存周转 | 查询4 |
-| 仓库分布 | 仓库、仓库分布、各仓库库存 | 查询5 |
-| 产品列表 | 产品、所有产品、产品信息 | 查询6 |
-| 产品详情 | 产品详情、产品库存详情 | 查询7 |
-| 入库记录 | 入库、进货记录、入库明细 | 查询8 |
-| 出库记录 | 出库、发货记录、出库明细 | 查询9 |
-| ABC分类 | ABC分类、库存分类、价值分类 | 查询10 |
-| 呆滞库存 | 呆滞、滞销、不动销、积压 | 查询11 |
 
 ## 表结构
 
-```
 products(产品表):
-  product_id      -- 产品ID
-  product_name    -- 产品名称
-  category        -- 分类
-  unit_price      -- 单价
-  reorder_level   -- 补货阈值
+- product_id INT PK 自增 - 产品唯一标识
+- product_name VARCHAR(255) - 产品名称
+- category VARCHAR(100) - 产品类别
+- unit_price DECIMAL(10,2) - 销售单价
+- reorder_level INT - 补货阈值(库存低于此值需补货)
 
 inventory(库存表):
-  inventory_id    -- 库存ID
-  product_id      -- 产品ID
-  warehouse_id    -- 仓库ID
-  quantity        -- 库存数量
+- inventory_id INT PK 自增 - 库存记录ID
+- product_id INT FK - 产品ID
+- warehouse_id INT - 仓库(1主仓/2分仓/3备用仓)
+- quantity INT - 库存数量
 
 stock_in(入库表):
-  record_id       -- 记录ID
-  product_id      -- 产品ID
-  quantity        -- 入库数量
-  supplier        -- 供应商
-  received_date   -- 入库日期
+- record_id INT PK 自增 - 入库单号
+- product_id INT FK - 产品ID
+- quantity INT - 入库数量
+- unit_cost DECIMAL(10,2) - 成本价
+- supplier VARCHAR(255) - 供应商
+- received_date DATE - 入库日期
 
 stock_out(出库表):
-  record_id       -- 记录ID
-  product_id      -- 产品ID
-  quantity        -- 出库数量
-  order_id        -- 订单号
-  shipped_date    -- 出库日期
-```
+- record_id INT PK 自增 - 出库单号
+- product_id INT FK - 产品ID
+- quantity INT - 出库数量
+- order_id VARCHAR(100) - 订单号
+- customer_name VARCHAR(255) - 客户名称
+- shipped_date DATE - 出库日期
 
-## 业务查询
+## 表关联
 
-### 查询1
-```sql
-SELECT p.product_id, p.product_name, p.category, p.unit_price, COALESCE(SUM(i.quantity), 0) as total_quantity, p.reorder_level, CASE WHEN COALESCE(SUM(i.quantity), 0) <= p.reorder_level THEN '需要补货' WHEN COALESCE(SUM(i.quantity), 0) = 0 THEN '缺货' ELSE '库存充足' END as inventory_status FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id GROUP BY p.product_id, p.product_name, p.category, p.unit_price, p.reorder_level ORDER BY inventory_status, total_quantity ASC limit 10;
-```
+products.product_id = inventory.product_id
+products.product_id = stock_in.product_id
+products.product_id = stock_out.product_id
 
-### 查询2
-```sql
-SELECT p.product_id, p.product_name, p.category, p.unit_price, COALESCE(SUM(i.quantity), 0) as current_stock, p.reorder_level, p.reorder_level - COALESCE(SUM(i.quantity), 0) as reorder_quantity FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id GROUP BY p.product_id, p.product_name, p.category, p.unit_price, p.reorder_level HAVING COALESCE(SUM(i.quantity), 0) <= p.reorder_level ORDER BY reorder_quantity DESC limit 10;
-```
+## 规则
 
-### 查询3
-```sql
-SELECT DATE_FORMAT(date, '%Y-%m') as month, product_name, category, SUM(incoming) as total_incoming, SUM(outgoing) as total_outgoing, SUM(incoming) - SUM(outgoing) as net_change FROM (SELECT si.received_date as date, p.product_name, p.category, si.quantity as incoming, 0 as outgoing FROM stock_in si INNER JOIN products p ON si.product_id = p.product_id WHERE si.received_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) UNION ALL SELECT so.shipped_date as date, p.product_name, p.category, 0 as incoming, so.quantity as outgoing FROM stock_out so INNER JOIN products p ON so.product_id = p.product_id WHERE so.shipped_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)) as movements GROUP BY DATE_FORMAT(date, '%Y-%m'), product_name, category ORDER BY month DESC, net_change DESC limit 10;
-```
-
-### 查询4
-```sql
-SELECT p.product_id, p.product_name, p.category, COALESCE(AVG(i.quantity), 0) as avg_inventory, COALESCE(SUM(so.quantity), 0) as total_sold, CASE WHEN COALESCE(AVG(i.quantity), 0) = 0 THEN 0 ELSE COALESCE(SUM(so.quantity), 0) / COALESCE(AVG(i.quantity), 0) END as turnover_ratio FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id LEFT JOIN stock_out so ON p.product_id = so.product_id AND so.shipped_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) GROUP BY p.product_id, p.product_name, p.category ORDER BY turnover_ratio DESC limit 10;
-```
-
-### 查询5
-```sql
-SELECT p.product_name, p.category, i.warehouse_id, i.quantity, p.unit_price, i.quantity * p.unit_price as inventory_value FROM inventory i JOIN products p ON i.product_id = p.product_id ORDER BY i.warehouse_id, inventory_value DESC limit 10;
-```
-
-### 查询6
-```sql
-SELECT * FROM products ORDER BY product_name limit 10;
-```
-
-### 查询7
-```sql
-SELECT p.product_id, p.product_name, p.category, p.unit_price, i.warehouse_id, i.quantity, i.last_updated FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id WHERE p.product_id = ? limit 10;
-```
-
-### 查询8
-```sql
-SELECT si.record_id, p.product_name, si.quantity, si.unit_cost, si.supplier, si.received_date, si.received_by FROM stock_in si INNER JOIN products p ON si.product_id = p.product_id ORDER BY si.received_date DESC limit 10;
-```
-
-### 查询9
-```sql
-SELECT so.record_id, p.product_name, so.quantity, so.order_id, so.customer_name, so.shipped_date, so.shipped_by FROM stock_out so INNER JOIN products p ON so.product_id = p.product_id ORDER BY so.shipped_date DESC limit 10;
-```
-
-### 查询10
-```sql
-WITH inventory_value AS (SELECT p.product_id, p.product_name, p.category, COALESCE(SUM(i.quantity), 0) as total_quantity, p.unit_price, COALESCE(SUM(i.quantity), 0) * p.unit_price as total_value FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id GROUP BY p.product_id, p.product_name, p.category, p.unit_price), cumulative AS (SELECT product_id, product_name, category, total_value, SUM(total_value) OVER (ORDER BY total_value DESC) as running_total, SUM(total_value) OVER () as grand_total FROM inventory_value) SELECT product_id, product_name, category, total_value, ROUND((total_value / grand_total) * 100, 2) as percentage, ROUND((running_total / grand_total) * 100, 2) as cumulative_percentage, CASE WHEN (running_total / grand_total) <= 0.8 THEN 'A类' WHEN (running_total / grand_total) <= 0.95 THEN 'B类' ELSE 'C类' END as abc_class FROM cumulative ORDER BY total_value DESC limit 10;
-```
-
-### 查询11
-```sql
-SELECT p.product_id, p.product_name, p.category, COALESCE(SUM(i.quantity), 0) as current_stock, MAX(so.shipped_date) as last_sale_date, DATEDIFF(CURDATE(), MAX(so.shipped_date)) as days_since_last_sale FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id LEFT JOIN stock_out so ON p.product_id = so.product_id WHERE so.shipped_date IS NOT NULL GROUP BY p.product_id, p.product_name, p.category HAVING DATEDIFF(CURDATE(), MAX(so.shipped_date)) > 90 AND COALESCE(SUM(i.quantity), 0) > 0 ORDER BY days_since_last_sale DESC limit 10;
-```
+1. 只生成SELECT，禁止INSERT/UPDATE/DELETE
+2. 必须加LIMIT 10
+3. 库存查询用LEFT JOIN保留无库存产品
+4. NULL值用COALESCE(field,0)处理
+5. 库存不足判断: quantity <= reorder_level
