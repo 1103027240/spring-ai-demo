@@ -63,37 +63,37 @@ public class InventorySalesAgentConfig {
         """;
 
     @Bean
-    public ReActAgent demoSqlAssistantAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel, Toolkit toolkit, SkillBox skillBox) {
+    public ReActAgent demoSqlAssistantAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel, Toolkit sqlQueryToolkit, SkillBox sqlQuerySkillBox) {
         return ReActAgent.builder()
                 .name("SQL助手智能体")
                 .model(qwenAgentChatModel)
                 .sysPrompt(SQL_PROMPT)
-                .toolkit(toolkit)
-                .skillBox(skillBox)
+                .toolkit(sqlQueryToolkit)
+                .skillBox(sqlQuerySkillBox)
                 .maxIters(2)
                 .build();
     }
 
     @Bean
-    public ReActAgent demoInventoryManagementAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel, Toolkit toolkit, SkillBox skillBox) {
+    public ReActAgent demoInventoryManagementAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel, Toolkit sqlQueryToolkit, SkillBox sqlQuerySkillBox) {
         return ReActAgent.builder()
                 .name("库存管理智能体")
                 .model(qwenAgentChatModel)
                 .sysPrompt(INVENTORY_PROMPT)
-                .toolkit(toolkit)
-                .skillBox(skillBox)
+                .toolkit(sqlQueryToolkit)
+                .skillBox(sqlQuerySkillBox)
                 .maxIters(2)
                 .build();
     }
 
     @Bean
-    public ReActAgent demoSalesAnalysisAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel, Toolkit toolkit, SkillBox skillBox) {
+    public ReActAgent demoSalesAnalysisAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel, Toolkit sqlQueryToolkit, SkillBox sqlQuerySkillBox) {
         return ReActAgent.builder()
                 .name("销售分析智能体")
                 .model(qwenAgentChatModel)
                 .sysPrompt(SALES_PROMPT)
-                .toolkit(toolkit)
-                .skillBox(skillBox)
+                .toolkit(sqlQueryToolkit)
+                .skillBox(sqlQuerySkillBox)
                 .maxIters(2)
                 .build();
     }

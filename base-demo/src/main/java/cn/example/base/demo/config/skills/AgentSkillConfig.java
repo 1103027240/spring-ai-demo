@@ -36,8 +36,8 @@ public class AgentSkillConfig {
     }
 
     @Bean
-    public SkillBox skillBox(Toolkit toolkit, ClasspathSkillRepository classpathSkillRepository) {
-        SkillBox skillBox = new SkillBox(toolkit);
+    public SkillBox sqlQuerySkillBox(Toolkit sqlQueryToolkit, ClasspathSkillRepository classpathSkillRepository) {
+        SkillBox skillBox = new SkillBox(sqlQueryToolkit);
 
         List<AgentSkill> allSkills = classpathSkillRepository.getAllSkills();
         allSkills.forEach(agentSkill -> skillBox.registration().skill(agentSkill).apply());
