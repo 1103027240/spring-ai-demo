@@ -39,9 +39,10 @@ public class AgentSkillConfig {
     public SkillBox skillBox(Toolkit toolkit, ClasspathSkillRepository classpathSkillRepository) {
         SkillBox skillBox = new SkillBox(toolkit);
 
-        // 注册AgentSkill
-        classpathSkillRepository.getAllSkills().forEach(agentSkill -> skillBox.registration().skill(agentSkill).apply());
+        List<AgentSkill> allSkills = classpathSkillRepository.getAllSkills();
+        allSkills.forEach(agentSkill -> skillBox.registration().skill(agentSkill).apply());
 
+        log.info("allSkills size: {}", allSkills.size());
         return skillBox;
     }
 
