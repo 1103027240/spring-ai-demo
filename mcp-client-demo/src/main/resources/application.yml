@@ -1,5 +1,5 @@
 server:
-  port: 8032
+  port: 8034
   servlet:
     context-path: /api/mcp-client-demo
     #大模型对话中文乱码处理
@@ -35,7 +35,7 @@ spring:
         sse:
           connections:
             server1:
-              url: http://localhost:8031/api/mcp-server-demo
+              url: http://localhost:8033/api/mcp-server-demo
 
 # Knife4j配置
 springdoc:

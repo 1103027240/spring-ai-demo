@@ -5,12 +5,8 @@ package cn.example.ai.demo.tools;
  */
 public class WeatherV2Tools {
 
-    public String getCityWeather(String city) {
+    public String getCityWeatherV2(String city) {
         return String.format("%s：天气是小雨多云，微风清爽", city);
-    }
-
-    public int add(int a, int b){
-        return a + b;
     }
 
 }

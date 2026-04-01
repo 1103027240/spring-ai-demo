@@ -1,5 +1,5 @@
 server:
-  port: 8030
+  port: 8032
   servlet:
     context-path: /ai/agent-demo
     # 大模型对话中文乱码处理
