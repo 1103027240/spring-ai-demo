@@ -15,6 +15,7 @@ import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.function.FunctionToolCallback;
 import org.springframework.stereotype.Service;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -48,7 +49,7 @@ public class AgentToolCallServiceImpl implements AgentToolCallService {
         CalculatorTools calculatorTools = new CalculatorTools();
 
         // 直接调用工具
-        invokeToolCallback(message, calculatorTools);
+        invokeToolCallback(calculatorTools);
 
         // 通过大模型调用工具
         ReactAgent agent = ReactAgent.builder()
@@ -70,6 +71,8 @@ public class AgentToolCallServiceImpl implements AgentToolCallService {
                 .tools(weatherTool, sqlTool)
                 .toolCallbackProviders(toolProvider)
                 .methodTools(calculatorTools)
+                .toolContext(Map.of("userId", "10001")) //工具调用上下文
+                .toolExecutionTimeout(Duration.ofSeconds(30)) //工具调用超时时间设置
                 .build();
         try {
             return agent.call(map).getText();
@@ -82,21 +85,14 @@ public class AgentToolCallServiceImpl implements AgentToolCallService {
     /**
      * 直接调用工具
      */
-    public void invokeToolCallback(String message, CalculatorTools calculatorTools) {
-        String callId = UUID.randomUUID().toString();
-
-        // 方式一、通过ToolCall调用
-        AssistantMessage.ToolCall toolCall = new AssistantMessage.ToolCall(callId, "function", "add", message);
-        AssistantMessage assistantMessage1 = AssistantMessage.builder().toolCalls(List.of(toolCall)).build();
-        log.info("assistantMessage1: {}", assistantMessage1.getText());
-
-        // 方式二：通过工具直接调用
+    public void invokeToolCallback(CalculatorTools calculatorTools) {
+        // 通过工具直接调用
         String result = calculatorTools.add(1, 2);
         AssistantMessage assistantMessage2 = AssistantMessage.builder().content(result).build();
         log.info("assistantMessage2: {}", assistantMessage2.getText());
 
         ToolResponseMessage toolResponseMessage = ToolResponseMessage.builder()
-                .responses(List.of(new ToolResponseMessage.ToolResponse(callId, "add", result)))
+                .responses(List.of(new ToolResponseMessage.ToolResponse(UUID.randomUUID().toString(), "add", result)))
                 .build();
 
         String toolResult = toolResponseMessage.getResponses().stream()

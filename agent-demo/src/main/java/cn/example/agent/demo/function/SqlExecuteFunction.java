@@ -11,8 +11,10 @@ public class SqlExecuteFunction implements BiFunction<Map<String, Object>, ToolC
     @Override
     public String apply(Map<String, Object> params, ToolContext toolContext) {
         String sql = params.get("message") != null ? params.get("message").toString() : "";
+        String userId = params.get("userId") != null ? params.get("userId").toString() : "";
+
         log.info("toolContext: {}", toolContext.getContext());
-        return String.format("用户[%s]执行了一条sql：[%s]", toolContext.getContext(), sql);
+        return String.format("用户[%s]执行了一条sql：[%s]", userId, sql);
     }
 
 }

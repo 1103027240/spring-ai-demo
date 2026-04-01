@@ -55,6 +55,7 @@ public class AgentDemoServiceImpl implements AgentDemoService {
 
         try {
             agent.invoke(map).ifPresent(overAllState -> {
+                //如果是invoke调用，先从state获取messages(默认)，再判断MessageType（主要是AssistantMessage，可能有其他类型）
                 List<Message> messages = overAllState.value("messages", new ArrayList<Message>()).stream()
                         .filter(e -> Objects.equals(MessageType.ASSISTANT, e.getMessageType()))
                         .map(e -> (AssistantMessage) e)
