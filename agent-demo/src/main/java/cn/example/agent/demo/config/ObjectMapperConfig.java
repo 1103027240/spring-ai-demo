@@ -1,4 +1,4 @@
-package cn.example.ai.demo.config;
+package cn.example.agent.demo.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,17 +11,20 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import static cn.hutool.core.date.DatePattern.*;
+
+import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
+import static cn.hutool.core.date.DatePattern.NORM_DATE_PATTERN;
 
 /**
  * Jackson配置，支持LocalDateTime序列化
  * @author 11030
  */
 @Configuration
-public class JacksonConfig {
+public class ObjectMapperConfig {
 
     @Bean
     @Primary

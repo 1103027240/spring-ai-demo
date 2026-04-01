@@ -28,25 +28,38 @@ public class AgentToolCallServiceImpl implements AgentToolCallService {
         Map<String, Object> map = Map.of("message", message);
 
         // 创建方式一：FunctionToolCallback
-        ToolCallback weatherTool = FunctionToolCallback.builder("getCityWeatherV3", new WeatherFunction())
-                .description("输入城市获取天气信息")
+        ToolCallback weatherTool = FunctionToolCallback.builder("getWeather", new WeatherFunction())
+                .description("获取指定城市的天气信息。当用户询问天气、气温、下雨、晴天等天气相关问题时调用此工具。")
                 .inputType(String.class)
                 .build();
 
         // 创建方式二：ToolCallbackProvider
-        ToolCallback calculatorTool = FunctionToolCallback.builder("executeDemoSql", new SqlExecuteFunction())
-                .description("输入参数进行计算，返回结果")
+        ToolCallback sqlTool = FunctionToolCallback.builder("executeSql", new SqlExecuteFunction())
+                .description("执行SQL查询语句。当用户需要查询数据库数据时调用此工具。")
                 .inputType(String.class)
                 .build();
-        ToolCallbackProvider toolProvider = new DemoToolCallbackProvider(List.of(calculatorTool));
+        ToolCallbackProvider toolProvider = new DemoToolCallbackProvider(List.of(sqlTool));
 
-        // 创建方式三：@Tool
+        // 创建方式三：@Tool注解
         CalculatorTools calculatorTools = new CalculatorTools();
 
         ReactAgent agent = ReactAgent.builder()
                 .name("工具调用智能体")
                 .model(qwenChatModel)
-                .tools(weatherTool, calculatorTool)
+                .systemPrompt("""
+                    你是一个AI助手，可以使用工具来帮助用户解决问题。
+                    
+                    可用工具列表：
+                    - getWeather: 获取城市天气，参数为城市名称字符串
+                    - executeSql: 执行SQL查询
+                    - add: 两数相加
+                    - subtract: 两数相减
+                    
+                    重要规则：
+                    1. 你必须始终使用中文回复
+                    """)
+                .instruction("用户问题：{message}")
+                .tools(weatherTool, sqlTool)
                 .toolCallbackProviders(toolProvider)
                 .methodTools(calculatorTools)
                 .build();
