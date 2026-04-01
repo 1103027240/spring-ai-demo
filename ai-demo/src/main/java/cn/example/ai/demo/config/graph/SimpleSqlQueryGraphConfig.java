@@ -4,7 +4,7 @@ import cn.example.ai.demo.agent.SimpleSqlResultAnalysisAgent;
 import cn.example.ai.demo.build.GraphBuild;
 import cn.example.ai.demo.factory.SqlQueryFactory;
 import cn.example.ai.demo.node.sql.*;
-import cn.example.base.demo.node.sql.*;
+import cn.example.ai.demo.node.sql.*;
 import com.alibaba.cloud.ai.graph.*;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.MysqlSaver;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;

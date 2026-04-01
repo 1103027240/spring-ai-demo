@@ -1,6 +1,6 @@
 package cn.example.ai.demo.agent;
 
-import cn.example.ai.demo.tools.NlToSqlDemoTools;
+import cn.example.ai.demo.tools.SimpleNlToSqlTools;
 import cn.example.ai.demo.tools.SqlQueryTools;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
@@ -28,7 +28,7 @@ public class SimpleSqlQueryAgent {
     public SimpleSqlQueryAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel) {
         Toolkit toolkit = new Toolkit();
         toolkit.registerTool(new SqlQueryTools());
-        toolkit.registerTool(new NlToSqlDemoTools());
+        toolkit.registerTool(new SimpleNlToSqlTools());
 
         this.reactAgent = ReActAgent.builder()
                 .name("SQL查询智能体")

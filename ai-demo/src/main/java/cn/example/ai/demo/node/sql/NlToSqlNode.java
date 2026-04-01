@@ -1,7 +1,7 @@
 package cn.example.ai.demo.node.sql;
 
 import cn.example.ai.demo.enums.SqlQueryWorkflowStatusEnum;
-import cn.example.ai.demo.tools.NlToSqlDemoTools;
+import cn.example.ai.demo.tools.SimpleNlToSqlTools;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
@@ -20,7 +20,7 @@ import static cn.example.ai.demo.enums.SqlQueryNodeEnum.*;
 public class NlToSqlNode implements NodeAction {
 
     @Autowired
-    private NlToSqlDemoTools nlToSqlDemoTools;
+    private SimpleNlToSqlTools simpleNlToSqlTools;
 
     @Override
     public Map<String, Object> apply(OverAllState state) throws Exception {
@@ -37,7 +37,7 @@ public class NlToSqlNode implements NodeAction {
             }
 
             // 调用QueryTools.nlToSql
-            Map<String, Object> nlToSqlResult = nlToSqlDemoTools.nlToSqlDemo(naturalLanguageQuery);
+            Map<String, Object> nlToSqlResult = simpleNlToSqlTools.simpleNlToSql(naturalLanguageQuery);
             boolean success = (boolean) nlToSqlResult.getOrDefault(SUCCESS, false);
             if (!success) {
                 return Map.of(
