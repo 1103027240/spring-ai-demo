@@ -171,6 +171,7 @@
 
     <modules>
         <module>ai-demo</module>
+        <module>agent-demo</module>
         <module>mcp-server-demo</module>
         <module>mcp-client-demo</module>
     </modules>
