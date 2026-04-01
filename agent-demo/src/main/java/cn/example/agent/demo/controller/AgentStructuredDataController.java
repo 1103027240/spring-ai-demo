@@ -25,7 +25,7 @@ public class AgentStructuredDataController {
     @GetMapping("/doChat")
     public String doChat(
             @Parameter(description = "用户消息内容", required = true, example = "一千零一夜")
-            @RequestParam(value = "msg") String message){
+            @RequestParam(value = "message") String message){
         return agentStructuredDataService.doChat(message);
     }
 

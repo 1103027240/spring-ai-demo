@@ -25,7 +25,7 @@ public class AgentSessionController {
     @GetMapping("/doChatJsonSession")
     public String doChatJsonSession(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
-            @RequestParam(value = "msg") String message,
+            @RequestParam(value = "message") String message,
             @Parameter(description = "sessionId", required = true, example = "sessionId")
             @RequestParam(value = "sessionId") String sessionId){
         return agentSessionService.doChatJsonSession(message, sessionId);

@@ -23,7 +23,7 @@ public class MultiSequentialController {
     @PostMapping("/doChat")
     public Map<String, Object> doChat(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
-            @RequestParam(value = "msg") String message) {
+            @RequestParam(value = "message") String message) {
         return multiSequentialService.doChat(message);
     }
 

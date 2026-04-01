@@ -25,7 +25,7 @@ public class AgentDemoController {
     @GetMapping("/doChat")
     public String doChat(
             @Parameter(description = "用户消息内容", required = true, example = "Spring框架")
-            @RequestParam(value = "msg") String message){
+            @RequestParam(value = "message") String message){
         return agentDemoService.doChat(message);
     }
 

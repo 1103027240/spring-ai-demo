@@ -25,7 +25,7 @@ public class AgentStudioController {
     @GetMapping("/doChat")
     public String doChat(
             @Parameter(description = "用户消息内容", required = true, example = "你好")
-            @RequestParam(value = "msg") String message){
+            @RequestParam(value = "message") String message){
         return agentStudioService.doChat(message);
     }
 
