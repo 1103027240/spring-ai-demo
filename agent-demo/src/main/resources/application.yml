@@ -64,9 +64,9 @@ spring:
     dashscope:
       api-key: ${qwen-api}
       base-url: https://dashscope.aliyuncs.com
-      #      chat:
-      #        options:
-      #          model: qwen-plus
+#      chat:
+#        options:
+#          model: qwen-plus
       qwen:
         model: qwen-plus
       deepseek:
@@ -95,15 +95,6 @@ spring:
           - customer_knowledge
           - chat_message
           - reme_long_term_memory
-    # 对话记忆配置
-    memory:
-      short-term:
-        max-messages: 10 #
-      long-term:
-        similarity-top-k: 6
-      implementation: lettuce  # 切换到 redisson
-      redis:
-        key-prefix: spring_ai_long_chat_memory # 长期记忆缓存key前缀
 
 mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml
