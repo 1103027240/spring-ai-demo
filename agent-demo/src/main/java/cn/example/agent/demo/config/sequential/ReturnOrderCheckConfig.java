@@ -1,11 +1,11 @@
-package cn.example.ai.demo.config.sequential;
+package cn.example.agent.demo.config.sequential;
 
-import com.alibaba.cloud.ai.agent.agentscope.AgentScopeAgent;
-import io.agentscope.core.ReActAgent;
-import io.agentscope.core.model.Model;
+import com.alibaba.cloud.ai.graph.agent.ReactAgent;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import static cn.example.agent.demo.enums.AgentNameEnum.RETURN_ORDER_CHECK;
 
 /**
  * 2、订单验证智能体
@@ -33,22 +33,18 @@ public class ReturnOrderCheckConfig {
         """;
 
     @Bean
-    public AgentScopeAgent returnOrderCheckAgent(@Qualifier("qwenAgentChatModel") Model qwenAgentChatModel) {
-        ReActAgent.Builder builder = ReActAgent.builder()
-                .name("订单验证智能体")
-                .model(qwenAgentChatModel)
+    public ReactAgent returnOrderCheckAgent(@Qualifier("qwenChatModel") ChatModel qwenChatModel) {
+        return ReactAgent.builder()
+                .name(RETURN_ORDER_CHECK.getText())
                 .description("校验订单是否存在且状态为Shipped")
-                .sysPrompt(ORDER_CHECK_PROMPT);
-
-        return AgentScopeAgent.fromBuilder(builder)
-                .name("订单验证智能体")
-                .description("校验订单是否存在且状态为Shipped")
-                .includeContents(false)  //默认true，表示将上下文消息（Msg）也传入提示词；设为false，只有instruction参数；不管是true/false，都能从state获取数据
+                .model(qwenChatModel)
+                .systemPrompt(ORDER_CHECK_PROMPT)
                 .instruction("""
-                        订单ID：{orderId} 
-                        订单状态：{status}
-                        检查订单和状态。
-                        """)
+                    订单ID：{orderId} 
+                    订单状态：{status}
+                    检查订单和状态。
+                    """)
+                .includeContents(false)  //默认true，表示将上下文消息（Msg）也传入提示词；设为false，只有instruction参数；不管是true/false，都能从state获取数据
                 .outputKey("orderCheckResult")
                 .build();
     }
