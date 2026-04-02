@@ -26,7 +26,6 @@ public class ReturnProcessSequentialConfig {
             @Qualifier("returnPolicyCheckAgent") ReactAgent returnPolicyCheckAgent,
             @Qualifier("refundCalculateAgent") ReactAgent refundCalculateAgent,
             @Qualifier("returnOrderGenerateAgent") ReactAgent returnOrderGenerateAgent) {
-
         return SequentialAgent.builder()
                 .name(RETURN_PROCESS_SEQUENTIAL.getText())
                 .description("退货处理顺序执行：验证订单、检查政策、计算退款、生成退货单")
