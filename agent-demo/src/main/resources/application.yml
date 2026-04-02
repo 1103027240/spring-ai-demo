@@ -1,7 +1,8 @@
 server:
   port: 8032
   servlet:
-    context-path: /ai/agent-demo
+    # 后端部署Spring AI Alibaba Studio，不能配置context-path；前端部署可以配置
+    # context-path: /ai/agent-demo
     # 大模型对话中文乱码处理
     encoding:
       enabled: true
@@ -60,6 +61,9 @@ spring:
       timeout: 18000
 
   ai:
+    # Studio配置
+    studio:
+      enabled: true
     # 阿里云百炼配置
     dashscope:
       api-key: ${qwen-api}

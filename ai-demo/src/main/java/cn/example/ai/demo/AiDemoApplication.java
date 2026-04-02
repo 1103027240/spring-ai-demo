@@ -26,7 +26,7 @@ public class AiDemoApplication {
         String ip = InetAddress.getLocalHost().getHostAddress();
 
         String port = env.getProperty("server.port");
-        String path = env.getProperty("server.servlet.context-path");
+        String path = env.getProperty("server.servlet.context-path", "");
 
         log.info("\n----------------------------------------------------------\n\t" +
                 "Application is running! Access URLs:\n\t" +
