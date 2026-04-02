@@ -83,7 +83,7 @@
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
-            <version>${spring-ai-alibaba.version}</version>
+            <version>${spring-ai-alibaba-agent.version}</version>
         </dependency>
 
         <dependency>
@@ -98,17 +98,11 @@
             <version>${spring-ai-alibaba-agent.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.alibaba.cloud.ai</groupId>
-            <artifactId>spring-ai-alibaba-starter-agentscope</artifactId>
-            <version>${spring-ai-alibaba-agent.version}</version>
-        </dependency>
-
         <!-- Spring AI Studio -->
 <!--        <dependency>-->
 <!--            <groupId>com.alibaba.cloud.ai</groupId>-->
 <!--            <artifactId>spring-ai-alibaba-studio</artifactId>-->
-<!--            <version>${spring-ai-alibaba.version}</version>-->
+<!--            <version>${spring-ai-alibaba-agent.version}</version>-->
 <!--        </dependency>-->
 
         <!-- Spring AI 公共模块（替代spring-ai-core）-->
@@ -133,6 +127,12 @@
             <groupId>io.agentscope</groupId>
             <artifactId>agentscope-spring-boot-starter</artifactId>
             <version>${agentscope.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-starter-agentscope</artifactId>
+            <version>${spring-ai-alibaba-agent.version}</version>
         </dependency>
 
 <!--        <dependency>-->
@@ -172,7 +172,7 @@
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter-memory-redis</artifactId>
-            <version>${spring-ai-alibaba.version}</version>
+            <version>${spring-ai-alibaba-agent.version}</version>
         </dependency>
 
         <!-- Milvus向量库，版本2.6.11 -->
