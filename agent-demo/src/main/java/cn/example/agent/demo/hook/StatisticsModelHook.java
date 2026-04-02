@@ -45,7 +45,7 @@ public class StatisticsModelHook extends ModelHook {
             Long startTime = (Long) config.context().get(MODEL_START_TIME_KEY);
             Long durationTime = System.currentTimeMillis() - startTime;
 
-            Long modelCallTime = (Long) config.context().getOrDefault(MODEL_CALL_TIME_KEY, 0);
+            Long modelCallTime = (Long) config.context().getOrDefault(MODEL_CALL_TIME_KEY, 0L);
             config.context().put(MODEL_CALL_TIME_KEY, modelCallTime + durationTime);
         }
         

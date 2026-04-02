@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
-@HookPositions(value = {HookPosition.BEFORE_MODEL, HookPosition.AFTER_MODEL})
+@HookPositions(value = {HookPosition.BEFORE_AGENT, HookPosition.AFTER_AGENT})
 public class LogAgentHook extends AgentHook {
 
     @Override

@@ -34,7 +34,7 @@ public class AgentToolCallServiceImpl implements AgentToolCallService {
     public String doChat(String message) {
         Map<String, Object> map = Map.of("message", message);
 
-        // 创建方式一：FunctionToolCallback（使用 Map 类型确保 JSON 格式）
+        // 创建方式一：FunctionToolCallback
         ToolCallback weatherTool = toolCallbackBuild.getWeatherTool();
 
         // 创建方式二：ToolCallbackProvider
