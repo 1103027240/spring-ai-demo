@@ -72,33 +72,32 @@ spring:
 #        options:
 #          model: qwen-plus
       qwen:
-        model: qwen-plus
+        model: qwen-max
       deepseek:
         model: deepseek-v3
       # 向量化模型配置
       embedding:
         options:
           model: text-embedding-v3
-
-    # Milvus向量库配置
-    vectorstore:
-      milvus:
-        uri: http://localhost:19530 # Milvus默认端口
-        token: root:Milvus # 默认账号密码（生产需修改）
-        database-name: default # 数据库名
-        collection-name: long_term_memory # 向量库集合名
-        embedding-dimension: 1024 # 通义千问embedding维度
-        index-type: IVF_FLAT # 索引类型
-        metric-type: COSINE # 相似度计算方式（余弦）
-        consistency-level: BOUNDED # 优化：使用最终一致性，提升性能
-        # 项目启动时，自动创建，milvus多集合
-        auto-create-collection: true
-        collections:
-          - long_term_memory
-          - rag_document
-          - customer_knowledge
-          - chat_message
-          - reme_long_term_memory
+    # A2A配置
+    alibaba:
+      a2a:
+        nacos:
+          server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+          username: ${NACOS_USERNAME:nacos}
+          password: ${NACOS_PASSWORD:nacos}
+          discovery:
+            enabled: true
+          registry:
+            enabled: true
+        server:
+          version: 1.0.0
+          card:
+            name: data_analysis_agent
+            description: 专门用于数据分析和统计计算的本地智能体
+            provider:
+              name: Spring AI Alibaba Documentation
+              organization: Spring AI Alibaba
 
 mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml
@@ -119,7 +118,6 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     # 优化：设置超时时间（秒）
     default-statement-timeout: 30
-
 
 # Knife4j配置
 springdoc:
