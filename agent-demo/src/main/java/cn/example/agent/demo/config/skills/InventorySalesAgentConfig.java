@@ -70,8 +70,9 @@ public class InventorySalesAgentConfig {
                 .name("SQL助手智能体")
                 .model(qwenChatModel)
                 .systemPrompt(SQL_PROMPT)
+                .instruction("用户问题：{message}")
                 .methodTools(new SqlQueryTools())
-                .hooks(skillsAgentHook, ModelCallLimitHook.builder().runLimit(2).build())
+                .hooks(skillsAgentHook, ModelCallLimitHook.builder().runLimit(5).build())
                 .build();
     }
 
@@ -82,8 +83,9 @@ public class InventorySalesAgentConfig {
                 .name("库存管理智能体")
                 .model(qwenChatModel)
                 .systemPrompt(INVENTORY_PROMPT)
+                .instruction("用户问题：{message}")
                 .methodTools(new SqlQueryTools())
-                .hooks(skillsAgentHook, ModelCallLimitHook.builder().runLimit(2).build())
+                .hooks(skillsAgentHook, ModelCallLimitHook.builder().runLimit(5).build())
                 .build();
     }
 
@@ -94,8 +96,9 @@ public class InventorySalesAgentConfig {
                 .name("销售分析智能体")
                 .model(qwenChatModel)
                 .systemPrompt(SALES_PROMPT)
+                .instruction("用户问题：{message}")
                 .methodTools(new SqlQueryTools())
-                .hooks(skillsAgentHook, ModelCallLimitHook.builder().runLimit(2).build())
+                .hooks(skillsAgentHook, ModelCallLimitHook.builder().runLimit(5).build())
                 .build();
     }
 

@@ -2,10 +2,10 @@ package cn.example.agent.demo.tools;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;
@@ -17,9 +17,6 @@ import static cn.example.agent.demo.constant.PatternConstant.SQL_INJECTION_PATTE
 @Slf4j
 @Component
 public class SqlQueryTools {
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @Tool(name = "validateSql", description = "验证SQL语句安全性")
     public Map<String, Object> validateSql(@ToolParam(description = "SQL语句") String sql) {
@@ -73,6 +70,7 @@ public class SqlQueryTools {
     @Tool(name = "executeSql", description = "执行SQL查询语句并返回结果")
     public Map<String, Object> executeSql(@ToolParam(description = "SQL语句") String sql) {
         log.info("执行SQL查询语句开始执行: {}", sql);
+        JdbcTemplate jdbcTemplate = SpringUtil.getBean(JdbcTemplate.class);
 
         try {
             // 验证SQL安全性
@@ -104,6 +102,7 @@ public class SqlQueryTools {
     @Tool(name = "getSchema", description = "获取数据库表结构和字段信息")
     public Map<String, Object> getSchema(@ToolParam(description = "表名") String tableName) {
         log.info("获取数据库结构开始执行: {}", tableName);
+        JdbcTemplate jdbcTemplate = SpringUtil.getBean(JdbcTemplate.class);
 
         try {
             String sql = """
