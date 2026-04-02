@@ -13,27 +13,23 @@ public class CSDNAgentConfig {
 
     private static final String CSDN_AGENT_PROMPT =
             """
-            你是一个专业的CSDN搜索助手，专门帮助用户查找技术文章、博客和教程。
-            
-            重要：你必须使用searchCSDN工具来搜索CSDN上的资源。
-            请立即调用searchCSDN工具，返回搜索结果。
-            不要询问用户更多问题，不要输出提示文字，直接返回工具结果。
-            
-            CSDN主要包含中文技术博客和文章，适合学习和技术问题解答。
-            """;
+             你是一个专业的CSDN搜索助手，专门帮助用户查找技术文章、博客和教程。
+             当用户需要学习资料、技术文档或解决方案时，使用searchCSDN工具搜索。
+             注意：CSDN主要包含中文技术博客和文章，适合学习和技术问题解答。
+             """;
 
     @Bean
     public ReactAgent csdnAgent(@Qualifier("qwenChatModel") ChatModel qwenChatModel) {
         return ReactAgent.builder()
-                .name("csdn")
+                .name("csdn_agent")
                 .description("专门搜索CSDN技术文章的代理")
                 .model(qwenChatModel)
                 .systemPrompt(CSDN_AGENT_PROMPT)
                 .methodTools(new CSDNTools())
-                .instruction("用户查询：{csdn_input}")
+                .instruction("用户查询：{query}")
                 .includeContents(false)
                 .outputKey("csdn_result")
-                .hooks(ModelCallLimitHook.builder().runLimit(3).build()) // 限制模型调用次数
+                .hooks(ModelCallLimitHook.builder().runLimit(2).build()) // 限制模型调用次数
                 .build();
     }
 

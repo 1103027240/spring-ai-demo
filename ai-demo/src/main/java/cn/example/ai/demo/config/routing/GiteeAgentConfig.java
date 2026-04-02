@@ -35,7 +35,7 @@ public class GiteeAgentConfig {
                 .name("Gitee搜索代理")
                 .description("专门搜索Gitee开源项目的代理")
                 .instruction("""
-                        用户输入：{query}
+                        用户搜索：{query}
                         """)
                 .includeContents(false)
                 .outputKey("gitee_result")

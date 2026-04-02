@@ -35,7 +35,7 @@ public class CSDNAgentConfig {
                 .name("CSDN搜索代理")
                 .description("专门搜索CSDN技术文章的代理")
                 .instruction("""
-                        用户输入：{query}
+                        用户搜索：{query}
                         """)
                 .includeContents(false)
                 .outputKey("csdn_result")

@@ -9,10 +9,8 @@ import com.alibaba.cloud.ai.graph.agent.flow.agent.LlmRoutingAgent;
 import com.alibaba.cloud.ai.graph.agent.flow.node.RoutingMergeNode;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
 import java.util.Map;
 import static cn.example.agent.demo.constant.FieldConstant.*;
 
@@ -36,11 +34,7 @@ public class MultiRoutingServiceImpl implements MultiRoutingService {
     public Map<String, Object> doChatSimple(String message) {
         try {
             // 调用大模型
-            Map<String, Object> inputs = Map.of(
-                    "messages", List.of(new UserMessage(message)),
-                    "github_input", message,
-                    "gitee_input", message,
-                    "csdn_input", message);
+            Map<String, Object> inputs = Map.of(QUERY, message);
             OverAllState overAllState = codeSearchRoutingAgent.invoke(inputs).orElse(null);
 
             // 封装返回结果
