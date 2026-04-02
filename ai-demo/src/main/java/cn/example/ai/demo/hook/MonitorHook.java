@@ -1,4 +1,4 @@
-package cn.example.ai.demo.memory;
+package cn.example.ai.demo.hook;
 
 import io.agentscope.core.hook.*;
 import io.agentscope.core.message.*;

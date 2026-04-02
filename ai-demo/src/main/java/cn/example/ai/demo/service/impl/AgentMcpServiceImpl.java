@@ -1,6 +1,6 @@
 package cn.example.ai.demo.service.impl;
 
-import cn.example.ai.demo.memory.MonitorHook;
+import cn.example.ai.demo.hook.MonitorHook;
 import cn.example.ai.demo.service.AgentMcpService;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;

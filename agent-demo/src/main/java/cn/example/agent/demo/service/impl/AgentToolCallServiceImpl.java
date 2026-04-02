@@ -1,8 +1,7 @@
 package cn.example.agent.demo.service.impl;
 
+import cn.example.agent.demo.build.ToolCallbackBuild;
 import cn.example.agent.demo.function.DemoToolCallbackProvider;
-import cn.example.agent.demo.function.SqlExecuteFunction;
-import cn.example.agent.demo.function.WeatherFunction;
 import cn.example.agent.demo.service.AgentToolCallService;
 import cn.example.agent.demo.tools.CalculatorTools;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
@@ -13,7 +12,7 @@ import org.springframework.ai.chat.messages.ToolResponseMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
-import org.springframework.ai.tool.function.FunctionToolCallback;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.List;
@@ -28,22 +27,19 @@ public class AgentToolCallServiceImpl implements AgentToolCallService {
     @Resource(name = "qwenChatModel")
     private ChatModel qwenChatModel;
 
+    @Autowired
+    private ToolCallbackBuild toolCallbackBuild;
+
     @Override
     public String doChat(String message) {
         Map<String, Object> map = Map.of("message", message);
 
         // 创建方式一：FunctionToolCallback（使用 Map 类型确保 JSON 格式）
-        ToolCallback weatherTool = FunctionToolCallback.builder("getWeatherV3", new WeatherFunction())
-                .description("获取指定城市的天气信息。当用户询问天气、气温、下雨、晴天等天气相关问题时调用此工具。")
-                .inputType(Map.class)
-                .build();
+        ToolCallback weatherTool = toolCallbackBuild.getWeatherTool();
 
         // 创建方式二：ToolCallbackProvider
-        ToolCallback sqlTool = FunctionToolCallback.builder("executeSimpleSql", new SqlExecuteFunction())
-                .description("执行SQL查询语句。当用户需要查询数据库数据时调用此工具。")
-                .inputType(Map.class)
-                .build();
-        ToolCallbackProvider toolProvider = new DemoToolCallbackProvider(List.of(sqlTool));
+        ToolCallback simpleSqlTool = toolCallbackBuild.getSimpleSqlTool();
+        ToolCallbackProvider toolProvider = new DemoToolCallbackProvider(List.of(simpleSqlTool));
 
         // 创建方式三：@Tool注解
         CalculatorTools calculatorTools = new CalculatorTools();
@@ -68,7 +64,7 @@ public class AgentToolCallServiceImpl implements AgentToolCallService {
                     1. 你必须始终使用中文回复
                     """)
                 .instruction("用户问题：{message}")
-                .tools(weatherTool, sqlTool)
+                .tools(weatherTool, simpleSqlTool)
                 .toolCallbackProviders(toolProvider)
                 .methodTools(calculatorTools)
                 .toolContext(Map.of("userId", "10001")) //工具调用上下文

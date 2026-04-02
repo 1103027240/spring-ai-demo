@@ -1,0 +1,32 @@
+package cn.example.agent.demo.controller;
+
+import cn.example.agent.demo.service.AgentHookService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * @author 11030
+ */
+@Tag(name = "智能体钩子接口", description = "智能体钩子接口")
+@RequestMapping("/agentHook")
+@RestController
+public class AgentHookController {
+
+    @Autowired
+    private AgentHookService agentHookService;
+
+    @Operation(summary = "工具调用对话", description = "工具调用对话")
+    @GetMapping("/doChat")
+    public String doChat(
+            @Parameter(description = "用户消息内容", required = true, example = "你好")
+            @RequestParam(value = "message") String message){
+        return agentHookService.doChat(message);
+    }
+
+}
