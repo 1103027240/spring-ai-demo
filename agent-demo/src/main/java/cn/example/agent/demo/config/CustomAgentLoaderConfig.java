@@ -1,7 +1,5 @@
 package cn.example.agent.demo.config;
 
-import cn.example.agent.demo.config.loop.SimpleCustomerChatLoopConfig;
-import cn.example.agent.demo.config.parallel.CustomerVerificationParallelConfig;
 import cn.example.agent.demo.config.sequential.*;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.agent.studio.loader.AgentLoader;
@@ -14,7 +12,6 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -22,10 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import static cn.example.agent.demo.enums.AgentNameEnum.*;
 
 @Configuration
-@Import({
-        ReturnProcessSequentialConfig.class,
-        CustomerVerificationParallelConfig.class,
-        SimpleCustomerChatLoopConfig.class})
 public class CustomAgentLoaderConfig {
 
     private final Map<String, Agent> agents = new ConcurrentHashMap<>();
@@ -36,13 +29,13 @@ public class CustomAgentLoaderConfig {
             @Qualifier("returnPolicyCheckAgent") ReactAgent returnPolicyCheckAgent,
             @Qualifier("refundCalculateAgent") ReactAgent refundCalculateAgent,
             @Qualifier("returnOrderGenerateAgent") ReactAgent returnOrderGenerateAgent,
-            @Qualifier("returnOrderGenerateAgent") SequentialAgent returnProcessSequentialAgent,
+            @Qualifier("returnProcessSequentialAgent") SequentialAgent returnProcessSequentialAgent,
 
             @Qualifier("creditScoreCheckAgent") ReactAgent creditScoreCheckAgent,
             @Qualifier("orderSuccessRateAgent") ReactAgent orderSuccessRateAgent,
             @Qualifier("averageOrderValueAgent") ReactAgent orderAveragePriceAgent,
             @Qualifier("refundRateCheckAgent") ReactAgent refundRateCheckAgent,
-            @Qualifier("refundRateCheckAgent") ParallelAgent customerVerificationParallelAgent,
+            @Qualifier("customerVerificationParallelAgent") ParallelAgent customerVerificationParallelAgent,
 
             @Qualifier("simpleCustomerServiceAgent") ReactAgent simpleCustomerServiceAgent,
             @Qualifier("simpleCustomerChatLoopAgent") LoopAgent simpleCustomerChatLoopAgent) {

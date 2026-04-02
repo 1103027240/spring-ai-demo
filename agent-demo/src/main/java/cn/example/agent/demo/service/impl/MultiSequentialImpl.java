@@ -43,7 +43,7 @@ public class MultiSequentialImpl implements MultiSequentialService {
     private String extractOrderId(String message) throws GraphRunnerException {
         String extractPrompt = """
             请从用户输入中提取订单号：
-            1. 如果能提取到订单号，直接返回订单号       
+            1. 如果能提取到订单号，直接返回订单号
             2. 如果不能提取到订单号，直接返回""
             
             只返回提取结果，不要包含任何其他内容等。
