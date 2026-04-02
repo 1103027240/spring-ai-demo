@@ -2,11 +2,11 @@ package cn.example.agent.demo.config.routing;
 
 import cn.example.agent.demo.tools.routing.GitHubTools;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
+import com.alibaba.cloud.ai.graph.agent.hook.modelcalllimit.ModelCallLimitHook;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import static cn.example.agent.demo.constant.FieldConstant.OUT_RESULT;
 
 @Component
 public class GithubAgentConfig {
@@ -30,7 +30,8 @@ public class GithubAgentConfig {
                     用户输入：{query}
                     """)
                 .includeContents(false)
-                .outputKey(OUT_RESULT)
+                .outputKey("github_result")
+                .hooks(ModelCallLimitHook.builder().runLimit(1).build()) // 限制模型调用次数
                 .build();
     }
 

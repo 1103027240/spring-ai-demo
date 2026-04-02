@@ -6,6 +6,7 @@ import cn.example.agent.demo.service.MultiRoutingService;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.agent.flow.agent.LlmRoutingAgent;
+import com.alibaba.cloud.ai.graph.agent.flow.node.RoutingMergeNode;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,7 @@ public class MultiRoutingServiceImpl implements MultiRoutingService {
             OverAllState overAllState = codeSearchRoutingAgent.invoke(inputs).orElse(null);
 
             // 封装返回结果
-            Object mergedResult = overAllState.value(OUT_RESULT).orElse(null);
+            Object mergedResult = overAllState.value(RoutingMergeNode.DEFAULT_MERGED_OUTPUT_KEY).orElse(null);
             String result = codeSearchRoutingBuild.extractText(mergedResult, message, overAllState);
             return Map.of(SUCCESS, true, DATA, result);
         } catch (Exception e) {

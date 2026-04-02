@@ -38,6 +38,10 @@ public class CodeSearchRoutingConfig {
                     
                     请根据用户查询的语义内容选择需要调用的代理。
                     """)
+                .instruction("""
+                    用户查询：{query}
+                    请根据用户查询内容，选择合适的搜索代理。
+                    """)
                 .subAgents(List.of(githubAgent, giteeAgent, csdnAgent))
                 .build();
     }

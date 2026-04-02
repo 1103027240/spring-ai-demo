@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import static cn.example.agent.demo.constant.FieldConstant.OUT_RESULT;
 
 @Component
 public class CodeSearchRoutingBuild {
@@ -32,7 +31,7 @@ public class CodeSearchRoutingBuild {
             return multiAgentBuild.extractText(mergedResult);
         }
 
-        List<String> resultTexts = Arrays.asList(OUT_RESULT).stream()
+        List<String> resultTexts = Arrays.asList("github_result", "gitee_result", "csdn_result").stream()
                 .map(e -> state.value(e, null))
                 .filter(Objects::nonNull)
                 .map(e -> multiAgentBuild.extractText(e))
