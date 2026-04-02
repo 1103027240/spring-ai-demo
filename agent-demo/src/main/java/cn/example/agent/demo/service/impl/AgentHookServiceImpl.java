@@ -22,6 +22,14 @@ public class AgentHookServiceImpl implements AgentHookService {
     @Resource(name = "qwenChatModel")
     private ChatModel qwenChatModel;
 
+    /**
+     * 1、Agent执行前调用
+     * 2、模型执行前调用
+     * 3、模型调用前拦截
+     * 4、工具调用前拦截
+     * 5、模型执行后调用
+     * 6、Agent执行后调用
+     */
     @Override
     public String doChat(String message) {
         try {

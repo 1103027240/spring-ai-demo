@@ -4,6 +4,7 @@ import cn.example.agent.demo.build.ToolCallbackBuild;
 import cn.example.agent.demo.function.DemoToolCallbackProvider;
 import cn.example.agent.demo.service.AgentToolCallService;
 import cn.example.agent.demo.tools.CalculatorTools;
+import com.alibaba.cloud.ai.graph.agent.AgentTool;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,20 @@ import java.util.stream.Collectors;
 @Service
 public class AgentToolCallServiceImpl implements AgentToolCallService {
 
+    private static final String SYSTEM_PROMPT = """
+        你是一个专业的{role}助手。
+        你的专业领域是{domain}。
+        请用{language}语言回答用户的问题。
+        """;
+
+    private static final String INSTRUCTION = """
+        用户询问的主题是：{topic}
+        请根据以下要求回答：
+        1. 保持专业性
+        2. 提供具体示例
+        3. 语言要{style}
+        """;
+
     @Resource(name = "qwenChatModel")
     private ChatModel qwenChatModel;
 
@@ -32,7 +47,20 @@ public class AgentToolCallServiceImpl implements AgentToolCallService {
 
     @Override
     public String doChat(String message) {
-        Map<String, Object> map = Map.of("message", message);
+        ReactAgent writerAgent = ReactAgent.builder()
+                .name("智能体示例")
+                .model(qwenChatModel)
+                .systemPrompt(SYSTEM_PROMPT)
+                .instruction(INSTRUCTION)
+                .build();
+
+        Map<String, Object> map = Map.of(
+                "message", message,
+                "role", "技术专家",
+                "domain", "JAVA企业级开发",
+                "language", "中文",
+                "topic", message,
+                "style", "简洁易懂");
 
         // 创建方式一：FunctionToolCallback
         ToolCallback weatherTool = toolCallbackBuild.getWeatherTool();
@@ -43,6 +71,9 @@ public class AgentToolCallServiceImpl implements AgentToolCallService {
 
         // 创建方式三：@Tool注解
         CalculatorTools calculatorTools = new CalculatorTools();
+
+        // 创建方式四：智能体作为工具
+        ToolCallback writeTool = AgentTool.getFunctionToolCallback(writerAgent);
 
         // 直接调用工具
         invokeToolCallback(calculatorTools);
@@ -64,7 +95,7 @@ public class AgentToolCallServiceImpl implements AgentToolCallService {
                     1. 你必须始终使用中文回复
                     """)
                 .instruction("用户问题：{message}")
-                .tools(weatherTool, simpleSqlTool)
+                .tools(weatherTool, writeTool)
                 .toolCallbackProviders(toolProvider)
                 .methodTools(calculatorTools)
                 .toolContext(Map.of("userId", "10001")) //工具调用上下文
