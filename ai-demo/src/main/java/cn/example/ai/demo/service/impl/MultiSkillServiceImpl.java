@@ -4,8 +4,8 @@ import cn.example.ai.demo.service.MultiSkillService;
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.message.Msg;
 import io.agentscope.core.message.TextBlock;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Map;
 import static cn.example.ai.demo.constant.FieldConstant.DATA;
@@ -15,13 +15,13 @@ import static cn.example.ai.demo.constant.FieldConstant.SUCCESS;
 @Service
 public class MultiSkillServiceImpl implements MultiSkillService {
 
-    @Autowired
+    @Resource(name = "demoSqlAssistantAgent")
     private ReActAgent demoSqlAssistantAgent;
 
-    @Autowired
+    @Resource(name = "demoInventoryManagementAgent")
     private ReActAgent demoInventoryManagementAgent;
 
-    @Autowired
+    @Resource(name = "demoSalesAnalysisAgent")
     private ReActAgent demoSalesAnalysisAgent;
 
     @Override
@@ -39,7 +39,7 @@ public class MultiSkillServiceImpl implements MultiSkillService {
     }
 
     @Override
-    public Map<String, Object> doyChatSalesAnalysis(String message) {
+    public Map<String, Object> doChatSalesAnalysis(String message) {
         Msg msg = Msg.builder().content(TextBlock.builder().text(message).build()).build();
         String result = demoSalesAnalysisAgent.call(msg).block().getTextContent();
         return Map.of(SUCCESS, true, DATA, result);

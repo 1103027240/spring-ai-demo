@@ -36,7 +36,7 @@ public class CodeSearchRoutingConfig {
                     3. 如果查询包含"博客"、"文章"、"教程"、"学习"等关键词，优先选择 csdn_agent
                     4. 对于通用技术查询，选择 github_agent
                     
-                    请根据用户查询的语义内容选择需要调用的代理，并请用中文回答用户的问题。
+                    请根据用户查询的语义内容选择需要调用哪一个代理，并请用中文回答用户的问题。
                     """)
                 .subAgents(List.of(githubAgent, giteeAgent, csdnAgent))
                 .build();

@@ -1,6 +1,6 @@
-package cn.example.ai.demo.controller;
+package cn.example.agent.demo.controller;
 
-import cn.example.ai.demo.service.MultiSkillService;
+import cn.example.agent.demo.service.MultiSkillService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

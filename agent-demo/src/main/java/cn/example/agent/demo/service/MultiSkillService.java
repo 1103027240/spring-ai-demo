@@ -1,4 +1,4 @@
-package cn.example.ai.demo.service;
+package cn.example.agent.demo.service;
 
 import java.util.Map;
 

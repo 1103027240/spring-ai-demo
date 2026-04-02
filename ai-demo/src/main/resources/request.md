@@ -21,7 +21,24 @@ message = 查看最近30天的所有支付信息和交易记录
 
 message = 检查当前库存状况，包括需补货的商品
 
-3、/api/base-demo/multiRouting/doChatGraph
+
+3、/api/base-demo/multiRouting/doChatSimple
 message = 构建现代化Web应用：前后端分离架构最佳实践全指南
 message = 容器编排技术：Docker Swarm vs Kubernetes对比分析
+
+
+4、/api/base-demo/multiRouting/doChatGraph
+message = 构建现代化Web应用：前后端分离架构最佳实践全指南
+message = 容器编排技术：Docker Swarm vs Kubernetes对比分析
+
+
+5、/api/base-demo/multiSkill/doChatSqlAssistant
+message = 帮我查询最近一个月的销售数据
+
+
+6、/api/base-demo/multiSkill/doChatInventoryManagement
+message = 查看哪些产品需要补货
+
+7、/api/base-demo/multiSkill/doChatSalesAnalysis
+message = 分析上个月的销售业绩
 
