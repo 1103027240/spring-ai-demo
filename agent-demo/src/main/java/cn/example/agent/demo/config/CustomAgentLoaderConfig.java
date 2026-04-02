@@ -4,7 +4,6 @@ import cn.example.agent.demo.config.sequential.*;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.agent.studio.loader.AgentLoader;
 import com.alibaba.cloud.ai.graph.agent.Agent;
-import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.alibaba.cloud.ai.graph.agent.flow.agent.LoopAgent;
 import com.alibaba.cloud.ai.graph.agent.flow.agent.ParallelAgent;
 import com.alibaba.cloud.ai.graph.agent.flow.agent.SequentialAgent;
@@ -25,34 +24,12 @@ public class CustomAgentLoaderConfig {
 
     @Bean
     public AgentLoader customAgentLoader (
-            @Qualifier("returnOrderCheckAgent") ReactAgent returnOrderCheckAgent,
-            @Qualifier("returnPolicyCheckAgent") ReactAgent returnPolicyCheckAgent,
-            @Qualifier("refundCalculateAgent") ReactAgent refundCalculateAgent,
-            @Qualifier("returnOrderGenerateAgent") ReactAgent returnOrderGenerateAgent,
             @Qualifier("returnProcessSequentialAgent") SequentialAgent returnProcessSequentialAgent,
-
-            @Qualifier("creditScoreCheckAgent") ReactAgent creditScoreCheckAgent,
-            @Qualifier("orderSuccessRateAgent") ReactAgent orderSuccessRateAgent,
-            @Qualifier("averageOrderValueAgent") ReactAgent orderAveragePriceAgent,
-            @Qualifier("refundRateCheckAgent") ReactAgent refundRateCheckAgent,
             @Qualifier("customerVerificationParallelAgent") ParallelAgent customerVerificationParallelAgent,
-
-            @Qualifier("simpleCustomerServiceAgent") ReactAgent simpleCustomerServiceAgent,
             @Qualifier("simpleCustomerChatLoopAgent") LoopAgent simpleCustomerChatLoopAgent) {
 
-        agents.put(RETURN_ORDER_CHECK.getText(), returnOrderCheckAgent);
-        agents.put(RETURN_POLICY_CHECK.getText(), returnPolicyCheckAgent);
-        agents.put(REFUND_CALCULATE.getText(), refundCalculateAgent);
-        agents.put(RETURN_ORDER_GENERATE.getText(), returnOrderGenerateAgent);
         agents.put(RETURN_PROCESS_SEQUENTIAL.getText(), returnProcessSequentialAgent);
-
-        agents.put(CREDIT_SCORE_CHECK.getText(), creditScoreCheckAgent);
-        agents.put(ORDER_SUCCESS_RATE.getText(), orderSuccessRateAgent);
-        agents.put(AVERAGE_ORDER_VALUE.getText(), orderAveragePriceAgent);
-        agents.put(REFUND_RATE_CHECK.getText(), refundRateCheckAgent);
         agents.put(CUSTOMER_VERIFICATION_PARALLEL.getText(), customerVerificationParallelAgent);
-
-        agents.put(SIMPLE_CUSTOMER_SERVICE.getText(), simpleCustomerServiceAgent);
         agents.put(SIMPLE_CUSTOMER_CHAT_LOOP.getText(), simpleCustomerChatLoopAgent);
 
         return new AgentLoader() {
