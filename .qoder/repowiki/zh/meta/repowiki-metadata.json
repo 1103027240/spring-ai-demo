@@ -1,0 +1,51 @@
+{
+  "language": "zh",
+  "version": "2.0",
+  "generatedAt": "2026-04-03",
+  "projectName": "spring-ai-demo",
+  "description": "Spring AI 多智能体演示项目",
+  "modules": [
+    "ai-demo",
+    "agent-demo",
+    "mcp-client-demo",
+    "mcp-server-demo"
+  ],
+  "techStack": {
+    "java": "21",
+    "springBoot": "3.5.10",
+    "springAI": "1.1.2",
+    "milvus": "2.6.12"
+  },
+  "documents": [
+    {
+      "title": "项目概述",
+      "file": "项目概述.md",
+      "description": "项目整体介绍、技术栈和快速开始"
+    },
+    {
+      "title": "多智能体系统",
+      "file": "多智能体系统.md",
+      "description": "智能体编排模式和使用说明"
+    },
+    {
+      "title": "MCP协议集成",
+      "file": "MCP协议集成.md",
+      "description": "MCP客户端和服务端集成指南"
+    },
+    {
+      "title": "RAG检索增强",
+      "file": "RAG检索增强.md",
+      "description": "向量检索和知识库管理"
+    },
+    {
+      "title": "工具调用",
+      "file": "工具调用.md",
+      "description": "Function Calling 工具定义和使用"
+    },
+    {
+      "title": "配置管理",
+      "file": "配置管理.md",
+      "description": "项目配置和环境变量说明"
+    }
+  ]
+}
