@@ -24,8 +24,8 @@ public class MultiA2AServiceImpl implements MultiA2AService {
     public Map<String, Object> doChat(String message) {
         A2aRemoteAgent remote = A2aRemoteAgent.builder()
                 .name("data_analysis_agent")
-                .agentCardProvider(agentCardProvider)
                 .description("数据分析远程代理")
+                .agentCardProvider(agentCardProvider)
                 .instruction("{input}")
                 .build();
 
@@ -35,7 +35,7 @@ public class MultiA2AServiceImpl implements MultiA2AService {
                 return Map.of(SUCCESS, false, MESSAGE, "A2A返回结果为空");
             }
 
-            String result = (String) overAllState.data().get("output");
+            String result = (String) overAllState.data().get("output"); //返回数据从output获取
             return Map.of(SUCCESS, true, MESSAGE, result);
         } catch (GraphRunnerException e) {
             throw new RuntimeException(e);
