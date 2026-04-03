@@ -8,7 +8,6 @@ import cn.example.ai.demo.mapper.ChatMessageMapper;
 import cn.hutool.core.collection.CollUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
 
 @Component

@@ -11,11 +11,9 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
 import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
 import static cn.hutool.core.date.DatePattern.NORM_DATE_PATTERN;
 

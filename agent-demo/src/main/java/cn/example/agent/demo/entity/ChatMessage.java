@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.experimental.Accessors;
-
 import java.io.Serializable;
 
 /**

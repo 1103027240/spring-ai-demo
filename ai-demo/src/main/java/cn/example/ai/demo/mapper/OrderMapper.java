@@ -3,7 +3,6 @@ package cn.example.ai.demo.mapper;
 import cn.example.ai.demo.entity.Order;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.*;
-
 import java.util.List;
 import java.util.Map;
 

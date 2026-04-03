@@ -6,7 +6,6 @@ import io.agentscope.core.message.Msg;
 import io.agentscope.core.message.TextBlock;
 import io.agentscope.core.model.Model;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.Map;
 import static cn.example.agent.demo.constant.FieldConstant.QUERY;
-import static cn.example.agent.demo.constant.FieldConstant.USER_INPUT;
 
 @Slf4j
 @Component

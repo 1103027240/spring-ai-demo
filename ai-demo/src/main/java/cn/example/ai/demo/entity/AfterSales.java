@@ -5,7 +5,6 @@ import cn.example.ai.demo.enums.AfterSalesTypeEnum;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

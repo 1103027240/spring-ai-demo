@@ -3,9 +3,7 @@ package cn.example.agent.demo.config;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.MysqlSaver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import javax.sql.DataSource;
-
 import static com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.CreateOption.CREATE_IF_NOT_EXISTS;
 
 /**

@@ -1,7 +1,6 @@
 package cn.example.ai.demo.param.vo;
 
 import lombok.*;
-
 import java.io.Serializable;
 import java.util.Map;
 

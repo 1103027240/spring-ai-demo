@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import static cn.example.ai.demo.constant.FieldConstant.*;
 import static cn.example.ai.demo.enums.IntentRecognitionEnum.GENERAL_QUESTION;
 import static cn.example.ai.demo.enums.SentimentAnalysisEnum.NEUTRAL;

@@ -11,7 +11,6 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
-
 import static cn.example.ai.demo.constant.FieldConstant.*;
 import static cn.example.ai.demo.enums.SentimentAnalysisEnum.*;
 

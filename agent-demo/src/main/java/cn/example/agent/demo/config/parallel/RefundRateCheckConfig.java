@@ -5,7 +5,6 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import static cn.example.agent.demo.enums.AgentNameEnum.REFUND_RATE_CHECK;
 
 /**
