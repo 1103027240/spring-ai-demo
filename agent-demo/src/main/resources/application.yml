@@ -118,8 +118,9 @@ spring:
             name: data_analysis_agent
             description: 专门用于数据分析和统计计算的本地智能体
             provider:
-              name: Spring AI Alibaba Documentation
-              organization: Spring AI Alibaba
+              name: data_analysis_agent
+              organization: Example Inc.
+              url: https://localhost:8032
 
 mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml

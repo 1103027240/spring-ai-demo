@@ -1,14 +1,34 @@
 package cn.example.agent.demo.config.a2a;
 
+import com.alibaba.cloud.ai.a2a.registry.nacos.discovery.NacosAgentCardProvider;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
+import com.alibaba.cloud.ai.graph.agent.a2a.AgentCardProvider;
+import com.alibaba.nacos.api.ai.A2aService;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class A2AAgentConfig {
 
+    @Autowired(required = false)
+    private A2aService a2aService;
+
+    /**
+     * NacosAgentCardProvider
+     */
+    @Bean
+    public AgentCardProvider agentCardProvider() {
+        if (a2aService != null) {
+            return new NacosAgentCardProvider(a2aService);
+        }
+        throw new IllegalStateException("A2aService not available, please check Nacos configuration");
+    }
+
+    @Primary
     @Bean(name = "dataAnalysisAgent")
     public ReactAgent dataAnalysisAgent(@Qualifier("qwenChatModel") ChatModel qwenChatModel) {
         return ReactAgent.builder()

@@ -5,9 +5,12 @@ import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.agent.a2a.A2aRemoteAgent;
 import com.alibaba.cloud.ai.graph.agent.a2a.AgentCardProvider;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import static cn.example.agent.demo.constant.FieldConstant.MESSAGE;
 import static cn.example.agent.demo.constant.FieldConstant.SUCCESS;
 
@@ -27,12 +30,12 @@ public class MultiA2AServiceImpl implements MultiA2AService {
                 .build();
 
         try {
-            OverAllState overAllState = remote.invoke("请根据季度数据给出同比与环比分析概要。").orElse(null);
+            OverAllState overAllState = remote.invoke(message).orElse(null);
             if(overAllState == null){
                 return Map.of(SUCCESS, false, MESSAGE, "A2A返回结果为空");
             }
 
-            String result = (String) overAllState.data().get("messages");
+            String result = (String) overAllState.data().get("output");
             return Map.of(SUCCESS, true, MESSAGE, result);
         } catch (GraphRunnerException e) {
             throw new RuntimeException(e);
