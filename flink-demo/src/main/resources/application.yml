@@ -1,0 +1,8 @@
+server:
+  port: 8035
+  servlet:
+    context-path: /api/flink-demo
+spring:
+  application:
+    name: flink-demo
+
