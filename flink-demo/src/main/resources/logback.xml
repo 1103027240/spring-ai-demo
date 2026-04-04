@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 简洁优雅的控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss} %highlight(%-5level) %cyan(%-30.30logger{30}) : %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 静默噪音日志 -->
+    <logger name="org.apache.flink.runtime.taskexecutor" level="WARN"/>
+    <logger name="org.apache.flink.runtime.blob" level="WARN"/>
+    <logger name="org.apache.flink.runtime.rpc" level="ERROR"/>
+    <logger name="org.apache.flink.runtime.metrics" level="WARN"/>
+    <logger name="org.apache.flink.runtime.security" level="WARN"/>
+    <logger name="org.apache.flink.runtime.webmonitor" level="ERROR"/>
+    <logger name="org.apache.flink.runtime.io" level="WARN"/>
+    <logger name="org.apache.flink.runtime.dispatcher" level="WARN"/>
+    <logger name="org.apache.flink.metrics" level="ERROR"/>
+    <logger name="org.apache.pekko" level="ERROR"/>
+
+    <!-- Flink 核心日志 INFO -->
+    <logger name="org.apache.flink" level="INFO"/>
+
+    <!-- 项目代码 DEBUG -->
+    <logger name="cn.example" level="DEBUG"/>
+
+    <!-- 根日志级别 -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

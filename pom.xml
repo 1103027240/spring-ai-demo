@@ -178,9 +178,10 @@
     <modules>
         <module>ai-demo</module>
         <module>agent-demo</module>
-        <module>flink-demo</module>
         <module>mcp-server-demo</module>
         <module>mcp-client-demo</module>
+
+        <module>flink-demo</module>
     </modules>
 
 </project>
