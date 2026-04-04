@@ -10,7 +10,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
 
 /**
- * DataStream有界流处理
+ * DataStream无界流处理
  */
 @Slf4j
 public class WordCountJob {
