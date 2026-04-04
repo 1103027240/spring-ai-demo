@@ -1,5 +1,5 @@
-# 构建阶段 - Eclipse Temurin JDK 21
-FROM maven:3.9-eclipse-temurin-21 AS builder
+# 构建阶段 - Eclipse Temurin JDK 17
+FROM maven:3.9-eclipse-temurin-17 AS builder
 
 WORKDIR /build
 
@@ -9,8 +9,8 @@ COPY . .
 # 只构建 agent-demo 模块
 RUN mvn clean package -B -pl agent-demo -am -DskipTests
 
-# 运行阶段 - Eclipse Temurin JRE 21
-FROM eclipse-temurin:21-jre
+# 运行阶段 - Eclipse Temurin JRE 17
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
