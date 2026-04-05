@@ -1,4 +1,4 @@
-jobmanager.rpc.address: jobmanager
+jobmanager.rpc.address: flink-jobmanager
 jobmanager.bind-host: 0.0.0.0
 jobmanager.memory.process.size: 1536m
 taskmanager.memory.process.size: 1728m
