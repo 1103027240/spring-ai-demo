@@ -20,7 +20,7 @@ public class WordCountJob {
         StreamExecutionEnvironment env = StreamContextEnvironment.getExecutionEnvironment();
 
         // 2、从Socket读取数据（启动netcat服务器：nl -lk 9999）
-        DataStreamSource<String> dataStreamSource = env.socketTextStream("127.0.0.1", 9999);
+        DataStreamSource<String> dataStreamSource = env.socketTextStream("host.docker.internal", 9999);
 
         SingleOutputStreamOperator<Tuple2<String, Long>> result = dataStreamSource.flatMap((String line, Collector<Tuple2<String, Long>> out) -> {
                     String[] words = line.split(" ");
