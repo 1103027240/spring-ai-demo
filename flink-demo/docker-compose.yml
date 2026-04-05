@@ -43,6 +43,8 @@ services:
       - FLINK_ENV_JAVA_OPTS=-XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED
     networks:
       - flink-network
+    extra_hosts:
+      - "host.docker.internal:192.168.1.102"
 
 networks:
   flink-network:
