@@ -1,6 +1,8 @@
 jobmanager.rpc.address: jobmanager
 jobmanager.bind-host: 0.0.0.0
 jobmanager.memory.process.size: 1536m
+taskmanager.memory.process.size: 1728m
+taskmanager.numberOfTaskSlots: 2
 rest.bind-address: 0.0.0.0
 rest.port: 8081
 blob.server.port: 6124
