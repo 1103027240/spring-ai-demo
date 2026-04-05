@@ -22,7 +22,7 @@ public class WordCountJob {
         // 2、从Socket读取数据（启动netcat服务器：nl -lk 9999）
         // 使用宿主机 IP 地址（Windows 宿主机在 WSL/Docker 中的 IP）
         // 可以通过 ipconfig 查看宿主机 IP，通常是 192.168.x.x 或 172.x.x.x
-        DataStreamSource<String> dataStreamSource = env.socketTextStream("192.168.1.100", 9999);
+        DataStreamSource<String> dataStreamSource = env.socketTextStream("host.docker.internal", 9999);
 
         SingleOutputStreamOperator<Tuple2<String, Long>> result = dataStreamSource.flatMap((String line, Collector<Tuple2<String, Long>> out) -> {
                     String[] words = line.split(" ");
