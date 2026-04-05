@@ -1,0 +1,47 @@
+services:
+  jobmanager:
+    image: flink:1.20.3-scala_2.12-java17
+    container_name: flink-jobmanager
+    ports:
+      - "8081:8081"
+    command: standalone-job --job-classname cn.example.flink.demo.job.WordCountJob
+    volumes:
+      - ./conf/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml
+      - ./checkpoint:/opt/flink/checkpoint
+      - ./savepoint:/opt/flink/savepoint
+      - ./logs/jobmanager:/opt/flink/log
+      - ./usrlib:/opt/flink/usrlib
+    mem_limit: 2g
+    cpus: '1.5'
+    environment:
+      - FLINK_ENV_JAVA_OPTS=-XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED
+    networks:
+      - flink-network
+
+  taskmanager:
+    image: flink:1.20.3-scala_2.12-java17
+    container_name: flink-taskmanager
+    hostname: taskmanager
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    volumes:
+      - ./conf/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml
+      - ./checkpoint:/opt/flink/checkpoint
+      - ./savepoint:/opt/flink/savepoint
+      - ./logs/taskmanager:/opt/flink/log
+      - ./usrlib:/opt/flink/usrlib
+    mem_limit: 2g
+    cpus: '2'
+    environment:
+      - TASKMANAGER_HOST=taskmanager
+      - TASKMANAGER_MEMORY_PROCESS_SIZE=1728m
+      - TASKMANAGER_NUMBEROFTASKSLOTS=2
+      - FLINK_ENV_JAVA_OPTS=-XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED
+    networks:
+      - flink-network
+
+networks:
+  flink-network:
+    driver: bridge
+    name: flink-network

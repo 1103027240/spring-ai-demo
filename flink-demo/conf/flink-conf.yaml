@@ -1,0 +1,12 @@
+jobmanager.rpc.address: jobmanager
+jobmanager.bind-host: 0.0.0.0
+jobmanager.memory.process.size: 1536m
+rest.bind-address: 0.0.0.0
+rest.port: 8081
+blob.server.port: 6124
+query.server.port: 6125
+state.backend: rocksdb
+state.checkpoints.dir: file:///opt/flink/checkpoint
+state.savepoints.dir: file:///opt/flink/savepoint
+execution.checkpointing.interval: 60s
+execution.checkpointing.externalized-checkpoint-retention: RETAIN_ON_CANCELLATION
