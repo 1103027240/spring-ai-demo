@@ -6,7 +6,7 @@ services:
       - "8081:8081"
     command: standalone-job --job-classname cn.example.flink.demo.job.WordCountJob
     volumes:
-      - ./conf/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml
+      - ./conf/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
       - ./checkpoint:/opt/flink/checkpoint
       - ./savepoint:/opt/flink/savepoint
       - ./logs/jobmanager:/opt/flink/log
@@ -18,7 +18,7 @@ services:
     networks:
       - flink-network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:192.168.1.102"
 
   taskmanager:
     image: flink:1.20.3-scala_2.12-java17
@@ -28,7 +28,7 @@ services:
       - jobmanager
     command: taskmanager
     volumes:
-      - ./conf/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml
+      - ./conf/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
       - ./checkpoint:/opt/flink/checkpoint
       - ./savepoint:/opt/flink/savepoint
       - ./logs/taskmanager:/opt/flink/log
