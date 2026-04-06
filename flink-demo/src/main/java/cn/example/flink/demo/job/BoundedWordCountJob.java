@@ -23,6 +23,7 @@ public class BoundedWordCountJob {
         String filePath = System.getProperty("user.dir") + "/flink-demo/input/words.txt";
         DataStreamSource<String> dataStreamSource = env.readTextFile(filePath);
 
+        // 3、转换算子
         SingleOutputStreamOperator<Tuple2<String, Long>> result = dataStreamSource.flatMap((String line, Collector<Tuple2<String, Long>> out) -> {
                     String[] words = line.split(" ");
                     for (String word : words) {
@@ -33,12 +34,12 @@ public class BoundedWordCountJob {
                 .keyBy(tuple -> tuple.f0)
                 .sum(1);
 
-        // 3、输出结果
+        // 4、输出算子
         log.info("========== BoundedWordCountJob 结果 ==========");
         result.print();
         log.info("====================================");
 
-        // 4、执行任务
+        // 5、启动执行
         env.execute();
     }
 

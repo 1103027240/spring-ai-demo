@@ -20,10 +20,11 @@ public class WordCountJob {
         StreamExecutionEnvironment env = StreamContextEnvironment.getExecutionEnvironment();
 
         // 2、从Socket读取数据（启动netcat服务器：nl -lk 9999）
-        // 使用宿主机 IP 地址（Windows 宿主机在 WSL/Docker 中的 IP）
-        // 可以通过 ipconfig 查看宿主机 IP，通常是 192.168.x.x 或 172.x.x.x
+        // 使用宿主机IP地址，通过ipconfig查看
         DataStreamSource<String> dataStreamSource = env.socketTextStream("host.docker.internal", 9999);
 
+
+        // 3、转换算子
         SingleOutputStreamOperator<Tuple2<String, Long>> result = dataStreamSource.flatMap((String line, Collector<Tuple2<String, Long>> out) -> {
                     String[] words = line.split(" ");
                     for (String word : words) {
@@ -34,12 +35,12 @@ public class WordCountJob {
                 .keyBy(tuple -> tuple.f0)
                 .sum(1);
 
-        // 3、输出结果
+        // 4、输出算子
         log.info("========== WordCountJob 结果 ==========");
         result.print();
         log.info("====================================");
 
-        // 4、执行任务
+        // 4、启动执行
         env.execute();
     }
 

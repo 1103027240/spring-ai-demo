@@ -22,6 +22,7 @@ public class BatchWordCountJob {
         String filePath = System.getProperty("user.dir") + "/flink-demo/input/words.txt";
         DataSource<String> dataSource = env.readTextFile(filePath);
 
+        // 3、转换算子
         AggregateOperator<Tuple2<String, Long>> result = dataSource.flatMap((String line, Collector<Tuple2<String, Long>> out) -> {
             String[] words = line.split(" ");
             for (String word : words) {
@@ -31,7 +32,7 @@ public class BatchWordCountJob {
                 .groupBy(0)
                 .sum(1);
 
-        // 3、输出结果
+        // 4、输出算子
         log.info("========== BatchWordCountJob 结果 ==========");
         result.print();
         log.info("====================================");
