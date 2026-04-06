@@ -131,7 +131,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>cn.example.flink.demo.job.WordCountJob</mainClass>
+                            <mainClass>cn.example.flink.demo.job.source.WordCountJob</mainClass>
                             <addClasspath>true</addClasspath>
                         </manifest>
                     </archive>

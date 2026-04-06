@@ -1,11 +1,9 @@
-package cn.example.flink.demo.job;
+package cn.example.flink.demo.job.source;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.client.program.StreamContextEnvironment;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
 
@@ -21,11 +19,8 @@ public class WordCountJob {
 
         // 2、从Socket读取数据（启动netcat服务器：nl -lk 9999）
         // 使用宿主机IP地址，通过ipconfig查看
-        DataStreamSource<String> dataStreamSource = env.socketTextStream("host.docker.internal", 9999);
-
-
-        // 3、转换算子
-        SingleOutputStreamOperator<Tuple2<String, Long>> result = dataStreamSource.flatMap((String line, Collector<Tuple2<String, Long>> out) -> {
+        env.socketTextStream("host.docker.internal", 9999)
+                .flatMap((String line, Collector<Tuple2<String, Long>> out) -> {
                     String[] words = line.split(" ");
                     for (String word : words) {
                         out.collect(new Tuple2<>(word, 1L));
@@ -33,14 +28,10 @@ public class WordCountJob {
                 })
                 .returns(Types.TUPLE(Types.STRING, Types.LONG))
                 .keyBy(tuple -> tuple.f0)
-                .sum(1);
+                .sum(1)
+                .print();
 
-        // 4、输出算子
-        log.info("========== WordCountJob 结果 ==========");
-        result.print();
-        log.info("====================================");
-
-        // 4、启动执行
+        // 3、启动执行
         env.execute();
     }
 

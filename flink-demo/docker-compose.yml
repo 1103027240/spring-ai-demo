@@ -4,7 +4,7 @@ services:
     container_name: flink-jobmanager
     ports:
       - "8081:8081"
-    command: standalone-job --job-classname cn.example.flink.demo.job.WordCountJob
+    command: standalone-job --job-classname cn.example.flink.demo.job.source.WordCountJob
     volumes:
       - ./conf/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
       - ./checkpoint:/opt/flink/checkpoint
