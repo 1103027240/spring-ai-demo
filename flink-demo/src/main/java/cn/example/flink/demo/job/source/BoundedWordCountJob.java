@@ -8,7 +8,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
 
 /**
- * DataStream有界流处理
+ * 2、DataStream有界流处理
  */
 @Slf4j
 public class BoundedWordCountJob {
@@ -16,7 +16,7 @@ public class BoundedWordCountJob {
     public static void main(String[] args) throws Exception {
         // 1、创建执行环境
         StreamExecutionEnvironment env = StreamContextEnvironment.getExecutionEnvironment();
-        env.setParallelism(2);
+        env.setParallelism(1);
 
         // 2、从文件读取数据
         String filePath = System.getProperty("user.dir") + "/flink-demo/input/words.txt";

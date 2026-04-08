@@ -8,7 +8,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
 
 /**
- * DataStream无界流处理
+ * 3、DataStream无界流处理
  */
 @Slf4j
 public class WordCountJob {
@@ -16,6 +16,7 @@ public class WordCountJob {
     public static void main(String[] args) throws Exception {
         // 1、创建执行环境
         StreamExecutionEnvironment env = StreamContextEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
 
         // 2、从Socket读取数据（启动netcat服务器：nl -lk 9999）
         // 使用宿主机IP地址，通过ipconfig查看

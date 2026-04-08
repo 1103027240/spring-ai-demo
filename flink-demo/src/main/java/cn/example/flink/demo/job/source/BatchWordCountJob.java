@@ -7,7 +7,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.util.Collector;
 
 /**
- * DataSet处理
+ * 1、DataSet处理
  */
 @Slf4j
 public class BatchWordCountJob {
@@ -15,7 +15,7 @@ public class BatchWordCountJob {
     public static void main(String[] args) throws Exception {
         // 1、创建执行环境
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(2);
+        env.setParallelism(1);
 
         // 2、从文件读取数据
         String filePath = System.getProperty("user.dir") + "/flink-demo/input/words.txt";
