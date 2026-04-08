@@ -5,7 +5,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * 5、并行源算子
+ * 5、并行数据源
  */
 public class ParallelNumberJob {
 
