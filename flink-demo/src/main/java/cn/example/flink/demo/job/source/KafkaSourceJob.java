@@ -30,7 +30,7 @@ public class KafkaSourceJob {
         KafkaSource<String> kafkaSource = KafkaSource.<String>builder()
                 .setProperties(properties)
                 .setTopics("test")
-                .setGroupId("flink-consumer-group")
+                .setGroupId("my-group")
                 .setStartingOffsets(OffsetsInitializer.earliest())  // 消费起点
                 .setDeserializer(KafkaRecordDeserializationSchema.valueOnly(new SimpleStringSchema()))
                 .build();
