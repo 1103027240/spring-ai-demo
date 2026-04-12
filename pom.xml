@@ -35,6 +35,11 @@
         <scala.binary.version>2.12</scala.binary.version>
         <!-- Kafka Connector 版本 -->
         <kafka.connector.version>3.4.0-1.20</kafka.connector.version>
+        <!-- Redis Connector 版本 -->
+        <redis.connector.version>1.1.0</redis.connector.version>
+        <!-- JDBC Connector 版本 -->
+        <jdbc.connector.version>3.3.0-1.20</jdbc.connector.version>
+
 
         <spring-cloud-alibaba.version>2025.0.0.0</spring-cloud-alibaba.version>
         <spring-cloud-bootstrap.version>4.1.2</spring-cloud-bootstrap.version>

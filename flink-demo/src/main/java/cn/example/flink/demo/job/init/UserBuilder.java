@@ -58,6 +58,7 @@ public class UserBuilder {
         list.add(user10);
         list.add(user11);
         list.add(user12);
+
         return list;
     }
 
