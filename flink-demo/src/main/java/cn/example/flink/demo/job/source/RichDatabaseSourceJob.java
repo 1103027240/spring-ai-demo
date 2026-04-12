@@ -10,7 +10,7 @@ import org.apache.flink.types.Row;
  * 1）生命周期open/close方法
  * 2）可获取运行上下文：RuntimeContext getRuntimeContext();
  */
-public class RichDatabaseJob {
+public class RichDatabaseSourceJob {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
