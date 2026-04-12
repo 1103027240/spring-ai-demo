@@ -19,7 +19,7 @@ public class KafkaSourceJob {
         properties.setProperty("auto.offset.reset", "earliest");  // 默认从最早开始
 
         FlinkKafkaConsumer<String> kafkaConsumer = new FlinkKafkaConsumer<>("test", new SimpleStringSchema(), properties);
-        env.addSource(kafkaConsumer, "KafkaSource").print();
+        env.addSource(kafkaConsumer, "KafkaConsumerSource").print();
 
         env.execute();
     }

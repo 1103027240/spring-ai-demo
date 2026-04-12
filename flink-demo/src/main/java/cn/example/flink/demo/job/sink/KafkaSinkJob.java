@@ -21,13 +21,15 @@ public class KafkaSinkJob {
         properties.setProperty("auto.offset.reset", "earliest");  // 默认从最早开始
 
         FlinkKafkaConsumer<String> kafkaConsumer = new FlinkKafkaConsumer<>("test1", new SimpleStringSchema(), properties);
-        env.addSource(kafkaConsumer, "KafkaSource")
+        FlinkKafkaProducer kafkaProducer = new FlinkKafkaProducer("test2", new SimpleStringSchema(), properties);
+
+        env.addSource(kafkaConsumer, "KafkaProducerSource")
                 .map(e -> {
                     String[] s = e.split(" ");
                     return new UserVisitorDto(s[0], s[1], Long.parseLong(s[2]));
                 })
                 .map(UserVisitorDto::toString)
-                .addSink(new FlinkKafkaProducer("test2", new SimpleStringSchema(), properties));  // 输出到不同 topic
+                .addSink(kafkaProducer);  // 输出到不同 topic
 
         env.execute();
     }
