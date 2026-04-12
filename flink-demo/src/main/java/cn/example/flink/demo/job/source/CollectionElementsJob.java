@@ -1,7 +1,7 @@
 package cn.example.flink.demo.job.source;
 
-import cn.example.flink.demo.job.init.UserBuilder;
-import cn.example.flink.demo.job.param.UserDto;
+import cn.example.flink.demo.build.UserBuilder;
+import cn.example.flink.demo.param.UserDto;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 

@@ -1,4 +1,4 @@
-package cn.example.flink.demo.job.function;
+package cn.example.flink.demo.function;
 
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;

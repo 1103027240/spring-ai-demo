@@ -1,6 +1,6 @@
 package cn.example.flink.demo.job.sink;
 
-import cn.example.flink.demo.job.param.UserVisitorDto;
+import cn.example.flink.demo.param.UserVisitorDto;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;

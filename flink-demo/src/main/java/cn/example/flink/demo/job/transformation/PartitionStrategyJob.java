@@ -1,6 +1,6 @@
 package cn.example.flink.demo.job.transformation;
 
-import cn.example.flink.demo.job.init.UserBuilder;
+import cn.example.flink.demo.build.UserBuilder;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**

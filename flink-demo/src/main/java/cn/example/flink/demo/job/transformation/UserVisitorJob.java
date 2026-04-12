@@ -1,6 +1,6 @@
 package cn.example.flink.demo.job.transformation;
 
-import cn.example.flink.demo.job.init.UserVisitorBuilder;
+import cn.example.flink.demo.build.UserVisitorBuilder;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

@@ -1,6 +1,6 @@
 package cn.example.flink.demo.job.sink;
 
-import cn.example.flink.demo.job.init.UserVisitorBuilder;
+import cn.example.flink.demo.build.UserVisitorBuilder;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

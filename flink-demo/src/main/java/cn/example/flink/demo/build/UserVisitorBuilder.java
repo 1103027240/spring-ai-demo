@@ -1,6 +1,6 @@
-package cn.example.flink.demo.job.init;
+package cn.example.flink.demo.build;
 
-import cn.example.flink.demo.job.param.UserVisitorDto;
+import cn.example.flink.demo.param.UserVisitorDto;
 import java.util.ArrayList;
 import java.util.List;
 

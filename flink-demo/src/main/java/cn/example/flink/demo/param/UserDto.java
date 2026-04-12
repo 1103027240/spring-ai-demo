@@ -1,4 +1,4 @@
-package cn.example.flink.demo.job.param;
+package cn.example.flink.demo.param;
 
 import lombok.Builder;
 import lombok.Data;

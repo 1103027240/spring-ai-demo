@@ -1,6 +1,6 @@
 package cn.example.flink.demo.job.source;
 
-import cn.example.flink.demo.job.function.ParallelNumberSourceFunction;
+import cn.example.flink.demo.function.ParallelNumberSourceFunction;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
