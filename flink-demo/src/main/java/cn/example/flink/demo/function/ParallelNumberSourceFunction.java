@@ -11,9 +11,8 @@ public class ParallelNumberSourceFunction extends RichParallelSourceFunction<Str
     @Override
     public void run(SourceContext<String> ctx) throws Exception {
         int subTaskIndex = getRuntimeContext().getIndexOfThisSubtask();
-        log.info("subTaskIndex: {}", subTaskIndex);
 
-        for (int i = 1; i <= 10 && isRunning; i++) {
+        for (int i = 1; i <= 20 && isRunning; i++) {
             if(i % 2 == 1 && subTaskIndex % 2 == 1) {
                 ctx.collect(String.format("子任务号[%s]：%s", subTaskIndex, i));
             }

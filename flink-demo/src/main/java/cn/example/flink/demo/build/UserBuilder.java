@@ -14,7 +14,7 @@ public class UserBuilder {
                 .age(20).sex(1).email("zhangsan@qq.com").salary(new BigDecimal(10000)).build();
 
         UserDto user2 = UserDto.builder().userId("2").userName("李四").phone("13800138002")
-                .age(22).sex(1).email("lisi@qq.com").salary(new BigDecimal(12000)).build();
+                .age(22).sex(1).email("lisi@qq.com").salary(new BigDecimal(15000)).build();
 
         UserDto user3 = UserDto.builder().userId("3").userName("王五").phone("13800138003")
                 .age(25).sex(1).email("wangwu@qq.com").salary(new BigDecimal(19000)).build();
@@ -23,28 +23,28 @@ public class UserBuilder {
                 .age(35).sex(1).email("zhaoliu@qq.com").salary(new BigDecimal(18000)).build();
 
         UserDto user5 = UserDto.builder().userId("5").userName("钱七").phone("13800138005")
-                .age(30).sex(1).email("qianqi@qq.com").salary(new BigDecimal(15000)).build();
+                .age(30).sex(1).email("qianqi@qq.com").salary(new BigDecimal(17000)).build();
 
         UserDto user6 = UserDto.builder().userId("6").userName("小明").phone("13800138006")
                 .age(32).sex(1).email("xiaoming@qq.com").salary(new BigDecimal(16000)).build();
 
-        UserDto user7 = UserDto.builder().userId("7").userName("Mary").phone("13800138007")
-                .age(26).sex(2).email("mary@qq.com").salary(new BigDecimal(17000)).build();
+        UserDto user7 = UserDto.builder().userId("7").userName("小强").phone("1380013807")
+                .age(27).sex(1).email("xiaoqiang@qq.com").salary(new BigDecimal(14000)).build();
 
-        UserDto user8 = UserDto.builder().userId("8").userName("Lucy").phone("13800138008")
-                .age(23).sex(2).email("lucy@qq.com").salary(new BigDecimal(14000)).build();
+        UserDto user8 = UserDto.builder().userId("8").userName("Mary").phone("13800138008")
+                .age(26).sex(2).email("mary@qq.com").salary(new BigDecimal(13000)).build();
 
-        UserDto user9 = UserDto.builder().userId("9").userName("Anty").phone("13800138009")
-                .age(34).sex(2).email("anty@qq.com").salary(new BigDecimal(13000)).build();
+        UserDto user9 = UserDto.builder().userId("9").userName("Lucy").phone("13800138009")
+                .age(23).sex(2).email("lucy@qq.com").salary(new BigDecimal(11000)).build();
 
-        UserDto user10 = UserDto.builder().userId("10").userName("Tom").phone("13800138010")
-                .age(29).sex(1).email("tom@qq.com").salary(new BigDecimal(20000)).build();
+        UserDto user10 = UserDto.builder().userId("10").userName("Wendy").phone("13800138010")
+                .age(34).sex(2).email("wendy@qq.com").salary(new BigDecimal(12000)).build();
 
-        UserDto user11 = UserDto.builder().userId("11").userName("Lili").phone("13800138010")
-                .age(21).sex(1).email("lili@qq.com").salary(new BigDecimal(21000)).build();
+        UserDto user11 = UserDto.builder().userId("11").userName("Tom").phone("13800138011")
+                .age(29).sex(1).email("tom@qq.com").salary(new BigDecimal(21000)).build();
 
-        UserDto user12 = UserDto.builder().userId("12").userName("小强").phone("13800138010")
-                .age(27).sex(1).email("xiaoqiang@qq.com").salary(new BigDecimal(16000)).build();
+        UserDto user12 = UserDto.builder().userId("12").userName("Alice").phone("13800138012")
+                .age(21).sex(1).email("alice@qq.com").salary(new BigDecimal(20000)).build();
 
         list.add(user1);
         list.add(user2);

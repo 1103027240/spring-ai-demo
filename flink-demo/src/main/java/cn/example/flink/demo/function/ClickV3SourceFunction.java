@@ -2,12 +2,13 @@ package cn.example.flink.demo.function;
 
 import cn.example.flink.demo.param.UserVisitorDto;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.flink.streaming.api.watermark.Watermark;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-public class ClickSourceFunction implements SourceFunction<UserVisitorDto> {
+public class ClickV3SourceFunction implements SourceFunction<UserVisitorDto> {
 
     private static volatile boolean isRunning = true;
 
@@ -20,7 +21,8 @@ public class ClickSourceFunction implements SourceFunction<UserVisitorDto> {
 
         while (isRunning) {
             UserVisitorDto dto = new UserVisitorDto(userNames[random.nextInt(userNames.length)], urls[random.nextInt(urls.length)], timestamps.get(random.nextInt(timestamps.size())));
-            ctx.collect(dto);
+            ctx.collectWithTimestamp(dto, dto.getTimestamp()); //输出数据及时间戳
+            ctx.emitWatermark(new Watermark(dto.getTimestamp())); //输出水位线
             Thread.sleep(1000);
         }
     }
