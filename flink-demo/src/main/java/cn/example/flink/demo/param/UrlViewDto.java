@@ -4,27 +4,30 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.sql.Timestamp;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserVisitorDto {
-
-    private String userId;
+public class UrlViewDto {
 
     private String url;
 
-    private Long timestamp;
+    private Long count;
+
+    private Long startTime;
+
+    private Long endTime;
 
     @Override
     public String toString() {
-        return "UserVisitorDto{" +
-                "userId='" + userId + '\'' +
-                ", url='" + url + '\'' +
-                ", timestamp='" + timestamp + '\'' +
-                ", time=" + new Timestamp(timestamp) +
+        return "UrlViewDto{" +
+                "url='" + url + '\'' +
+                ", count=" + count +
+                ", startTime=" + new Timestamp(startTime) +
+                ", endTime=" + new Timestamp(endTime) +
                 '}';
     }
 

@@ -17,7 +17,7 @@ public class UserVisitorJob {
 
         env.fromCollection(UserVisitorBuilder.buildUserVisitorDto())
                 .filter(e -> !Objects.equals("3", e.getUserId()))
-                .map(e -> new Tuple2<>(e.getUserId(), 1L))
+                .map(e -> Tuple2.of(e.getUserId(), 1L))
                 .returns(Types.TUPLE(Types.STRING, Types.LONG))
                 // 统计每个用户访问量
                 .keyBy(e -> e.f0)

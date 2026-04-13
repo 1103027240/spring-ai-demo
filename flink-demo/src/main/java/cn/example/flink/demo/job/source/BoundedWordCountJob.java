@@ -24,7 +24,7 @@ public class BoundedWordCountJob {
                 .flatMap((String line, Collector<Tuple2<String, Long>> out) -> {
                    String[] words = line.split(" ");
                    for (String word : words) {
-                       out.collect(new Tuple2<>(word, 1L));
+                       out.collect(Tuple2.of(word, 1L));
                    }
                 })
                 .returns(Types.TUPLE(Types.STRING, Types.LONG))
