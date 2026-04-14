@@ -13,21 +13,33 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class UrlViewDto {
 
+    /**
+     * 页面url
+     */
     private String url;
 
+    /**
+     * 页面url访问次数
+     */
     private Long count;
 
-    private Long startTime;
+    /**
+     * 窗口开始时间
+     */
+    private Long windowStart;
 
-    private Long endTime;
+    /**
+     * 窗口结束时间
+     */
+    private Long windowEnd;
 
     @Override
     public String toString() {
         return "UrlViewDto{" +
                 "url='" + url + '\'' +
                 ", count=" + count +
-                ", startTime=" + new Timestamp(startTime) +
-                ", endTime=" + new Timestamp(endTime) +
+                ", windowStart=" + new Timestamp(windowStart) +
+                ", windowEnd=" + new Timestamp(windowEnd) +
                 '}';
     }
 

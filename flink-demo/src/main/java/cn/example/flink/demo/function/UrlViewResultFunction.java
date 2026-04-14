@@ -16,8 +16,8 @@ public class UrlViewResultFunction extends ProcessWindowFunction<Long, UrlViewDt
         UrlViewDto result = UrlViewDto.builder()
                 .url(url)
                 .count(count)
-                .startTime(start)
-                .endTime(end)
+                .windowStart(start)
+                .windowEnd(end)
                 .build();
 
         out.collect(result);
