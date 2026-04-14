@@ -15,7 +15,7 @@ public class WindowReduceTrigger extends Trigger<Tuple2<String, Long>, GlobalWin
     @Override
     public TriggerResult onElement(Tuple2<String, Long> element, long timestamp, GlobalWindow window, TriggerContext ctx) throws Exception {
         System.out.println(String.format("当前分组元素: (%s,%s), 当前时间: %s, 当前水位线: %s", element.f0, element.f1, timestamp, ctx.getCurrentWatermark()));
-        ctx.registerEventTimeTimer(timestamp + interval); //事件时间触发器触发时间
+        ctx.registerEventTimeTimer(timestamp + interval); //注册事件时间触发器
         return TriggerResult.CONTINUE;
     }
 
