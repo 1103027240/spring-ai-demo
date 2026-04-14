@@ -15,7 +15,7 @@ import java.util.List;
 public class UVKeyedProcessFunction extends KeyedProcessFunction<Long, UrlViewDto, String> {
 
     private Integer topN;  //前N名
-    private Long windowSize;  //窗口大小（需转成秒）
+    private Long windowSize;  //窗口大小
     private ListState<UrlViewDto> urlViewListState;  //状态列表
 
     public UVKeyedProcessFunction(Integer topN, Long windowSize) {
@@ -51,7 +51,7 @@ public class UVKeyedProcessFunction extends KeyedProcessFunction<Long, UrlViewDt
         StringBuilder buffer = new StringBuilder();
         Long windowEnd = ctx.getCurrentKey();
 
-        buffer.append(String.format("窗口：[%s ~ %s) \n", new Timestamp(windowEnd - windowSize * 1000), new Timestamp(windowEnd)));
+        buffer.append(String.format("窗口：[%s ~ %s) \n", new Timestamp(windowEnd - windowSize), new Timestamp(windowEnd)));
 
         // 取前N名（支持并列排名）
         int rank = 0;           // 当前排名

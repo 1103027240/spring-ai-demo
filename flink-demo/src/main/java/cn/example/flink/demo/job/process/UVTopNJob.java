@@ -41,7 +41,7 @@ public class UVTopNJob {
 
         // 获取每个窗口前2名UV
         aggregateStream.keyBy(UrlViewDto::getWindowEnd)
-                        .process(new UVKeyedProcessFunction(topN, windowSize))
+                        .process(new UVKeyedProcessFunction(topN, windowSize * 1000))
                                 .print("result");
 
         env.execute();
