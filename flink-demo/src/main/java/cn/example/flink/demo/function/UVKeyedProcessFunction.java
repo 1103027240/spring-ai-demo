@@ -8,7 +8,6 @@ import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
-
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,12 +49,26 @@ public class UVKeyedProcessFunction extends KeyedProcessFunction<Long, UrlViewDt
         StringBuilder buffer = new StringBuilder();
         buffer.append(String.format("窗口：%s, time: %s \n", ctx.getCurrentKey(), new Timestamp(ctx.getCurrentKey())));
 
-        // 取前N名
-        int limit = Math.min(n, urlViewList.size());
-        for (int i = 0; i < limit; i++) {
+        // 取前N名（支持并列排名）
+        int rank = 0;           // 当前排名
+        Long lastCount = null;  // 上一个访问量
+
+        for (int i = 0; i < urlViewList.size(); i++) {
             UrlViewDto dto = urlViewList.get(i);
-            buffer.append(String.format("No. %s  url：%s  访问量：%s \n", i + 1, dto.getUrl(), dto.getCount()));
+
+            if (lastCount == null || !lastCount.equals(dto.getCount())) {
+                rank++;
+            }
+
+            // 排名超过N则停止
+            if (rank > n) {
+                break;
+            }
+
+            buffer.append(String.format("No. %s  url：%s  访问量：%s \n", rank, dto.getUrl(), dto.getCount()));
+            lastCount = dto.getCount();
         }
+
         out.collect(buffer.toString());
     }
 
