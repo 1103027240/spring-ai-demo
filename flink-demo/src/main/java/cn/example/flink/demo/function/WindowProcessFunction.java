@@ -8,6 +8,9 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * WindowProcessFunction：既是窗口函数，又是处理函数
+ */
 public class WindowProcessFunction extends ProcessWindowFunction<UserVisitorDto, String, Boolean, TimeWindow> {
 
     @Override

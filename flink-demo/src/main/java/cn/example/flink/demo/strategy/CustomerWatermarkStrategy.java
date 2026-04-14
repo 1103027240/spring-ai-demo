@@ -8,8 +8,8 @@ import org.apache.flink.api.common.eventtime.*;
  */
 public class CustomerWatermarkStrategy implements WatermarkStrategy<UserVisitorDto> {
 
-    private volatile long delayTime = 3000L; //延迟时间
-    private volatile long maxTimestamp = Long.MIN_VALUE + delayTime + 1;
+    private final long interval = 3000; //延迟3s
+    private volatile long maxTimestamp = Long.MIN_VALUE + interval + 1;
 
     @Override
     public WatermarkGenerator<UserVisitorDto> createWatermarkGenerator(WatermarkGeneratorSupplier.Context context) {
@@ -21,7 +21,7 @@ public class CustomerWatermarkStrategy implements WatermarkStrategy<UserVisitorD
 
             @Override
             public void onPeriodicEmit(WatermarkOutput output) {
-                output.emitWatermark(new Watermark(maxTimestamp - delayTime - 1));
+                output.emitWatermark(new Watermark(maxTimestamp - interval - 1));
             }
         };
     }
