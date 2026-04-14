@@ -24,7 +24,7 @@ public class WindowReduceTrigger extends Trigger<Tuple2<String, Long>, GlobalWin
      */
     @Override
     public TriggerResult onEventTime(long timestamp, GlobalWindow window, TriggerContext ctx) throws Exception {
-        System.out.println(String.format("事件时间触发器触发时间: %s, 水位线: %s", timestamp, ctx.getCurrentWatermark()));
+        System.out.println(String.format("事件时间触发器触发时间: %s, 当前水位线: %s", timestamp, ctx.getCurrentWatermark()));
         System.out.println("======================================================================================");
         return TriggerResult.FIRE;
     }
@@ -34,7 +34,7 @@ public class WindowReduceTrigger extends Trigger<Tuple2<String, Long>, GlobalWin
      */
     @Override
     public TriggerResult onProcessingTime(long timestamp, GlobalWindow window, TriggerContext ctx) throws Exception {
-        System.out.println(String.format("处理时间触发器触发时间: %s, 水位线: %s", timestamp, ctx.getCurrentWatermark()));
+        System.out.println(String.format("处理时间触发器触发时间: %s, 当前水位线: %s", timestamp, ctx.getCurrentWatermark()));
         System.out.println("======================================================================================");
         return TriggerResult.CONTINUE;
     }

@@ -8,7 +8,6 @@ import java.util.Set;
 
 public class AggregateSlidingFunction implements AggregateFunction<UserVisitorDto, Tuple2<Long, Set<String>>, Double> {
 
-
     @Override
     public Tuple2<Long, Set<String>> createAccumulator() {
         return Tuple2.of(0L, new HashSet<>());
