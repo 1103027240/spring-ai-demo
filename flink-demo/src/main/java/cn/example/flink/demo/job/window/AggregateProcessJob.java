@@ -7,7 +7,7 @@ import cn.example.flink.demo.param.UserVisitorDto;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import java.time.Duration;
 
 /**
@@ -28,7 +28,7 @@ public class AggregateProcessJob {
 
         dataStream.keyBy(UserVisitorDto::getUrl)
                 // 开窗
-                .window(SlidingEventTimeWindows.of(Duration.ofSeconds(10), Duration.ofSeconds(2)))
+                .window(TumblingEventTimeWindows.of(Duration.ofSeconds(10)))
                 // 窗口函数
                 .aggregate(new UrlViewAggFunction(), new UrlViewResultFunction())
                 .print("result");
