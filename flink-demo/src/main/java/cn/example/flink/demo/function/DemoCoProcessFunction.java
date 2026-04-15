@@ -28,7 +28,7 @@ public class DemoCoProcessFunction extends CoProcessFunction<Tuple3<String, Stri
      */
     @Override
     public void processElement1(Tuple3<String, String, Long> value, Context ctx, Collector<String> out) throws Exception {
-        System.out.println(String.format("app校验请求参数: %s, appValueState: %s, thirdPartyValueState: %s", value, appValueState.value(), thirdPartyValueState.value()));
+        System.out.println(String.format("app对账请求参数: %s, appValueState: %s, thirdPartyValueState: %s", value, appValueState.value(), thirdPartyValueState.value()));
 
         // 校验第三方平台是否有该订单
         if (thirdPartyValueState.value() != null) {
@@ -48,7 +48,7 @@ public class DemoCoProcessFunction extends CoProcessFunction<Tuple3<String, Stri
      */
     @Override
     public void processElement2(Tuple4<String, String, String, Long> value, Context ctx, Collector<String> out) throws Exception {
-        System.out.println(String.format("thirdParty校验请求参数: %s, appValueState: %s, thirdPartyValueState: %s", value, appValueState.value(), thirdPartyValueState.value()));
+        System.out.println(String.format("thirdParty对账请求参数: %s, appValueState: %s, thirdPartyValueState: %s", value, appValueState.value(), thirdPartyValueState.value()));
 
         // 校验平台是否有该订单
         if (appValueState.value() != null) {
