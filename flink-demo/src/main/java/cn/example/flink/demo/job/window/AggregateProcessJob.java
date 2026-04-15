@@ -34,13 +34,13 @@ public class AggregateProcessJob {
                 .window(TumblingEventTimeWindows.of(Duration.ofSeconds(10)))
                 // 允许1min内迟到数据（该数据可以计算）
                 .allowedLateness(Duration.ofMinutes(1))
-                // 1min后迟到数据保存到侧输出流（该数据不能立即计算）
+                // 1min后迟到数据保存到侧输出流（该数据不能计算）
                 .sideOutputLateData(outputTag)
                 // 窗口函数
                 .aggregate(new UrlViewAggFunction(), new UrlViewResultFunction());
 
-        resultStream.print("result");
-        resultStream.getSideOutput(outputTag).print("lateData");
+        resultStream.print("result"); //主输出流
+        resultStream.getSideOutput(outputTag).print("lateData"); //侧输出流
 
         env.execute();
     }
