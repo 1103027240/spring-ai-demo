@@ -14,7 +14,7 @@ public class WatermarkStrategyJob {
         env.setParallelism(1);
         env.getConfig().setAutoWatermarkInterval(100);
 
-        env.addSource(new ClickSourceFunction())
+        env.addSource(new ClickSourceFunction(1000L))
                 //1、无序流策略
 //                .assignTimestampsAndWatermarks(WatermarkStrategy.<UserVisitorDto>forBoundedOutOfOrderness(Duration.ofSeconds(3))
 //                        .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()))

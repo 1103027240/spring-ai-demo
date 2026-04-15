@@ -20,7 +20,7 @@ public class JdbcSinkJob {
         env.setParallelism(1);
         env.enableCheckpointing(5000, CheckpointingMode.EXACTLY_ONCE);  //Checkpoint配置（ExactlyOnce模式必需）
 
-        env.addSource(new ClickSourceFunction()).sinkTo(createJdbcSink());
+        env.addSource(new ClickSourceFunction(1000L)).sinkTo(createJdbcSink());
         env.execute();
     }
 

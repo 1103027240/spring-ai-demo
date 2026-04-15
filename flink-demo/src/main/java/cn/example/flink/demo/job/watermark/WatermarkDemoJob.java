@@ -13,7 +13,7 @@ public class WatermarkDemoJob {
         env.setParallelism(1);
         env.getConfig().setAutoWatermarkInterval(100);
 
-        env.addSource(new ClickV3SourceFunction())
+        env.addSource(new ClickV3SourceFunction(1000L))
                 .assignTimestampsAndWatermarks(WatermarkStrategy.<UserVisitorDto>forBoundedOutOfOrderness(Duration.ofSeconds(3))
                         .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()))
                 .print();

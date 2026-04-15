@@ -23,7 +23,7 @@ public class RedisSinkJob {
                 .setPort(6379)
                 .build();
 
-        env.addSource(new ClickSourceFunction()).addSink(new RedisSink<>(config, new CustomerRedisMapper()));
+        env.addSource(new ClickSourceFunction(1000L)).addSink(new RedisSink<>(config, new CustomerRedisMapper()));
         env.execute();
     }
 
