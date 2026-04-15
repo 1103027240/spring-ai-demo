@@ -30,7 +30,7 @@ public class ConnectedStreamsJob {
                         .withTimestampAssigner((tuple3, recordTimestamp) -> tuple3.f3));
 
         appStream.connect(thirdPartyStream)
-                .keyBy(tuple3 -> tuple3.f0, tuple4 -> tuple4.f0)
+                .keyBy(e1 -> e1.f0, e2 -> e2.f0)
                 .process(new DemoCoProcessFunction())
                 .print("result");
 
