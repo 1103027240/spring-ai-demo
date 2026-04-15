@@ -25,7 +25,7 @@ public class UnionStreamJob {
                 // 水位线
                 .assignTimestampsAndWatermarks(WatermarkStrategy.<UserVisitorDto>forBoundedOutOfOrderness(Duration.ofMillis(5))
                         .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()));
-        dataStream1.print("data2");
+        dataStream2.print("data2");
 
         dataStream1.union(dataStream2).process(new ProcessFunction<UserVisitorDto, String>() {
             @Override
