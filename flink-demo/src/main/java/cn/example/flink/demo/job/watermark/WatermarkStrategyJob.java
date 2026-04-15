@@ -1,11 +1,8 @@
 package cn.example.flink.demo.job.watermark;
 
 import cn.example.flink.demo.function.ClickSourceFunction;
-import cn.example.flink.demo.param.UserVisitorDto;
-import cn.example.flink.demo.strategy.CustomerWatermarkStrategy;
-import org.apache.flink.api.common.eventtime.*;
+import cn.example.flink.demo.strategy.DemoWatermarkStrategy;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import java.time.Duration;
 
 public class WatermarkStrategyJob {
 
@@ -24,7 +21,7 @@ public class WatermarkStrategyJob {
 //                        .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()))
 
                 //3、自定义生成水位线
-                .assignTimestampsAndWatermarks(new CustomerWatermarkStrategy())
+                .assignTimestampsAndWatermarks(new DemoWatermarkStrategy())
 
                 .print();
 

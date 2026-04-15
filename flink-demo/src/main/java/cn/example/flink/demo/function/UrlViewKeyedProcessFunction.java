@@ -12,13 +12,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UVKeyedProcessFunction extends KeyedProcessFunction<Long, UrlViewDto, String> {
+public class UrlViewKeyedProcessFunction extends KeyedProcessFunction<Long, UrlViewDto, String> {
 
     private Integer topN;  //前N名
     private Long windowSize;  //窗口大小
     private ListState<UrlViewDto> urlViewListState;  //状态列表
 
-    public UVKeyedProcessFunction(Integer topN, Long windowSize) {
+    public UrlViewKeyedProcessFunction(Integer topN, Long windowSize) {
         this.topN = topN;
         this.windowSize = windowSize;
     }

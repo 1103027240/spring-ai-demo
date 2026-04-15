@@ -6,7 +6,7 @@ import org.apache.flink.api.common.eventtime.*;
 /**
  * 自定义生成水位线
  */
-public class CustomerWatermarkStrategy implements WatermarkStrategy<UserVisitorDto> {
+public class DemoWatermarkStrategy implements WatermarkStrategy<UserVisitorDto> {
 
     private final long interval = 3000; //延迟3s
     private volatile long maxTimestamp = Long.MIN_VALUE + interval + 1;

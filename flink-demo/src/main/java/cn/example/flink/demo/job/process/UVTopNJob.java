@@ -1,7 +1,7 @@
 package cn.example.flink.demo.job.process;
 
 import cn.example.flink.demo.function.ClickV2SourceFunction;
-import cn.example.flink.demo.function.UVKeyedProcessFunction;
+import cn.example.flink.demo.function.UrlViewKeyedProcessFunction;
 import cn.example.flink.demo.function.UrlViewAggFunction;
 import cn.example.flink.demo.function.UrlViewResultFunction;
 import cn.example.flink.demo.param.UrlViewDto;
@@ -40,7 +40,7 @@ public class UVTopNJob {
 
         // 获取每个窗口前2名UV
         aggregateStream.keyBy(UrlViewDto::getWindowEnd)
-                .process(new UVKeyedProcessFunction(topN, windowSize * 1000))
+                .process(new UrlViewKeyedProcessFunction(topN, windowSize * 1000))
                 .print("result");
 
         env.execute();

@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * 1、用户访问量统计
  */
-public class TransformationDemoJob {
+public class DemoTransformationJob {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
