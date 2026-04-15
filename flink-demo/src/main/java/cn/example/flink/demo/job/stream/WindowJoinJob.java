@@ -1,17 +1,18 @@
 package cn.example.flink.demo.job.stream;
 
 import cn.example.flink.demo.function.ClickV2SourceFunction;
-import cn.example.flink.demo.function.DemoProcessJoinFunction;
+import cn.example.flink.demo.function.DemoJoinFunction;
 import cn.example.flink.demo.param.UserVisitorDto;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import java.time.Duration;
 
 /**
- * 6、Interval Join合流
+ * 4、Window Join合流
  */
-public class IntervalJoinJob {
+public class WindowJoinJob {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -27,11 +28,11 @@ public class IntervalJoinJob {
                         .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()));
         dataStream2.print("data2");
 
-        dataStream1.keyBy(e -> e.getUserId())
-                .intervalJoin(dataStream2.keyBy(e -> e.getUserId()))
-                //基于水位线时间戳为参数，T2在[T1-10, T1 + 30]范围内数据与T1连接
-                .between(Duration.ofSeconds(-10), Duration.ofSeconds(30))
-                .process(new DemoProcessJoinFunction())
+        dataStream1.join(dataStream2)
+                .where(UserVisitorDto::getUserId)
+                .equalTo(UserVisitorDto::getUserId)
+                .window(TumblingEventTimeWindows.of(Duration.ofSeconds(10)))
+                .apply(new DemoJoinFunction())
                 .print("result");
 
         env.execute();

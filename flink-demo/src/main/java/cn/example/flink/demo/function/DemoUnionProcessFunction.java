@@ -8,7 +8,7 @@ public class DemoUnionProcessFunction extends ProcessFunction<UserVisitorDto, St
 
     @Override
     public void processElement(UserVisitorDto value, Context ctx, Collector<String> out) throws Exception {
-        System.out.println(String.format("当前数据：%s，当前时间：%s，旧水位线：%s", value.toString(), ctx.timestamp(), ctx.timerService().currentWatermark()));
+        System.out.println(String.format("当前数据：%s，当前时间：%s，当前水位线：%s", value.toString(), ctx.timestamp(), ctx.timerService().currentWatermark()));
         out.collect(value.toString());
     }
 

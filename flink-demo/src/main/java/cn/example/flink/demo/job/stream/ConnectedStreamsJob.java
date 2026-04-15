@@ -9,7 +9,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import java.time.Duration;
 
 /**
- * 3、connect合流
+ * 3、Connect合流
  */
 public class ConnectedStreamsJob {
 

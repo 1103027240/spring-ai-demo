@@ -9,7 +9,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import java.time.Duration;
 
 /**
- * 2、union合流
+ * 2、Union合流
  */
 public class UnionJob {
 
