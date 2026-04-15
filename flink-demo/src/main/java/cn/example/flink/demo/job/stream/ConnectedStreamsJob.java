@@ -8,6 +8,9 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import java.time.Duration;
 
+/**
+ * 3、connect合流
+ */
 public class ConnectedStreamsJob {
 
     public static void main(String[] args) throws Exception {

@@ -1,16 +1,16 @@
 package cn.example.flink.demo.job.stream;
 
 import cn.example.flink.demo.function.ClickV2SourceFunction;
+import cn.example.flink.demo.function.DemoProcessJoinFunction;
 import cn.example.flink.demo.param.UserVisitorDto;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction;
-import org.apache.flink.util.Collector;
-import java.sql.Timestamp;
 import java.time.Duration;
 
+/**
+ * 5、interval join合流
+ */
 public class IntervalJoinJob {
 
     public static void main(String[] args) throws Exception {
@@ -29,19 +29,10 @@ public class IntervalJoinJob {
 
         userStream.keyBy(e -> e.getUserId())
                 .intervalJoin(urlStream.keyBy(e -> e.getUserId()))
+                //基于水位线时间戳为参数，T2在[T1-10, T1 + 30]范围内数据与T1连接
                 .between(Duration.ofSeconds(-10), Duration.ofSeconds(30))
-                .process(new ProcessJoinFunction<UserVisitorDto, UserVisitorDto, String>() {
-                    @Override
-                    public void processElement(UserVisitorDto left, UserVisitorDto right, Context ctx, Collector<String> out) throws Exception {
-                        UserVisitorDto earlier = left.getTimestamp() <= right.getTimestamp() ? left : right;
-                        UserVisitorDto later = left.getTimestamp() > right.getTimestamp() ? left : right;
-
-                        String result = String.format("%s ===》%s",
-                                Tuple3.of(earlier.getUserId(), new Timestamp(earlier.getTimestamp()), earlier.getUrl()),
-                                Tuple3.of(later.getUserId(), new Timestamp(later.getTimestamp()), later.getUrl()));
-                        out.collect(result);
-                    }
-                }).print("result");
+                .process(new DemoProcessJoinFunction())
+                .print("result");
 
         env.execute();
     }
