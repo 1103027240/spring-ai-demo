@@ -37,6 +37,11 @@ public class UrlViewKeyedProcessFunction extends KeyedProcessFunction<Long, UrlV
         ctx.timerService().registerEventTimeTimer(ctx.getCurrentKey() + 1);
     }
 
+    /**
+     * 触发器触发时且当前watermark >= 触发器触发时间调用，当前watermark=max(timestamp)-延迟时间
+     * timestamp来源于上面processElement方法注册触发器触发时间
+     * timestamp ==》找到含该timestamp列表数据 ==》找到分组key列表数据 ==》触发计算，执行print方法
+     */
     @Override
     public void onTimer(long timestamp, OnTimerContext ctx, Collector<String> out) throws Exception {
         List<UrlViewDto> urlViewList = new ArrayList<>();

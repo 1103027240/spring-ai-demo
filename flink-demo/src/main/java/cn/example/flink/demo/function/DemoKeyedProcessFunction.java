@@ -13,13 +13,14 @@ public class DemoKeyedProcessFunction extends KeyedProcessFunction<String, UserV
         Long timestamp = ctx.timestamp();
         String result = String.format("分组key：%s，当前时间：%s，旧水位线：%s，当前数据：%s", ctx.getCurrentKey(), timestamp, ctx.timerService().currentWatermark(), value.toString());
 
-        out.collect(result);
+        out.collect(result); //如果触发器没执行，执行print方法；如果触发器执行，执行onTimer方法
         ctx.timerService().registerEventTimeTimer(timestamp + interval); //注册事件时间触发器
     }
 
     /**
      * 触发器触发时且当前watermark >= 触发器触发时间调用，当前watermark=max(timestamp)-延迟时间
-     * timestamp来源于上面processElement方法事件时间触发器触发时间
+     * timestamp来源于上面processElement方法注册触发器触发时间
+     * timestamp ==》找到含该timestamp列表数据 ==》找到分组key列表数据 ==》触发计算，执行print方法
      */
     @Override
     public void onTimer(long timestamp, OnTimerContext ctx, Collector<String> out) throws Exception {

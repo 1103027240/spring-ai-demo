@@ -18,16 +18,17 @@ public class ConnectedStreamsJob {
         env.setParallelism(1);
 
         SingleOutputStreamOperator<Tuple3<String, String, Long>> appStream = env.fromData(
-                        Tuple3.of("Order-1000", "app", 1000L),
+                        Tuple3.of("Order-4000", "app", 5000L),
+                        Tuple3.of("Order-3000", "app", 7000L),
                         Tuple3.of("Order-2000", "app", 4000L),
-                        Tuple3.of("Order-3000", "app", 7000L)
+                        Tuple3.of("Order-1000", "app", 1000L)
                 )
                 .assignTimestampsAndWatermarks(WatermarkStrategy.<Tuple3<String, String, Long>>forBoundedOutOfOrderness(Duration.ofMillis(1))
                         .withTimestampAssigner((tuple3, recordTimestamp) -> tuple3.f2));
 
         SingleOutputStreamOperator<Tuple4<String, String, String, Long>> thirdPartyStream = env.fromData(
-                        Tuple4.of("Order-1000", "thirdParty", "success", 11000L),
-                        Tuple4.of("Order-2000", "thirdParty", "success", 24000L)
+                        Tuple4.of("Order-2000", "thirdParty", "success", 24000L),
+                        Tuple4.of("Order-1000", "thirdParty", "success", 11000L)
                 )
                 .assignTimestampsAndWatermarks(WatermarkStrategy.<Tuple4<String, String, String, Long>>forBoundedOutOfOrderness(Duration.ofMillis(2))
                         .withTimestampAssigner((tuple3, recordTimestamp) -> tuple3.f3));

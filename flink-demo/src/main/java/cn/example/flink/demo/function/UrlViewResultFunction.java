@@ -20,7 +20,7 @@ public class UrlViewResultFunction extends ProcessWindowFunction<Long, UrlViewDt
                 .windowEnd(end)
                 .build();
 
-        out.collect(result);
+        out.collect(result); //AggregateProcessJob类中执行print和getSideOutput方法；UVTopNJob类中执行print方法
     }
 
 }

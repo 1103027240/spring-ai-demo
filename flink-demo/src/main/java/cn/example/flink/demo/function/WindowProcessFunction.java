@@ -19,12 +19,12 @@ public class WindowProcessFunction extends ProcessWindowFunction<UserVisitorDto,
         long end = context.window().getEnd();
 
         Set<String> set = new HashSet<>();
-        for(UserVisitorDto dto : elements){
+        for (UserVisitorDto dto : elements) {
             set.add(dto.getUserId());
         }
 
         String result = String.format("窗口：[%s ~ %s]，UV值：%s", new Timestamp(start), new Timestamp(end), set.size());
-        out.collect(result);
+        out.collect(result); //执行print方法
     }
 
 }

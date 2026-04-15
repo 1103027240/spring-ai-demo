@@ -21,7 +21,8 @@ public class WindowReduceTrigger extends Trigger<Tuple2<String, Long>, GlobalWin
 
     /**
      * 事件时间触发器触发时且当前watermark >= 事件时间触发器触发时间调用，当前watermark=max(timestamp)-延迟时间
-     * timestamp来源于上面onElement方法事件时间触发器触发时间
+     * timestamp来源于上面onElement方法注册触发器触发时间
+     * timestamp ==》找到含该timestamp列表数据 ==》找到分组key列表数据 ==》TriggerResult.FIRE触发计算，执行reduce方法
      */
     @Override
     public TriggerResult onEventTime(long timestamp, GlobalWindow window, TriggerContext ctx) throws Exception {
@@ -32,7 +33,8 @@ public class WindowReduceTrigger extends Trigger<Tuple2<String, Long>, GlobalWin
 
     /**
      * 处理时间触发器触发时且当前watermark >= 处理时间触发器触发时间调用，当前watermark=max(timestamp)-延迟时间
-     * timestamp来源于上面onElement方法处理时间触发器触发时间
+     * timestamp来源于上面onElement方法注册触发器触发时间
+     * timestamp ==》找到含该timestamp列表数据 ==》找到分组key列表数据 ==》TriggerResult.FIRE触发计算，执行reduce方法
      */
     @Override
     public TriggerResult onProcessingTime(long timestamp, GlobalWindow window, TriggerContext ctx) throws Exception {
