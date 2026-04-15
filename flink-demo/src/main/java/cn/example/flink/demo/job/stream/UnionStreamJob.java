@@ -17,13 +17,13 @@ public class UnionStreamJob {
 
         SingleOutputStreamOperator<UserVisitorDto> dataStream1 = env.addSource(new ClickV2SourceFunction(1000L))
                 // 水位线
-                .assignTimestampsAndWatermarks(WatermarkStrategy.<UserVisitorDto>forBoundedOutOfOrderness(Duration.ofMillis(2))
+                .assignTimestampsAndWatermarks(WatermarkStrategy.<UserVisitorDto>forBoundedOutOfOrderness(Duration.ofMillis(1))
                         .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()));
         dataStream1.print("data1");
 
-        SingleOutputStreamOperator<UserVisitorDto> dataStream2 = env.addSource(new ClickV2SourceFunction(3000L))
+        SingleOutputStreamOperator<UserVisitorDto> dataStream2 = env.addSource(new ClickV2SourceFunction(2000L))
                 // 水位线
-                .assignTimestampsAndWatermarks(WatermarkStrategy.<UserVisitorDto>forBoundedOutOfOrderness(Duration.ofMillis(5))
+                .assignTimestampsAndWatermarks(WatermarkStrategy.<UserVisitorDto>forBoundedOutOfOrderness(Duration.ofMillis(2))
                         .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()));
         dataStream2.print("data2");
 
