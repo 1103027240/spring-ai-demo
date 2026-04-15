@@ -22,13 +22,13 @@ public class IntervalJoinStreamJob {
                         .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()));
         userStream.print("View1");
 
-        SingleOutputStreamOperator<UserVisitorDto> urlViewStream = env.addSource(new ClickV2SourceFunction(500L))
+        SingleOutputStreamOperator<UserVisitorDto> urlStream = env.addSource(new ClickV2SourceFunction(500L))
                 .assignTimestampsAndWatermarks(WatermarkStrategy.<UserVisitorDto>forBoundedOutOfOrderness(Duration.ofMillis(500))
                         .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()));
-        urlViewStream.print("View2");
+        urlStream.print("View2");
 
         userStream.keyBy(e -> e.getUserId())
-                .intervalJoin(urlViewStream.keyBy(e -> e.getUserId()))
+                .intervalJoin(urlStream.keyBy(e -> e.getUserId()))
                 .between(Duration.ofSeconds(-10), Duration.ofSeconds(30))
                 .process(new ProcessJoinFunction<UserVisitorDto, UserVisitorDto, String>() {
                     @Override
@@ -42,7 +42,6 @@ public class IntervalJoinStreamJob {
                         out.collect(result);
                     }
                 }).print("result");
-
 
         env.execute();
     }
