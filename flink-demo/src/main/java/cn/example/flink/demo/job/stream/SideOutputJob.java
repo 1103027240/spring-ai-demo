@@ -14,7 +14,7 @@ import java.time.Duration;
 /**
  * 分流
  */
-public class SideOutputStreamJob {
+public class SideOutputJob {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
