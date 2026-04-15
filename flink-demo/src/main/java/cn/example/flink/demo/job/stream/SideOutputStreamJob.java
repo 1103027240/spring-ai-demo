@@ -27,8 +27,8 @@ public class SideOutputStreamJob {
                         .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()));
         dataStream.print("data");
 
-        OutputTag<Tuple3<String, String, Long>> user1OutputTag = new OutputTag<>("User1") {};
-        OutputTag<Tuple3<String, String, Long>> user2OutputTag = new OutputTag<>("User2") {};
+        OutputTag<Tuple3<String, String, Long>> user1OutputTag = new OutputTag<>("user1") {};
+        OutputTag<Tuple3<String, String, Long>> user2OutputTag = new OutputTag<>("user2") {};
 
         SingleOutputStreamOperator<String> resultStream = dataStream.process(new ProcessFunction<>() {
             @Override
@@ -44,8 +44,8 @@ public class SideOutputStreamJob {
         });
 
         resultStream.print("result");  //主输出流
-        resultStream.getSideOutput(user1OutputTag).print("User1");  //侧输出流
-        resultStream.getSideOutput(user2OutputTag).print("User2");  //侧输出流
+        resultStream.getSideOutput(user1OutputTag).print("user1");  //侧输出流
+        resultStream.getSideOutput(user2OutputTag).print("user2");  //侧输出流
 
         env.execute();
     }

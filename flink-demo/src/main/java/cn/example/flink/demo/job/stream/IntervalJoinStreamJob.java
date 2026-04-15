@@ -20,12 +20,12 @@ public class IntervalJoinStreamJob {
         SingleOutputStreamOperator<UserVisitorDto> userStream = env.addSource(new ClickV2SourceFunction(1000L))
                 .assignTimestampsAndWatermarks(WatermarkStrategy.<UserVisitorDto>forBoundedOutOfOrderness(Duration.ofMillis(1))
                         .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()));
-        userStream.print("View1");
+        userStream.print("data1");
 
         SingleOutputStreamOperator<UserVisitorDto> urlStream = env.addSource(new ClickV2SourceFunction(500L))
                 .assignTimestampsAndWatermarks(WatermarkStrategy.<UserVisitorDto>forBoundedOutOfOrderness(Duration.ofMillis(500))
                         .withTimestampAssigner((userVisitorDto, recordTimestamp) -> userVisitorDto.getTimestamp()));
-        urlStream.print("View2");
+        urlStream.print("data2");
 
         userStream.keyBy(e -> e.getUserId())
                 .intervalJoin(urlStream.keyBy(e -> e.getUserId()))
